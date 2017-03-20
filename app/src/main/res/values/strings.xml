@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">ChaoApp</string>
+    <string name="cheese_ipsum">这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.</string>
+    <string name="open">打开</string>
+    <string name="close">关闭</string>
+    <string name="expand">展开</string>
+    <string name="shrink">收起</string>
+</resources>
