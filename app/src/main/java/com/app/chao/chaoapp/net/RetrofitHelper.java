@@ -23,7 +23,7 @@ import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * Description: RetrofitHelper
+ * Retrofit帮助类
  */
 public class RetrofitHelper {
 

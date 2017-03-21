@@ -72,7 +72,6 @@ public class GuideActivity extends AppCompatActivity {
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
-
     }
 
     @Override

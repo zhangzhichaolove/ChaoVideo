@@ -19,10 +19,15 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.app.chao.chaoapp.base.Preconditions;
+import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.contract.HomeActivityContract;
+import com.app.chao.chaoapp.contract.impl.HomeActivityPresenter;
 import com.app.chao.chaoapp.ui.activity.BaseActivity;
 import com.app.chao.chaoapp.ui.activity.PersonalCoreActivity;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentOne;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentTwo;
+import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
 
 import butterknife.BindView;
@@ -32,7 +37,7 @@ import butterknife.ButterKnife;
  * Created by Chao on 2017/3/13.
  */
 
-public class HomeActivity extends BaseActivity implements View.OnClickListener {
+public class HomeActivity extends BaseActivity implements View.OnClickListener, HomeActivityContract.View {
     @BindView(R.id.dl_left)
     DrawerLayout mDrawerLayout;
     @BindView(R.id.tabs)
@@ -70,6 +75,9 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
     }
 
     private void initView() {
+        new HomeActivityPresenter(this);
+        mPresenter.start();//加载全局数据，一次获取，然后子页面对数据做处理
+
         MyAdapter adapter = new MyAdapter(getSupportFragmentManager(), this);
         viewpager.setAdapter(adapter);
 
@@ -104,6 +112,16 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         home_fab2.setTag(true);
+    }
+
+    @Override
+    public void setPresenter(HomeActivityContract.Presenter presenter) {
+        mPresenter = Preconditions.checkNotNull(presenter);
+    }
+
+    @Override
+    public void showContent(VideoRes videoRes) {
+        RxBus.getDefault().postSticky(videoRes);//分发消息到其他页面
     }
 
     class MyAdapter extends FragmentPagerAdapter {
@@ -143,6 +161,8 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
                 showToast("再按一次退出");
                 firstTime = secondTime;
             } else {
+                // 移除所有Sticky事件
+                RxBus.getDefault().removeAllStickyEvents();
                 super.onBackPressed();
                 android.os.Process.killProcess(android.os.Process.myPid());
                 System.exit(0);

@@ -9,11 +9,10 @@ import android.view.LayoutInflater;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.SpecialAdapter;
-import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
-import com.app.chao.chaoapp.contract.FragmentTwoContract;
-import com.app.chao.chaoapp.contract.impl.FragmentTwoPresenter;
+import com.app.chao.chaoapp.utils.RxBus;
+import com.app.chao.chaoapp.utils.RxBusSubscriber;
 import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
@@ -21,12 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
+import rx.Observable;
 
 /**
  * Created by Chao on 2017/3/20.
  */
 
-public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.View {
+public class TabFragmentTwo extends BaseFragment {
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     SpecialAdapter adapter;
@@ -46,7 +46,7 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
 
     @Override
     protected void initView(LayoutInflater inflater) {
-        new FragmentTwoPresenter(this);
+        //new FragmentTwoPresenter(this);
         //设置Item增加、移除动画
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         SpaceDecoration itemDecoration = new SpaceDecoration(ScreenUtil.dip2px(getContext(), 8));
@@ -56,26 +56,32 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
         itemDecoration.setPaddingHeaderFooter(false);
         recyclerView.addItemDecoration(itemDecoration);
         recyclerView.setAdapter(adapter = new SpecialAdapter(getActivity(), R.layout.item_found, null));
+        getEvent();
     }
 
-    @Override
-    public void setPresenter(FragmentTwoContract.Presenter presenter) {
-        mPresenter = Preconditions.checkNotNull(presenter);
-        mPresenter.start();
-    }
-
-    @Override
-    public void showContent(VideoRes videoRes) {
-        List<VideoInfo> list = new ArrayList<>();
-        for (int i = 0; i < videoRes.list.size(); i++) {
-            if (!TextUtils.isEmpty(videoRes.list.get(i).moreURL) && !TextUtils.isEmpty(videoRes.list.get(i).title)) {
-                VideoInfo videoInfo = videoRes.list.get(i).childList.get(0);
-                videoInfo.title = videoRes.list.get(i).title;
-                videoInfo.moreURL = videoRes.list.get(i).moreURL;
-                list.add(videoInfo);
+    private void getEvent() {
+        Observable<VideoRes> mRxSub = RxBus.getDefault().toObservableSticky(VideoRes.class);
+        mRxSub.subscribe(new RxBusSubscriber<VideoRes>() {
+            @Override
+            protected void onEvent(VideoRes videoRes) {
+                List<VideoInfo> list = new ArrayList<>();
+                for (int i = 0; i < videoRes.list.size(); i++) {
+                    if (!TextUtils.isEmpty(videoRes.list.get(i).moreURL) && !TextUtils.isEmpty(videoRes.list.get(i).title)) {
+                        VideoInfo videoInfo = videoRes.list.get(i).childList.get(0);
+                        videoInfo.title = videoRes.list.get(i).title;
+                        videoInfo.moreURL = videoRes.list.get(i).moreURL;
+                        list.add(videoInfo);
+                    }
+                }
+                adapter.setData(list);
             }
-        }
-        adapter.setData(list);
-
+        });
     }
+
+//    @Override
+//    public void setPresenter(FragmentTwoContract.Presenter presenter) {
+//        mPresenter = Preconditions.checkNotNull(presenter);
+//        mPresenter.start();
+//    }
+
 }
