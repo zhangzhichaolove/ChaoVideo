@@ -8,7 +8,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 
 import com.app.chao.chaoapp.R;
-import com.app.chao.chaoapp.adapter.ClassificationAdapter;
+import com.app.chao.chaoapp.adapter.SpecialAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
@@ -29,7 +29,7 @@ import butterknife.BindView;
 public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.View {
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
-    ClassificationAdapter adapter;
+    SpecialAdapter adapter;
 
     public static TabFragmentTwo newInstance() {
         Bundle args = new Bundle();
@@ -55,7 +55,7 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
         itemDecoration.setPaddingStart(true);
         itemDecoration.setPaddingHeaderFooter(false);
         recyclerView.addItemDecoration(itemDecoration);
-        recyclerView.setAdapter(adapter = new ClassificationAdapter(getActivity(), null));
+        recyclerView.setAdapter(adapter = new SpecialAdapter(getActivity(), R.layout.item_found, null));
     }
 
     @Override
@@ -75,6 +75,7 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
                 list.add(videoInfo);
             }
         }
-        recyclerView.setAdapter(adapter = new ClassificationAdapter(getActivity(), list));
+        adapter.setData(list);
+
     }
 }
