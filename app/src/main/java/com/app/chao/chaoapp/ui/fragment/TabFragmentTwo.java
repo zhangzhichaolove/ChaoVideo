@@ -12,6 +12,7 @@ import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.RxBusSubscriber;
+import com.app.chao.chaoapp.utils.RxSubscriptions;
 import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
-import rx.Observable;
+import rx.Subscription;
 
 /**
  * Created by Chao on 2017/3/20.
@@ -30,6 +31,7 @@ public class TabFragmentTwo extends BaseFragment {
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     SpecialAdapter adapter;
+    Subscription mRxSub;
 
     public static TabFragmentTwo newInstance() {
         //if (fragment == null)
@@ -59,22 +61,30 @@ public class TabFragmentTwo extends BaseFragment {
     }
 
     private void getEvent() {
-        Observable<VideoRes> mRxSub = RxBus.getDefault().toObservableSticky(VideoRes.class);
-        mRxSub.subscribe(new RxBusSubscriber<VideoRes>() {
-            @Override
-            protected void onEvent(VideoRes videoRes) {
-                List<VideoInfo> list = new ArrayList<>();
-                for (int i = 0; i < videoRes.list.size(); i++) {
-                    if (!TextUtils.isEmpty(videoRes.list.get(i).moreURL) && !TextUtils.isEmpty(videoRes.list.get(i).title)) {
-                        VideoInfo videoInfo = videoRes.list.get(i).childList.get(0);
-                        videoInfo.title = videoRes.list.get(i).title;
-                        videoInfo.moreURL = videoRes.list.get(i).moreURL;
-                        list.add(videoInfo);
+        mRxSub = RxBus.getDefault().toObservableSticky(VideoRes.class)
+                .subscribe(new RxBusSubscriber<VideoRes>() {
+                    @Override
+                    protected void onEvent(VideoRes videoRes) {
+                        List<VideoInfo> list = new ArrayList<>();
+                        for (int i = 0; i < videoRes.list.size(); i++) {
+                            if (!TextUtils.isEmpty(videoRes.list.get(i).moreURL) && !TextUtils.isEmpty(videoRes.list.get(i).title)) {
+                                VideoInfo videoInfo = videoRes.list.get(i).childList.get(0);
+                                videoInfo.title = videoRes.list.get(i).title;
+                                videoInfo.moreURL = videoRes.list.get(i).moreURL;
+                                list.add(videoInfo);
+                            }
+                        }
+                        adapter.setData(list);
                     }
-                }
-                adapter.setData(list);
-            }
-        });
+                });
+        RxSubscriptions.add(mRxSub);
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        RxSubscriptions.remove(mRxSub);
     }
 
 //    @Override

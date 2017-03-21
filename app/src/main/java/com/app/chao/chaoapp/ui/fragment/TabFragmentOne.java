@@ -16,6 +16,7 @@ import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.utils.JumpUtil;
 import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.RxBusSubscriber;
+import com.app.chao.chaoapp.utils.RxSubscriptions;
 import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 import com.jude.rollviewpager.RollPagerView;
@@ -25,7 +26,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import rx.Observable;
+import rx.Subscription;
 
 /**
  * Created by Chao on 2017/3/13.
@@ -41,6 +42,7 @@ public class TabFragmentOne extends BaseFragment {
     List<VideoInfo> recommend;
     View headerView;
     FragmentOneAdapter adapter;
+    Subscription mRxSub;
 
     public static TabFragmentOne newInstance() {
         //if (fragment == null)
@@ -76,49 +78,56 @@ public class TabFragmentOne extends BaseFragment {
     }
 
     private void getEvent() {
-        Observable<VideoRes> mRxSub = RxBus.getDefault().toObservableSticky(VideoRes.class);
-        mRxSub.subscribe(new RxBusSubscriber<VideoRes>() {
-            @Override
-            protected void onEvent(final VideoRes videoRes) {
-                if (videoRes != null) {
-                    adapter.clear();
-                    List<VideoInfo> videoInfos;
-                    for (int i = 1; i < videoRes.list.size(); i++) {
-                        if (videoRes.list.get(i).title.equals("精彩推荐")) {//Banner图
-                            videoInfos = videoRes.list.get(i).childList;
-                            adapter.addAll(videoInfos);
-                            break;
+        //RxSubscriptions.remove(mRxSub);
+        mRxSub = RxBus.getDefault().toObservableSticky(VideoRes.class)
+                .subscribe(new RxBusSubscriber<VideoRes>() {
+                    @Override
+                    protected void onEvent(final VideoRes videoRes) {
+                        if (videoRes != null) {
+                            adapter.clear();
+                            List<VideoInfo> videoInfos;
+                            for (int i = 1; i < videoRes.list.size(); i++) {
+                                if (videoRes.list.get(i).title.equals("精彩推荐")) {//Banner图
+                                    videoInfos = videoRes.list.get(i).childList;
+                                    adapter.addAll(videoInfos);
+                                    break;
+                                }
+                            }
+                            for (int i = 1; i < videoRes.list.size(); i++) {
+                                if (videoRes.list.get(i).title.equals("免费推荐")) {
+                                    recommend = videoRes.list.get(i).childList;
+                                    break;
+                                }
+                            }
+                            if (adapter.getHeaderCount() == 0) {
+                                adapter.addHeader(new RecyclerArrayAdapter.ItemView() {
+                                    @Override
+                                    public View onCreateView(ViewGroup parent) {
+                                        banner.setHintView(new IconHintView(getContext(), R.mipmap.ic_page_indicator_focused, R.mipmap.ic_page_indicator, ScreenUtil.dip2px(getContext(), 10)));
+                                        banner.setHintPadding(0, 0, 0, ScreenUtil.dip2px(getContext(), 8));
+                                        banner.setAdapter(new BannerAdapter(getContext(), videoRes.list.get(0).childList));
+                                        return headerView;
+                                    }
+
+                                    @Override
+                                    public void onBindView(View headerView) {
+
+                                    }
+                                });
+                            }
                         }
                     }
-                    for (int i = 1; i < videoRes.list.size(); i++) {
-                        if (videoRes.list.get(i).title.equals("免费推荐")) {
-                            recommend = videoRes.list.get(i).childList;
-                            break;
-                        }
-                    }
-                    if (adapter.getHeaderCount() == 0) {
-                        adapter.addHeader(new RecyclerArrayAdapter.ItemView() {
-                            @Override
-                            public View onCreateView(ViewGroup parent) {
-                                banner.setHintView(new IconHintView(getContext(), R.mipmap.ic_page_indicator_focused, R.mipmap.ic_page_indicator, ScreenUtil.dip2px(getContext(), 10)));
-                                banner.setHintPadding(0, 0, 0, ScreenUtil.dip2px(getContext(), 8));
-                                banner.setAdapter(new BannerAdapter(getContext(), videoRes.list.get(0).childList));
-                                return headerView;
-                            }
-
-                            @Override
-                            public void onBindView(View headerView) {
-
-                            }
-                        });
-                    }
-                }
-            }
-        });
+                });
+        RxSubscriptions.add(mRxSub);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        RxSubscriptions.remove(mRxSub);
+    }
 
-//    @Override
+    //    @Override
 //    public void setPresenter(FragmentOneContract.Presenter presenter) {
 //        mPresenter = Preconditions.checkNotNull(presenter);
 //        presenter.onRefresh();
