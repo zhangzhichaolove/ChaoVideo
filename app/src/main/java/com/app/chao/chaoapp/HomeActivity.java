@@ -18,17 +18,22 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.HomeActivityContract;
 import com.app.chao.chaoapp.contract.impl.HomeActivityPresenter;
+import com.app.chao.chaoapp.dagger.Cloth;
+import com.app.chao.chaoapp.dagger.ILayoutAnimationController;
 import com.app.chao.chaoapp.ui.activity.BaseActivity;
 import com.app.chao.chaoapp.ui.activity.PersonalCoreActivity;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentOne;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentTwo;
 import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -50,6 +55,8 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
     FloatingActionButton home_fab2;
     @BindView(R.id.home_fab3)
     FloatingActionButton home_fab3;
+    @Inject
+    Cloth cloth;
 
     private String[] mTitles = new String[]{"推荐", "专题", "动漫", "喜剧", "爱情", "悬疑", "惊悚", "科幻", "记录"};
 
@@ -88,7 +95,17 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
                 new TabLayout.TabLayoutOnPageChangeListener(tabs);
         viewpager.addOnPageChangeListener(listener);
 
+        ILayoutAnimationController.setLayoutAnimation(
+                (ViewGroup) findViewById(R.id.tabs),
+                R.anim.slide_left_in,
+                0.8f,
+                ILayoutAnimationController.IndexAlgorithm.INDEXSIMPLEPENDULUM);
+
         Toolbar tl = (Toolbar) findViewById(R.id.toolbar);
+        tl.setTitle("");
+        //MainComponent build = DaggerMainComponent.builder().mainModule(new MainModule()).build();
+        //build.inject(this);
+        //tl.setTitle("我现在有" + cloth);
         tl.setTitle("");
         tl.setLogo(R.mipmap.bilibili);
         setSupportActionBar(tl);
