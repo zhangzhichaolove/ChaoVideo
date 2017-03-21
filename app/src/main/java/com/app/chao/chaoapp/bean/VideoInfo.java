@@ -5,7 +5,7 @@ import java.io.Serializable;
 /**
  * Description: 影片详情
  */
-public class VideoInfo implements Serializable {
+public class VideoInfo implements Serializable, Cloneable {
     public String title;
     public String pic;
     public String dataId;
@@ -14,5 +14,16 @@ public class VideoInfo implements Serializable {
     public String moreURL;
     public String loadType;
     //    public String description;
+
+    @Override
+    public VideoInfo clone() {
+        VideoInfo stu = null;
+        try {
+            stu = (VideoInfo) super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return stu;
+    }
 
 }

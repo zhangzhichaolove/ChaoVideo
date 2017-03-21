@@ -68,10 +68,11 @@ public class TabFragmentTwo extends BaseFragment {
                         List<VideoInfo> list = new ArrayList<>();
                         for (int i = 0; i < videoRes.list.size(); i++) {
                             if (!TextUtils.isEmpty(videoRes.list.get(i).moreURL) && !TextUtils.isEmpty(videoRes.list.get(i).title)) {
-                                VideoInfo videoInfo = videoRes.list.get(i).childList.get(0);
-                                videoInfo.title = videoRes.list.get(i).title;
-                                videoInfo.moreURL = videoRes.list.get(i).moreURL;
-                                list.add(videoInfo);
+                                VideoInfo videoInfo = videoRes.list.get(i).childList.get(0);//由于此处得到的是公共实体类，如果修改也将修改整个JavaBean的数据。因为同一地址操作的是同一对象，所以不能通过进行地址给对象赋值
+                                VideoInfo clone = videoInfo.clone();
+                                clone.title = videoRes.list.get(i).title;
+                                clone.moreURL = videoRes.list.get(i).moreURL;
+                                list.add(clone);
                             }
                         }
                         adapter.setData(list);
