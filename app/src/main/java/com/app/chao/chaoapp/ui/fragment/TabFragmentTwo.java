@@ -1,6 +1,5 @@
 package com.app.chao.chaoapp.ui.fragment;
 
-import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -27,14 +26,14 @@ import rx.Observable;
  */
 
 public class TabFragmentTwo extends BaseFragment {
+    static TabFragmentTwo fragment;
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     SpecialAdapter adapter;
 
     public static TabFragmentTwo newInstance() {
-        Bundle args = new Bundle();
-        TabFragmentTwo fragment = new TabFragmentTwo();
-        fragment.setArguments(args);
+        //if (fragment == null)
+        fragment = new TabFragmentTwo();
         return fragment;
     }
 

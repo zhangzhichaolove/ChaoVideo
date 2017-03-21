@@ -1,6 +1,5 @@
 package com.app.chao.chaoapp.ui.fragment;
 
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -33,6 +32,7 @@ import rx.Observable;
  */
 
 public class TabFragmentOne extends BaseFragment {
+    static TabFragmentOne fragment;
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     RollPagerView banner;
@@ -43,9 +43,8 @@ public class TabFragmentOne extends BaseFragment {
     FragmentOneAdapter adapter;
 
     public static TabFragmentOne newInstance() {
-        Bundle args = new Bundle();
-        TabFragmentOne fragment = new TabFragmentOne();
-        fragment.setArguments(args);
+        //if (fragment == null)
+        fragment = new TabFragmentOne();
         return fragment;
     }
 
