@@ -65,6 +65,14 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         setContentView(R.layout.activity_video_info_views);
         ButterKnife.bind(this);
         getIntentData();
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         /*VideoOptionModel videoOptionModel =
                 new VideoOptionModel(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 50);

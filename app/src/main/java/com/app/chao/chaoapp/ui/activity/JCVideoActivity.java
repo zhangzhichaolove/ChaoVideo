@@ -51,6 +51,14 @@ public class JCVideoActivity extends BaseActivity implements VideoInfoContract.V
         setContentView(R.layout.activity_video_info_view);
         ButterKnife.bind(this);
         getIntentData();
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
         //mPresenter = new VideoInfoPresenter(videoInfoView, videoInfo);
     }
 
