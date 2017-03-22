@@ -1,9 +1,6 @@
 package com.app.chao.chaoapp.baseadapter.recyclerview.base;
 
 
-/**
- * Created by zhy on 16/6/22.
- */
 public interface ItemViewDelegate<T> {
 
     int getItemViewLayoutId();
