@@ -4,8 +4,6 @@ import android.animation.Animator;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -36,7 +34,6 @@ import com.app.chao.chaoapp.utils.StatusBarUtils;
 import javax.inject.Inject;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 
 /**
  * Created by Chao on 2017/3/13.
@@ -60,12 +57,14 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
 
     private String[] mTitles = new String[]{"推荐", "专题", "动漫", "喜剧", "爱情", "悬疑", "惊悚", "科幻", "记录"};
 
+
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        //getSupportActionBar().hide();
-        setContentView(R.layout.activity_main);
-        ButterKnife.bind(this);
+    protected int getLayout() {
+        return R.layout.activity_main;
+    }
+
+    @Override
+    protected void init() {
         StatusBarUtils.setTranslucent(this);
         mDrawerLayout.setScrimColor(Color.TRANSPARENT);//设置取消阴影
         //DrawerLayout要求Content View必须是DrawerLayout的第一个Child View

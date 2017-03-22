@@ -1,7 +1,5 @@
 package com.app.chao.chaoapp.ui.activity;
 
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
@@ -18,9 +16,12 @@ import com.app.chao.chaoapp.utils.StatusBarUtils;
 public class PersonalCoreActivity extends BaseActivity {
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_core);
+    protected int getLayout() {
+        return R.layout.activity_core;
+    }
+
+    @Override
+    protected void init() {
 //        setTitle("个人中心");
 //        getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);//TODO 此页面toolbar未使用。

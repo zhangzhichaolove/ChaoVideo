@@ -3,7 +3,6 @@ package com.app.chao.chaoapp.ui.activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -15,6 +14,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.app.chao.chaoapp.R;
+import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.VideoInfoContract;
@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 
 public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract.View {
     VideoInfoContract.Presenter mPresenter;
@@ -59,11 +58,14 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
     private OrientationUtils orientationUtils;
 
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_video_info_views);
-        ButterKnife.bind(this);
+    protected int getLayout() {
+        return R.layout.activity_video_info_views;
+    }
+
+    @Override
+    protected void init() {
         getIntentData();
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -154,7 +156,6 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
                 }
             }
         });
-
     }
 
     private void getIntentData() {
@@ -245,7 +246,7 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
     @Override
     public void setPresenter(VideoInfoContract.Presenter presenter) {
-        mPresenter = presenter;
+        mPresenter = Preconditions.checkNotNull(presenter);
     }
 
     @Override

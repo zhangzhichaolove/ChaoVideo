@@ -5,15 +5,19 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.View;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.SpecialAdapter;
+import com.app.chao.chaoapp.baseadapter.recyclerview.MultiItemTypeAdapter;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.utils.JumpUtil;
 import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.RxBusSubscriber;
 import com.app.chao.chaoapp.utils.RxSubscriptions;
 import com.app.chao.chaoapp.utils.ScreenUtil;
+import com.app.chao.chaoapp.utils.StringUtils;
 import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 import java.util.ArrayList;
@@ -56,6 +60,17 @@ public class TabFragmentTwo extends BaseFragment {
         itemDecoration.setPaddingHeaderFooter(false);
         recyclerView.addItemDecoration(itemDecoration);
         recyclerView.setAdapter(adapter = new SpecialAdapter(getActivity(), R.layout.item_found, null));
+        adapter.setOnItemClickListener(new MultiItemTypeAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view, RecyclerView.ViewHolder holder, int position) {
+                JumpUtil.go2VideoListActivity(mContext, StringUtils.getCatalogId(adapter.getItem(position).moreURL), adapter.getItem(position).title);
+            }
+
+            @Override
+            public boolean onItemLongClick(View view, RecyclerView.ViewHolder holder, int position) {
+                return false;
+            }
+        });
         getEvent();
     }
 

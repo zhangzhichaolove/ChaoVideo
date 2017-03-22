@@ -1,7 +1,6 @@
 package com.app.chao.chaoapp.ui.activity;
 
 import android.content.Context;
-import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -14,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.app.chao.chaoapp.R;
+import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.VideoInfoContract;
@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayer;
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard;
 
@@ -45,11 +44,14 @@ public class JCVideoActivity extends BaseActivity implements VideoInfoContract.V
     VideoRes videoRes;
     List<Fragment> fragments;
 
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_video_info_view);
-        ButterKnife.bind(this);
+    protected int getLayout() {
+        return R.layout.activity_video_info_view;
+    }
+
+    @Override
+    protected void init() {
         getIntentData();
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -105,7 +107,7 @@ public class JCVideoActivity extends BaseActivity implements VideoInfoContract.V
 
     @Override
     public void setPresenter(VideoInfoContract.Presenter presenter) {
-        mPresenter = presenter;
+        mPresenter = Preconditions.checkNotNull(presenter);
     }
 
     @Override

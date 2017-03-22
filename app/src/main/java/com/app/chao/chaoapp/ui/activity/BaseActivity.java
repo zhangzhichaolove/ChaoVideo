@@ -1,20 +1,43 @@
 package com.app.chao.chaoapp.ui.activity;
 
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import com.app.chao.chaoapp.base.BasePresenter;
 
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
+
 /**
  * Created by Chao on 2017/3/14.
  */
 
-public class BaseActivity<T extends BasePresenter> extends AppCompatActivity {
+public abstract class BaseActivity<T extends BasePresenter> extends AppCompatActivity {
     protected T mPresenter;
+    Unbinder bind;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(getLayout());
+        bind = ButterKnife.bind(this);
+        init();
+    }
+
+    protected abstract int getLayout();
+
+    protected abstract void init();
 
     protected void showToast(String coutent) {
         Toast.makeText(this, coutent, Toast.LENGTH_SHORT).show();
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mPresenter = null;
+        bind.unbind();
+    }
 }

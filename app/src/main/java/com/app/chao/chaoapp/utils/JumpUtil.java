@@ -6,6 +6,7 @@ import android.content.Intent;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.ui.activity.GSYVVideoActivity;
 import com.app.chao.chaoapp.ui.activity.JCVideoActivity;
+import com.app.chao.chaoapp.ui.activity.VideoListActivity;
 
 
 /**
@@ -13,24 +14,43 @@ import com.app.chao.chaoapp.ui.activity.JCVideoActivity;
  */
 public class JumpUtil {
 
+    /**
+     * 播放页
+     *
+     * @param context
+     * @param videoInfo
+     */
     public static void goGSYYVideoActivity(Context context, VideoInfo videoInfo) {
         Intent intent = new Intent(context, GSYVVideoActivity.class);
         intent.putExtra("videoInfo", videoInfo);
         context.startActivity(intent);
     }
 
+    /**
+     * 播放页
+     *
+     * @param context
+     * @param videoInfo
+     */
     public static void goJCVideoActivity(Context context, VideoInfo videoInfo) {
         Intent intent = new Intent(context, JCVideoActivity.class);
         intent.putExtra("videoInfo", videoInfo);
         context.startActivity(intent);
     }
 
-//    public static void go2VideoListActivity(Context context, String catalogId, String title) {
-//        Intent intent = new Intent(context, VideoListActivity.class);
-//        intent.putExtra("catalogId", catalogId);
-//        intent.putExtra("title", title);
-//        context.startActivity(intent);
-//    }
+    /**
+     * 专题列表页
+     *
+     * @param context
+     * @param catalogId
+     * @param title
+     */
+    public static void go2VideoListActivity(Context context, String catalogId, String title) {
+        Intent intent = new Intent(context, VideoListActivity.class);
+        intent.putExtra("catalogId", catalogId);
+        intent.putExtra("title", title);
+        context.startActivity(intent);
+    }
 //    public static void go2VideoListSearchActivity(Context context, String searchStr, String title) {
 //        Intent intent = new Intent(context, VideoListActivity.class);
 //        intent.putExtra("searchStr", searchStr);
