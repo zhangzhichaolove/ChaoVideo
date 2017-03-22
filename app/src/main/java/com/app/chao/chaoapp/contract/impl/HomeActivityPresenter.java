@@ -8,6 +8,7 @@ import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.HomeActivityContract;
 import com.app.chao.chaoapp.net.RetrofitHelper;
 import com.app.chao.chaoapp.net.VideoHttpResponse;
+import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.RxUtil;
 
 import rx.Subscription;
@@ -19,11 +20,20 @@ import rx.functions.Action1;
 
 public class HomeActivityPresenter extends RxPresenter implements HomeActivityContract.Presenter {
     HomeActivityContract.View view;
+    Subscription refresh;
     String TAG = this.getClass().getSimpleName();
 
     public HomeActivityPresenter(HomeActivityContract.View view) {
         this.view = Preconditions.checkNotNull(view);
         view.setPresenter(this);
+        refresh = RxBus.getDefault().toObservable(String.class).subscribe(new Action1<String>() {
+            @Override
+            public void call(String s) {
+                if (s.equals("Refresh")) {
+                    start();
+                }
+            }
+        });
     }
 
 
@@ -47,5 +57,12 @@ public class HomeActivityPresenter extends RxPresenter implements HomeActivityCo
                     }
                 });
         addSubscribe(rxSubscription);
+    }
+
+    @Override
+    public void detachView() {
+        super.detachView();
+        if (refresh != null)
+            refresh.unsubscribe();
     }
 }

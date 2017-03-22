@@ -1,5 +1,6 @@
 package com.app.chao.chaoapp.ui.activity;
 
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,6 +18,8 @@ import com.app.chao.chaoapp.contract.impl.ActivityVideoListPresenter;
 import com.app.chao.chaoapp.utils.BeanUtil;
 import com.app.chao.chaoapp.utils.JumpUtil;
 import com.app.chao.chaoapp.utils.ScreenUtil;
+import com.cjj.MaterialRefreshLayout;
+import com.cjj.MaterialRefreshListener;
 import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 import java.util.List;
@@ -28,6 +31,8 @@ import butterknife.BindView;
  */
 
 public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Presenter> implements ActivityVideoListContract.View {
+    @BindView(R.id.refresh)
+    MaterialRefreshLayout materialRefreshLayout;
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     @BindView(R.id.toolbar)
@@ -44,7 +49,6 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     @Override
     protected void init() {
         new ActivityVideoListPresenter(this);
-        mPresenter.onRefresh();
 
         toolbar.setTitle(getIntent().getStringExtra("title"));
         setSupportActionBar(toolbar);
@@ -76,7 +80,36 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
                 return false;
             }
         });
+        listener();
     }
+
+    private void listener() {
+        materialRefreshLayout.setShowArrow(true);//显示箭头
+        materialRefreshLayout.setWaveColor(ContextCompat.getColor(this, R.color.DeepPink));//波纹颜色
+        materialRefreshLayout.setIsOverLay(false);//是否覆盖
+        materialRefreshLayout.setWaveShow(true);//显示波纹
+        materialRefreshLayout.setShowProgressBg(true);//显示进度背景
+        materialRefreshLayout.setLoadMore(true);//加载更多
+        materialRefreshLayout.setProgressColors(getResources().getIntArray(R.array.material_colors));//设置进度颜色
+        materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
+            @Override
+            public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
+                mPresenter.onRefresh();
+            }
+
+            @Override
+            public void onfinish() {
+                //Toast.makeText(VideoListActivity.this, "finish", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onRefreshLoadMore(final MaterialRefreshLayout materialRefreshLayout) {
+                mPresenter.loadMore();
+            }
+        });
+        materialRefreshLayout.autoRefresh();
+    }
+
 
     @Override
     public void setPresenter(ActivityVideoListContract.Presenter presenter) {
@@ -92,11 +125,18 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     @Override
     public void showContent(List<VideoType> list) {
         adapter.setData(list);
+        close();
     }
 
     @Override
     public void showMoreContent(List<VideoType> list) {
         adapter.addAll(list);
+        close();
+    }
+
+    private void close() {
+        materialRefreshLayout.finishRefresh();
+        materialRefreshLayout.finishRefreshLoadMore();
     }
 
 }

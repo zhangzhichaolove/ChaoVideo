@@ -204,12 +204,12 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
                     animateStart = true;
                     home_fab2.setTag(false);
                     home_fab2.animate().setDuration(600).translationY(-home_fab.getHeight() - 10).start();
-                    home_fab3.animate().setDuration(600).setStartDelay(300).translationY(-home_fab.getHeight() * 2 - 10 * 2).start();
+                    home_fab3.animate().setDuration(1200).setStartDelay(0).translationY(-home_fab.getHeight() * 2 - 10 * 2).start();
                 } else if (!animateStart && !tag) {
                     animateStart = true;
                     home_fab2.setTag(true);
-                    home_fab3.animate().setDuration(600).translationY(0).start();
-                    home_fab2.animate().setDuration(600).setStartDelay(300).translationY(0).start();
+                    home_fab3.animate().setDuration(1200).translationY(0).start();
+                    home_fab2.animate().setDuration(600).setStartDelay(0).translationY(0).start();
                 }
                 home_fab3.animate().setListener(new Animator.AnimatorListener() {
                     @Override
