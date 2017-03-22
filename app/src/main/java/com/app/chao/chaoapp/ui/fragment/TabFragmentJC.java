@@ -135,12 +135,12 @@ public class TabFragmentJC extends BaseFragment implements FragmentOneContract.V
     @Override
     public void onResume() {
         super.onResume();
-        stopBanner(false);
+        banner.resume();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        stopBanner(true);
+        banner.pause();
     }
 }

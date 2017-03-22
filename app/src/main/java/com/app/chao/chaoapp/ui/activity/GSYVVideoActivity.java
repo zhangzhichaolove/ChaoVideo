@@ -174,6 +174,7 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         TabLayout.TabLayoutOnPageChangeListener listener =
                 new TabLayout.TabLayoutOnPageChangeListener(viewpagertab);
         viewpager.addOnPageChangeListener(listener);
+
         new VideoInfoPresenter(this, videoInfo);
 
     }

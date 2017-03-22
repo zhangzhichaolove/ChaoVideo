@@ -27,7 +27,6 @@ import rx.Subscription;
  */
 
 public class TabFragmentTwo extends BaseFragment {
-    static TabFragmentTwo fragment;
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     SpecialAdapter adapter;
@@ -35,7 +34,7 @@ public class TabFragmentTwo extends BaseFragment {
 
     public static TabFragmentTwo newInstance() {
         //if (fragment == null)
-        fragment = new TabFragmentTwo();
+        TabFragmentTwo fragment = new TabFragmentTwo();
         return fragment;
     }
 

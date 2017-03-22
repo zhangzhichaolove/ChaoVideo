@@ -97,10 +97,6 @@ public class MultiItemTypeAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
         return mDatas;
     }
 
-    public void setData(List<T> mDatas) {
-        this.mDatas = mDatas;
-        notifyDataSetChanged();
-    }
 
     public MultiItemTypeAdapter addItemViewDelegate(ItemViewDelegate<T> itemViewDelegate) {
         mItemViewDelegateManager.addDelegate(itemViewDelegate);
@@ -114,6 +110,28 @@ public class MultiItemTypeAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
 
     protected boolean useItemViewDelegateManager() {
         return mItemViewDelegateManager.getItemViewDelegateCount() > 0;
+    }
+
+    public T getItem(int position) {
+        return mDatas.get(position);
+    }
+
+    public void setData(List<T> mDatas) {
+        if (mDatas != null)
+            this.mDatas = mDatas;
+        notifyDataSetChanged();
+    }
+
+    public void clear() {
+        if (mDatas != null)
+            mDatas.clear();
+        notifyDataSetChanged();
+    }
+
+    public void addAll(List<T> datas) {
+        if (datas != null)
+            mDatas = datas;
+        notifyDataSetChanged();
     }
 
     public interface OnItemClickListener {

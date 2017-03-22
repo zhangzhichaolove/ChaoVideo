@@ -33,7 +33,6 @@ import rx.Subscription;
  */
 
 public class TabFragmentOne extends BaseFragment {
-    static TabFragmentOne fragment;
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     RollPagerView banner;
@@ -46,7 +45,7 @@ public class TabFragmentOne extends BaseFragment {
 
     public static TabFragmentOne newInstance() {
         //if (fragment == null)
-        fragment = new TabFragmentOne();
+        TabFragmentOne fragment = new TabFragmentOne();
         return fragment;
     }
 
@@ -85,11 +84,9 @@ public class TabFragmentOne extends BaseFragment {
                     protected void onEvent(final VideoRes videoRes) {
                         if (videoRes != null) {
                             adapter.clear();
-                            List<VideoInfo> videoInfos;
                             for (int i = 1; i < videoRes.list.size(); i++) {
-                                if (videoRes.list.get(i).title.equals("精彩推荐")) {//Banner图
-                                    videoInfos = videoRes.list.get(i).childList;
-                                    adapter.addAll(videoInfos);
+                                if (videoRes.list.get(i).title.equals("精彩推荐")) {
+                                    adapter.addAll(videoRes.list.get(i).childList);
                                     break;
                                 }
                             }
@@ -100,7 +97,7 @@ public class TabFragmentOne extends BaseFragment {
                                 }
                             }
                             if (adapter.getHeaderCount() == 0) {
-                                adapter.addHeader(new RecyclerArrayAdapter.ItemView() {
+                                adapter.addHeader(new RecyclerArrayAdapter.ItemView() {//Banner图
                                     @Override
                                     public View onCreateView(ViewGroup parent) {
                                         banner.setHintView(new IconHintView(getContext(), R.mipmap.ic_page_indicator_focused, R.mipmap.ic_page_indicator, ScreenUtil.dip2px(getContext(), 10)));
