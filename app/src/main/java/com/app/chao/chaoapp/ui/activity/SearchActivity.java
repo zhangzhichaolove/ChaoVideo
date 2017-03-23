@@ -1,5 +1,8 @@
 package com.app.chao.chaoapp.ui.activity;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.content.ContextCompat;
@@ -8,6 +11,9 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.VideoListAdapter;
@@ -23,6 +29,7 @@ import com.app.chao.chaoapp.utils.JumpUtil;
 import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
 import com.app.chao.chaoapp.view.BaseToolBar;
+import com.app.chao.chaoapp.view.WordWrapView;
 import com.cjj.MaterialRefreshLayout;
 import com.cjj.MaterialRefreshListener;
 import com.jude.easyrecyclerview.decoration.SpaceDecoration;
@@ -44,6 +51,13 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     AppBarLayout appbar;
     @BindView(R.id.toolbar)
     BaseToolBar toolbar;
+    @BindView(R.id.wv_search_history)
+    WordWrapView wvSearchHistory;
+    @BindView(R.id.rl_history)
+    LinearLayout rl_history;
+    @BindView(R.id.img_search_clear)
+    ImageView img_search_clear;
+    SharedPreferences sp;
     VideoListAdapter adapter;
     VideoInfo videoInfo;
     boolean isOpen = false;
@@ -55,6 +69,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
 
     @Override
     protected void init() {
+        sp = getSharedPreferences("search", Context.MODE_PRIVATE);
         StatusBarUtils.setTranslucent(this);
 
         CollapsingToolbarLayout.LayoutParams lp = (CollapsingToolbarLayout.LayoutParams) toolbar.getLayoutParams();
@@ -74,6 +89,8 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
             @Override
             public void onClick(View v) {
                 mPresenter.onRefresh();
+                if (adapter.getItemCount() == 0)
+                    saveSearch();
             }
         });
 
@@ -98,7 +115,26 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
                 return false;
             }
         });
+        setHistory();
         listener();
+    }
+
+    private void saveSearch() {
+        String search = sp.getString("search", "");
+        String[] split = search.split("\\\\");
+        boolean isSave = false;
+        for (int i = 0; split != null && i < split.length; i++) {
+            if (getCatalogId().equals(split[i])) {//如果已经存储过
+                isSave = true;
+                break;
+            }
+        }
+        if (!isSave) {
+            SharedPreferences.Editor edit = sp.edit();
+            edit.putString("search", getCatalogId() + "\\" + search);
+            edit.commit();
+        }
+        setHistory();
     }
 
     private void listener() {
@@ -112,6 +148,8 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
+                if (adapter.getItemCount() == 0)
+                    saveSearch();
                 mPresenter.onRefresh();
             }
 
@@ -143,7 +181,41 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
             }
         });
         //appbar.setExpanded(false);//默认不展开
+
+        img_search_clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences.Editor edit = sp.edit();
+                edit.clear();
+                edit.commit();
+                saveSearch();
+            }
+        });
     }
+
+    private void setHistory() {
+        wvSearchHistory.removeAllViewsInLayout();
+        String search = sp.getString("search", "");
+        String[] split = search.split("\\\\");
+        if (split != null && split.length > 0) {
+            for (int i = 0; i < split.length; i++) {
+                TextView textView = new TextView(SearchActivity.this);
+                textView.setTextColor(Color.parseColor("#ffffff"));
+                textView.setText(split[i]);
+                textView.setOnClickListener(onClickListener);
+                wvSearchHistory.addView(textView);
+            }
+        }
+    }
+
+    View.OnClickListener onClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            toolbar.setSearchText(((TextView) view).getText().toString().trim());
+            //materialRefreshLayout.autoRefresh();
+            mPresenter.onRefresh();
+        }
+    };
 
 //    @Override
 //    public boolean dispatchTouchEvent(MotionEvent event) {
@@ -191,6 +263,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         adapter.setData(list);
         if (list != null && list.size() > 0) {
             materialRefreshLayout.setLoadMore(true);
+            rl_history.setVisibility(View.GONE);
         }
         close();
     }

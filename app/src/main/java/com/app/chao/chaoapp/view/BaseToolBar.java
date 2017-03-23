@@ -3,7 +3,6 @@ package com.app.chao.chaoapp.view;
 import android.content.Context;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -81,6 +80,10 @@ public class BaseToolBar extends Toolbar {
                 }
             });
         }
+    }
+
+    public void setSearchText(String msg) {
+        mSearch.setText(msg);
     }
 
     public String getSearchMsg() {

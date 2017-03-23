@@ -43,6 +43,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
+
     <com.cjj.MaterialRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/refresh"
@@ -62,4 +63,42 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </com.cjj.MaterialRefreshLayout>
+
+    <LinearLayout
+        android:id="@+id/rl_history"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="34dp"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/tv_search_history"
+                style="@style/common_tv_style"
+                android:text="播放记录" />
+
+            <ImageView
+                android:id="@+id/img_search_clear"
+                style="@style/both_wrap_style"
+                android:layout_alignParentRight="true"
+                android:background="@mipmap/search_history_clear" />
+        </RelativeLayout>
+
+
+        <com.app.chao.chaoapp.view.WordWrapView
+            android:id="@+id/wv_search_history"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tv_search_history"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp" />
+    </LinearLayout>
 </android.support.design.widget.CoordinatorLayout>
