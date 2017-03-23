@@ -2,6 +2,9 @@ package com.app.chao.chaoapp.view;
 
 import android.content.Context;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -50,6 +53,33 @@ public class BaseToolBar extends Toolbar {
             LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL);
 
             addView(mView, params);
+            img_clear.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mSearch.setText("");
+                }
+            });
+
+            mSearch.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (getSearchMsg().isEmpty()) {
+                        hideSearchClearView();
+                    } else {
+                        showSearchClearView();
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+
+                }
+            });
         }
     }
 

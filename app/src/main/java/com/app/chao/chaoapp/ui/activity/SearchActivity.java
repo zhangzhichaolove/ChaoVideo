@@ -107,7 +107,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         materialRefreshLayout.setIsOverLay(false);//是否覆盖
         materialRefreshLayout.setWaveShow(true);//显示波纹
         materialRefreshLayout.setShowProgressBg(true);//显示进度背景
-        materialRefreshLayout.setLoadMore(true);//加载更多
+        materialRefreshLayout.setLoadMore(false);//加载更多
         materialRefreshLayout.setProgressColors(getResources().getIntArray(R.array.material_colors));//设置进度颜色
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
@@ -189,6 +189,9 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     @Override
     public void showContent(List<VideoType> list) {
         adapter.setData(list);
+        if (list != null && list.size() > 0) {
+            materialRefreshLayout.setLoadMore(true);
+        }
         close();
     }
 
