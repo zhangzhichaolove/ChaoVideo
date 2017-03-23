@@ -12,7 +12,7 @@ import io.realm.Sort;
 
 public class RealmHelper {
 
-    public static final String DB_NAME = "ghost.realm";
+    public static final String DB_NAME = "chao.realm";
     private Realm mRealm;
     private static RealmHelper instance;
 
