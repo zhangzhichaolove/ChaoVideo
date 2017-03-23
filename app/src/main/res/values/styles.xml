@@ -8,6 +8,10 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <!--actionBar高度-->
+        <item name="android:actionBarSize">50dp</item>
+        <!--返回键颜色-->
+        <item name="colorControlNormal">@android:color/white</item>
     </style>
 
     <style name="Widget.CardContent" parent="android:Widget">

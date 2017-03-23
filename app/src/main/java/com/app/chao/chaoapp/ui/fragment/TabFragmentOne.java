@@ -76,6 +76,12 @@ public class TabFragmentOne extends BaseFragment {
                 JumpUtil.goGSYYVideoActivity(mContext, adapter.getItem(position));
             }
         });
+        rlGoSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                JumpUtil.goSearchActivity(mContext);
+            }
+        });
         //recyclerView.setErrorView(R.layout.view_error);
         //webView.loadUrl("http://www.youku.com");
         getEvent();

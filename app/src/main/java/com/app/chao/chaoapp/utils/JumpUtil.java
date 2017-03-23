@@ -6,6 +6,7 @@ import android.content.Intent;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.ui.activity.GSYVVideoActivity;
 import com.app.chao.chaoapp.ui.activity.JCVideoActivity;
+import com.app.chao.chaoapp.ui.activity.SearchActivity;
 import com.app.chao.chaoapp.ui.activity.VideoListActivity;
 
 
@@ -35,6 +36,16 @@ public class JumpUtil {
     public static void goJCVideoActivity(Context context, VideoInfo videoInfo) {
         Intent intent = new Intent(context, JCVideoActivity.class);
         intent.putExtra("videoInfo", videoInfo);
+        context.startActivity(intent);
+    }
+
+    /**
+     * 跳转搜索界面
+     *
+     * @param context
+     */
+    public static void goSearchActivity(Context context) {
+        Intent intent = new Intent(context, SearchActivity.class);
         context.startActivity(intent);
     }
 
