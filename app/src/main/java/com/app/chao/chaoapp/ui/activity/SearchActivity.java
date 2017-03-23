@@ -1,7 +1,5 @@
 package com.app.chao.chaoapp.ui.activity;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
@@ -19,6 +17,7 @@ import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.VideoListAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.baseadapter.recyclerview.MultiItemTypeAdapter;
+import com.app.chao.chaoapp.bean.SearchKey;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoType;
 import com.app.chao.chaoapp.contract.ActivityVideoListContract;
@@ -26,6 +25,7 @@ import com.app.chao.chaoapp.contract.impl.ActivityVideoSearchPresenter;
 import com.app.chao.chaoapp.listener.AppBarStateChangeListener;
 import com.app.chao.chaoapp.utils.BeanUtil;
 import com.app.chao.chaoapp.utils.JumpUtil;
+import com.app.chao.chaoapp.utils.RealmHelper;
 import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
 import com.app.chao.chaoapp.view.BaseToolBar;
@@ -57,7 +57,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     LinearLayout rl_history;
     @BindView(R.id.img_search_clear)
     ImageView img_search_clear;
-    SharedPreferences sp;
     VideoListAdapter adapter;
     VideoInfo videoInfo;
     boolean isOpen = false;
@@ -69,7 +68,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
 
     @Override
     protected void init() {
-        sp = getSharedPreferences("search", Context.MODE_PRIVATE);
         StatusBarUtils.setTranslucent(this);
 
         CollapsingToolbarLayout.LayoutParams lp = (CollapsingToolbarLayout.LayoutParams) toolbar.getLayoutParams();
@@ -89,8 +87,11 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
             @Override
             public void onClick(View v) {
                 mPresenter.onRefresh();
-                if (adapter.getItemCount() == 0)
-                    saveSearch();
+                if (adapter.getItemCount() == 0 && !getCatalogId().isEmpty()) {
+                    SearchKey search = new SearchKey(getCatalogId(), System.currentTimeMillis());
+                    RealmHelper.getInstance().insertSearchHistory(search);
+                    setHistory();
+                }
             }
         });
 
@@ -119,23 +120,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         listener();
     }
 
-    private void saveSearch() {
-        String search = sp.getString("search", "");
-        String[] split = search.split("\\\\");
-        boolean isSave = false;
-        for (int i = 0; split != null && i < split.length; i++) {
-            if (getCatalogId().equals(split[i])) {//如果已经存储过
-                isSave = true;
-                break;
-            }
-        }
-        if (!isSave) {
-            SharedPreferences.Editor edit = sp.edit();
-            edit.putString("search", getCatalogId() + "\\" + search);
-            edit.commit();
-        }
-        setHistory();
-    }
 
     private void listener() {
         materialRefreshLayout.setShowArrow(true);//显示箭头
@@ -148,8 +132,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
-                if (adapter.getItemCount() == 0)
-                    saveSearch();
                 mPresenter.onRefresh();
             }
 
@@ -185,23 +167,22 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         img_search_clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences.Editor edit = sp.edit();
-                edit.clear();
-                edit.commit();
-                saveSearch();
+                RealmHelper.getInstance().deleteSearchHistoryAll();
+                wvSearchHistory.removeAllViews();
             }
         });
     }
 
     private void setHistory() {
-        wvSearchHistory.removeAllViewsInLayout();
-        String search = sp.getString("search", "");
-        String[] split = search.split("\\\\");
-        if (split != null && split.length > 0) {
-            for (int i = 0; i < split.length; i++) {
+        final List<SearchKey> searchHistory = RealmHelper.getInstance().getSearchHistoryListAll();
+        if (searchHistory != null && searchHistory.size() > 0) {
+            wvSearchHistory.removeAllViewsInLayout();
+            int size = searchHistory.size();
+            for (int i = 0; i < size; i++) {
+                final String query = searchHistory.get(i).getSearchKey();
                 TextView textView = new TextView(SearchActivity.this);
                 textView.setTextColor(Color.parseColor("#ffffff"));
-                textView.setText(split[i]);
+                textView.setText(query);
                 textView.setOnClickListener(onClickListener);
                 wvSearchHistory.addView(textView);
             }
