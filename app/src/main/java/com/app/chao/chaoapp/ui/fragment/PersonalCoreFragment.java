@@ -3,7 +3,6 @@ package com.app.chao.chaoapp.ui.fragment;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.View;
 
 import com.app.chao.chaoapp.R;
@@ -33,7 +32,7 @@ public class PersonalCoreFragment extends BaseFragment {
     }
 
     @Override
-    protected void initView(LayoutInflater inflater) {
+    protected void initView(View view) {
         toolbar.setTitle("个人中心");//设置Toolbar标题
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -44,6 +43,8 @@ public class PersonalCoreFragment extends BaseFragment {
         CollapsingToolbarLayout.LayoutParams lp = (CollapsingToolbarLayout.LayoutParams) toolbar.getLayoutParams();
         lp.topMargin = StatusBarUtils.getStatusBarHeight();
         toolbar.setLayoutParams(lp);
+        //CollapsingToolbarLayout layout = (CollapsingToolbarLayout) view.findViewById(R.id.collapsing_toolbar);
+        //layout.setTitle("1111");
     }
 
 }

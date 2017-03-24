@@ -38,7 +38,7 @@ public class VideoIntroFragment extends BaseFragment {
     }
 
     @Override
-    protected void initView(LayoutInflater inflater) {
+    protected void initView(View inflater) {
         EventBus.getDefault().register(this);
 
         headerView = LayoutInflater.from(mContext).inflate(R.layout.intro_header, null);

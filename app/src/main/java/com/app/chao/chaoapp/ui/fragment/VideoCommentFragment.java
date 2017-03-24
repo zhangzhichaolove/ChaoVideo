@@ -4,7 +4,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.View;
 
 import com.app.chao.chaoapp.R;
@@ -39,7 +38,7 @@ public class VideoCommentFragment extends BaseFragment<CommentContract.Presenter
     }
 
     @Override
-    protected void initView(LayoutInflater inflater) {
+    protected void initView(View inflater) {
         mPresenter = new CommentPresenter(this);
         EventBus.getDefault().register(this);
 //        ((CommentPresenter) mPresenter).onRefresh();

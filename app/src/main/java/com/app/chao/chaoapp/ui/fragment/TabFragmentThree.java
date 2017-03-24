@@ -2,7 +2,7 @@ package com.app.chao.chaoapp.ui.fragment;
 
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
+import android.view.View;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.bean.VideoInfo;
@@ -39,7 +39,7 @@ public class TabFragmentThree extends BaseFragment {
     }
 
     @Override
-    protected void initView(LayoutInflater inflater) {
+    protected void initView(View inflater) {
 
     }
 

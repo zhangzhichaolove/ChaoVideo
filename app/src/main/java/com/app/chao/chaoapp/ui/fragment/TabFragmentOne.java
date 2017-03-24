@@ -61,7 +61,7 @@ public class TabFragmentOne extends BaseFragment {
     }
 
     @Override
-    protected void initView(LayoutInflater inflater) {
+    protected void initView(View inflater) {
         //new FragmentOnePresenter(this);
         headerView = LayoutInflater.from(mContext).inflate(R.layout.recommend_header, null);
         banner = ButterKnife.findById(headerView, R.id.banner);

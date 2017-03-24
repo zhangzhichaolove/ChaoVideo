@@ -29,7 +29,7 @@ public abstract class BaseFragment<T extends BasePresenter> extends Fragment {
         rootView = inflater.inflate(getLayout(), container, false);
         unbinder = ButterKnife.bind(this, rootView);
         mContext = getContext();
-        initView(inflater);
+        initView(rootView);
         return rootView;
     }
 
@@ -42,7 +42,7 @@ public abstract class BaseFragment<T extends BasePresenter> extends Fragment {
 
     protected abstract int getLayout();
 
-    protected abstract void initView(LayoutInflater inflater);
+    protected abstract void initView(View rootView);
 
 
 }

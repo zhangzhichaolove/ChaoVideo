@@ -5,7 +5,6 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.View;
 
 import com.app.chao.chaoapp.R;
@@ -54,7 +53,7 @@ public class TabFragmentTwo extends BaseFragment {
     }
 
     @Override
-    protected void initView(LayoutInflater inflater) {
+    protected void initView(View inflater) {
         //new FragmentTwoPresenter(this);
         //设置Item增加、移除动画
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
