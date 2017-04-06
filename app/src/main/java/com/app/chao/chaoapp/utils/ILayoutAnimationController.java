@@ -1,4 +1,4 @@
-package com.app.chao.chaoapp.dagger;
+package com.app.chao.chaoapp.utils;
 
 import android.content.Context;
 import android.support.annotation.AnimRes;

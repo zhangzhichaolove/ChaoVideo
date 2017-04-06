@@ -22,12 +22,12 @@ import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.HomeActivityContract;
 import com.app.chao.chaoapp.contract.impl.HomeActivityPresenter;
-import com.app.chao.chaoapp.dagger.Cloth;
-import com.app.chao.chaoapp.dagger.ILayoutAnimationController;
+import com.app.chao.chaoapp.dagger.Persion;
 import com.app.chao.chaoapp.ui.activity.BaseActivity;
 import com.app.chao.chaoapp.ui.activity.PersonalCoreActivity;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentOne;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentTwo;
+import com.app.chao.chaoapp.utils.ILayoutAnimationController;
 import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
 
@@ -52,8 +52,6 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
     FloatingActionButton home_fab2;
     @BindView(R.id.home_fab3)
     FloatingActionButton home_fab3;
-    @Inject
-    Cloth cloth;
 
     private String[] mTitles = new String[]{"推荐", "专题", "动漫", "喜剧", "爱情", "悬疑", "惊悚", "科幻", "记录"};
 
@@ -102,10 +100,6 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
 
         Toolbar tl = (Toolbar) findViewById(R.id.toolbar);
         tl.setTitle("");
-        //MainComponent build = DaggerMainComponent.builder().mainModule(new MainModule()).build();
-        //build.inject(this);
-        //tl.setTitle("我现在有" + cloth);
-        tl.setTitle("");
         tl.setLogo(R.mipmap.bilibili);
         setSupportActionBar(tl);
         getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
@@ -128,7 +122,18 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         home_fab2.setTag(true);
+        // 构造桥梁对象
+        //MainComponent component = DaggerMainComponent.builder().mainModule(new MainModule(this)).build();
+        //注入
+        //component.inject(this);
+        //Log.e("TAG", persion.toString());
+
     }
+
+    @Inject
+    Persion persion;//标明需要注入的对象
+
+    @Inject
 
     @Override
     public void setPresenter(HomeActivityContract.Presenter presenter) {

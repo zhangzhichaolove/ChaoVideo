@@ -1,4 +1,4 @@
-package com.app.chao.chaoapp.dagger;
+package com.app.chao.chaoapp.utils;
 
 /**
  * 与ILayoutAnimationController配合使用的 “ViewGroup实例中子View布局动画执行顺序规则 工具类”
