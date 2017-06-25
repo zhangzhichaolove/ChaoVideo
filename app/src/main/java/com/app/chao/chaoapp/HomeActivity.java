@@ -40,6 +40,8 @@ import butterknife.BindView;
  */
 
 public class HomeActivity extends BaseActivity implements View.OnClickListener, HomeActivityContract.View {
+    @BindView(R.id.toolbar)
+    Toolbar toolbar;
     @BindView(R.id.dl_left)
     DrawerLayout mDrawerLayout;
     @BindView(R.id.tabs)
@@ -65,6 +67,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
     protected void init() {
         StatusBarUtils.setTranslucent(this);
         mDrawerLayout.setScrimColor(Color.TRANSPARENT);//设置取消阴影
+        setSupportActionBar(toolbar);
         //DrawerLayout要求Content View必须是DrawerLayout的第一个Child View
         //mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         //mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
