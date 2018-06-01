@@ -6,6 +6,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import com.app.chao.chaoapp.R;
+import com.app.chao.chaoapp.ui.activity.PersonalCoreActivity;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
 
 import butterknife.BindView;
@@ -17,6 +18,8 @@ import butterknife.BindView;
 public class PersonalCoreFragment extends BaseFragment {
     @BindView(R.id.toolbar)
     Toolbar toolbar;
+    @BindView(R.id.collapsing_toolbar)
+    CollapsingToolbarLayout collapsing_toolbar;
 
     public static PersonalCoreFragment newInstance() {
         Bundle args = new Bundle();
@@ -33,7 +36,9 @@ public class PersonalCoreFragment extends BaseFragment {
 
     @Override
     protected void initView(View view) {
-        toolbar.setTitle("个人中心");//设置Toolbar标题
+        ((PersonalCoreActivity) getActivity()).setSupportActionBar(toolbar);
+        ((PersonalCoreActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        collapsing_toolbar.setTitle("个人中心");//设置Toolbar标题
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

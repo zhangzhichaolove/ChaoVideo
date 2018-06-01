@@ -15,7 +15,10 @@
             android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            app:collapsedTitleGravity="left"
+            app:collapsedTitleTextAppearance="@anim/slide_left_in"
             app:contentScrim="?attr/colorPrimary"
+            app:expandedTitleGravity="center"
             app:expandedTitleMarginEnd="0dp"
             app:expandedTitleMarginStart="0dp"
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
