@@ -4,12 +4,15 @@ import android.util.Log;
 
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.base.RxPresenter;
+import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.HomeActivityContract;
 import com.app.chao.chaoapp.net.RetrofitHelper;
 import com.app.chao.chaoapp.net.VideoHttpResponse;
 import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.RxUtil;
+
+import java.util.List;
 
 import rx.Subscription;
 import rx.functions.Action1;
@@ -34,6 +37,30 @@ public class HomeActivityPresenter extends RxPresenter implements HomeActivityCo
                 }
             }
         });
+    }
+
+
+    @Override
+    public void getVideoHomeData() {
+        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoHomeData()
+                .compose(RxUtil.<VideoHttpResponse<List<HomeVideoData>>>rxSchedulerHelper())
+                .compose(RxUtil.<List<HomeVideoData>>handleResult())
+                .subscribe(new Action1<List<HomeVideoData>>() {
+                    @Override
+                    public void call(final List<HomeVideoData> res) {
+                        if (res != null) {
+                            Log.e(TAG, res.toString());
+                            view.showBanner(res);
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        System.out.println(throwable);
+                        //view.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
+                    }
+                });
+        addSubscribe(rxSubscription);
     }
 
 

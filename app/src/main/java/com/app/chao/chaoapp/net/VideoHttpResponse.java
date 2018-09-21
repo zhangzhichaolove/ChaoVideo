@@ -8,7 +8,7 @@ public class VideoHttpResponse<T> {
 
     private int code;
     private String msg;
-    T ret;
+    private T data;
 
     public int getCode() {
         return code;
@@ -26,11 +26,11 @@ public class VideoHttpResponse<T> {
         this.msg = msg;
     }
 
-    public T getRet() {
-        return ret;
+    public T getData() {
+        return data;
     }
 
-    public void setRet(T ret) {
-        this.ret = ret;
+    public void setData(T data) {
+        this.data = data;
     }
 }

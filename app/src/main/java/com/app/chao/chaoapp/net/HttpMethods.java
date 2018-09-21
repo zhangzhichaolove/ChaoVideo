@@ -139,7 +139,7 @@ public class HttpMethods {
             if (httpResult.getCode() != 200) {
                 throw new ServerException(httpResult.getCode(), httpResult.getMsg());
             }
-            return httpResult.getRet();
+            return httpResult.getData();
         }
     }
 

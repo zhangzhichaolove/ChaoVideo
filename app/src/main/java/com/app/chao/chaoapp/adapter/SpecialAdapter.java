@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.baseadapter.recyclerview.CommonAdapter;
 import com.app.chao.chaoapp.baseadapter.recyclerview.base.ViewHolder;
+import com.app.chao.chaoapp.bean.SpecialVideoData;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.utils.ImageLoader;
 
@@ -17,15 +18,15 @@ import java.util.List;
  * Created by Chao on 2017/3/21.
  */
 
-public class SpecialAdapter extends CommonAdapter<VideoInfo> {
+public class SpecialAdapter extends CommonAdapter<SpecialVideoData> {
 
-    public SpecialAdapter(Context context, int layoutId, List<VideoInfo> datas) {
+    public SpecialAdapter(Context context, int layoutId, List<SpecialVideoData> datas) {
         super(context, layoutId, datas);
     }
 
     @Override
-    protected void convert(ViewHolder holder, VideoInfo videoInfo, int position) {
-        holder.setText(R.id.tv_title, videoInfo.title);
+    protected void convert(ViewHolder holder, SpecialVideoData videoInfo, int position) {
+        holder.setText(R.id.tv_title, videoInfo.getTitle());
         ImageView iv = holder.getView(R.id.img_video);
         iv.setScaleType(ImageView.ScaleType.FIT_XY);
         ViewGroup.LayoutParams params = iv.getLayoutParams();
@@ -34,6 +35,6 @@ public class SpecialAdapter extends CommonAdapter<VideoInfo> {
 //        int height = data.getHeight()*width/data.getWidth();//计算View的高度
         params.height = (int) (width / 1.8);
         iv.setLayoutParams(params);
-        ImageLoader.load(mContext, videoInfo.pic, iv);
+        ImageLoader.load(mContext, videoInfo.getImage(), iv);
     }
 }

@@ -4,25 +4,21 @@ import android.graphics.Color;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.view.View;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.SpecialAdapter;
 import com.app.chao.chaoapp.baseadapter.recyclerview.MultiItemTypeAdapter;
-import com.app.chao.chaoapp.bean.VideoInfo;
-import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.bean.SpecialVideoData;
+import com.app.chao.chaoapp.contract.FragmentTwoContract;
+import com.app.chao.chaoapp.contract.impl.FragmentTwoPresenter;
 import com.app.chao.chaoapp.utils.JumpUtil;
-import com.app.chao.chaoapp.utils.RxBus;
-import com.app.chao.chaoapp.utils.RxBusSubscriber;
 import com.app.chao.chaoapp.utils.RxSubscriptions;
 import com.app.chao.chaoapp.utils.ScreenUtil;
-import com.app.chao.chaoapp.utils.StringUtils;
 import com.cjj.MaterialRefreshLayout;
 import com.cjj.MaterialRefreshListener;
 import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -32,13 +28,14 @@ import rx.Subscription;
  * Created by Chao on 2017/3/20.
  */
 
-public class TabFragmentTwo extends BaseFragment {
+public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.View {
     @BindView(R.id.refresh)
     MaterialRefreshLayout materialRefreshLayout;
     @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     SpecialAdapter adapter;
     Subscription mRxSub;
+    FragmentTwoPresenter presenter;
 
     public static TabFragmentTwo newInstance() {
         //if (fragment == null)
@@ -67,7 +64,7 @@ public class TabFragmentTwo extends BaseFragment {
         adapter.setOnItemClickListener(new MultiItemTypeAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, RecyclerView.ViewHolder holder, int position) {
-                JumpUtil.go2VideoListActivity(mContext, StringUtils.getCatalogId(adapter.getItem(position).moreURL), adapter.getItem(position).title);
+                JumpUtil.go2VideoListActivity(mContext, "1", adapter.getItem(position).getTitle());
             }
 
             @Override
@@ -90,7 +87,8 @@ public class TabFragmentTwo extends BaseFragment {
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
-                RxBus.getDefault().postSticky("Refresh");
+                //RxBus.getDefault().postSticky("Refresh");
+                presenter.start();
             }
 
             @Override
@@ -107,25 +105,27 @@ public class TabFragmentTwo extends BaseFragment {
     }
 
     private void getEvent() {
-        mRxSub = RxBus.getDefault().toObservableSticky(VideoRes.class)
-                .subscribe(new RxBusSubscriber<VideoRes>() {
-                    @Override
-                    protected void onEvent(VideoRes videoRes) {
-                        List<VideoInfo> list = new ArrayList<>();
-                        for (int i = 0; videoRes != null && i < videoRes.list.size(); i++) {
-                            if (!TextUtils.isEmpty(videoRes.list.get(i).moreURL) && !TextUtils.isEmpty(videoRes.list.get(i).title)) {
-                                VideoInfo videoInfo = videoRes.list.get(i).childList.get(0);//由于此处得到的是公共实体类，如果修改也将修改整个JavaBean的数据。因为同一地址操作的是同一对象，所以不能通过进行地址给对象赋值
-                                VideoInfo clone = videoInfo.clone();
-                                clone.title = videoRes.list.get(i).title;
-                                clone.moreURL = videoRes.list.get(i).moreURL;
-                                list.add(clone);
-                            }
-                        }
-                        adapter.setData(list);
-                        close();
-                    }
-                });
-        RxSubscriptions.add(mRxSub);
+        new FragmentTwoPresenter(this);
+        presenter.start();
+//        mRxSub = RxBus.getDefault().toObservableSticky(VideoRes.class)
+//                .subscribe(new RxBusSubscriber<VideoRes>() {
+//                    @Override
+//                    protected void onEvent(VideoRes videoRes) {
+//                        List<VideoInfo> list = new ArrayList<>();
+//                        for (int i = 0; videoRes != null && i < videoRes.list.size(); i++) {
+//                            if (!TextUtils.isEmpty(videoRes.list.get(i).moreURL) && !TextUtils.isEmpty(videoRes.list.get(i).title)) {
+//                                VideoInfo videoInfo = videoRes.list.get(i).childList.get(0);//由于此处得到的是公共实体类，如果修改也将修改整个JavaBean的数据。因为同一地址操作的是同一对象，所以不能通过进行地址给对象赋值
+//                                VideoInfo clone = videoInfo.clone();
+//                                clone.title = videoRes.list.get(i).title;
+//                                clone.moreURL = videoRes.list.get(i).moreURL;
+//                                list.add(clone);
+//                            }
+//                        }
+//                        adapter.setData(list);
+//                        close();
+//                    }
+//                });
+//        RxSubscriptions.add(mRxSub);
     }
 
     private void close() {
@@ -137,6 +137,17 @@ public class TabFragmentTwo extends BaseFragment {
     public void onDestroy() {
         super.onDestroy();
         RxSubscriptions.remove(mRxSub);
+    }
+
+    @Override
+    public void setPresenter(FragmentTwoContract.Presenter presenter) {
+        this.presenter = (FragmentTwoPresenter) presenter;
+    }
+
+    @Override
+    public void showContent(List<SpecialVideoData> videoRes) {
+        adapter.setData(videoRes);
+        close();
     }
 
 //    @Override

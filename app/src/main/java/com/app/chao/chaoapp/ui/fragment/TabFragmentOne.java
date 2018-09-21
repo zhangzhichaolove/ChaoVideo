@@ -12,8 +12,11 @@ import android.widget.TextView;
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.BannerAdapter;
 import com.app.chao.chaoapp.adapter.FragmentOneAdapter;
+import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.contract.HomeActivityContract;
+import com.app.chao.chaoapp.contract.impl.HomeActivityPresenter;
 import com.app.chao.chaoapp.utils.JumpUtil;
 import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.RxBusSubscriber;
@@ -35,7 +38,7 @@ import rx.Subscription;
  * Created by Chao on 2017/3/13.
  */
 
-public class TabFragmentOne extends BaseFragment {
+public class TabFragmentOne extends BaseFragment implements HomeActivityContract.View {
     @BindView(R.id.refresh)
     MaterialRefreshLayout materialRefreshLayout;
     @BindView(R.id.recyclerView)
@@ -47,6 +50,7 @@ public class TabFragmentOne extends BaseFragment {
     View headerView;
     FragmentOneAdapter adapter;
     Subscription mRxSub;
+    HomeActivityPresenter mPresenter;
 
     public static TabFragmentOne newInstance() {
         //if (fragment == null)
@@ -100,7 +104,8 @@ public class TabFragmentOne extends BaseFragment {
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
-                RxBus.getDefault().postSticky("Refresh");
+                //RxBus.getDefault().postSticky("Refresh");
+                mPresenter.getVideoHomeData();
             }
 
             @Override
@@ -117,6 +122,8 @@ public class TabFragmentOne extends BaseFragment {
     }
 
     private void getEvent() {
+        mPresenter = new HomeActivityPresenter(this);
+        mPresenter.getVideoHomeData();
         //RxSubscriptions.remove(mRxSub);
         mRxSub = RxBus.getDefault().toObservableSticky(VideoRes.class)
                 .subscribe(new RxBusSubscriber<VideoRes>() {
@@ -126,7 +133,7 @@ public class TabFragmentOne extends BaseFragment {
                             adapter.clear();
                             for (int i = 1; i < videoRes.list.size(); i++) {
                                 if (videoRes.list.get(i).title.equals("精彩推荐")) {
-                                    adapter.addAll(videoRes.list.get(i).childList);
+                                    //adapter.addAll(videoRes.list.get(i).childList);
                                     break;
                                 }
                             }
@@ -142,7 +149,7 @@ public class TabFragmentOne extends BaseFragment {
                                     public View onCreateView(ViewGroup parent) {
                                         banner.setHintView(new IconHintView(getContext(), R.mipmap.ic_page_indicator_focused, R.mipmap.ic_page_indicator, ScreenUtil.dip2px(getContext(), 10)));
                                         banner.setHintPadding(0, 0, 0, ScreenUtil.dip2px(getContext(), 8));
-                                        banner.setAdapter(new BannerAdapter(getContext(), videoRes.list.get(0).childList));
+                                        //banner.setAdapter(new BannerAdapter(getContext(), videoRes.list.get(0).childList));
                                         return headerView;
                                     }
 
@@ -185,5 +192,37 @@ public class TabFragmentOne extends BaseFragment {
     public void onPause() {
         super.onPause();
         banner.pause();
+    }
+
+    @Override
+    public void setPresenter(HomeActivityContract.Presenter presenter) {
+
+    }
+
+    @Override
+    public void showContent(VideoRes videoRes) {
+
+    }
+
+    @Override
+    public void showBanner(final List<HomeVideoData> videoRes) {
+        adapter.addAll(videoRes.subList(3, videoRes.size()));
+        if (adapter.getHeaderCount() == 0) {
+            adapter.addHeader(new RecyclerArrayAdapter.ItemView() {//Banner图
+                @Override
+                public View onCreateView(ViewGroup parent) {
+                    banner.setHintView(new IconHintView(getContext(), R.mipmap.ic_page_indicator_focused, R.mipmap.ic_page_indicator, ScreenUtil.dip2px(getContext(), 10)));
+                    banner.setHintPadding(0, 0, 0, ScreenUtil.dip2px(getContext(), 8));
+                    banner.setAdapter(new BannerAdapter(getContext(), videoRes.subList(0, 3)));
+                    return headerView;
+                }
+
+                @Override
+                public void onBindView(View headerView) {
+
+                }
+            });
+        }
+        close();
     }
 }

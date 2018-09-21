@@ -19,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.app.chao.chaoapp.base.Preconditions;
+import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.HomeActivityContract;
 import com.app.chao.chaoapp.contract.impl.HomeActivityPresenter;
@@ -31,6 +32,8 @@ import com.app.chao.chaoapp.utils.ILayoutAnimationController;
 import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
 import butterknife.BindView;
@@ -39,7 +42,7 @@ import butterknife.BindView;
  * Created by Chao on 2017/3/13.
  */
 
-public class HomeActivity extends BaseActivity implements View.OnClickListener, HomeActivityContract.View {
+public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements View.OnClickListener, HomeActivityContract.View {
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     @BindView(R.id.dl_left)
@@ -84,6 +87,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
     private void initView() {
         new HomeActivityPresenter(this);
         mPresenter.start();//加载全局数据，一次获取，然后子页面对数据做处理
+        //mPresenter.getVideoBanner();
 
         MyAdapter adapter = new MyAdapter(getSupportFragmentManager(), this);
         viewpager.setAdapter(adapter);
@@ -140,12 +144,16 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener, 
 
     @Override
     public void setPresenter(HomeActivityContract.Presenter presenter) {
-        mPresenter = Preconditions.checkNotNull(presenter);
+        mPresenter = (HomeActivityPresenter) Preconditions.checkNotNull(presenter);
     }
 
     @Override
     public void showContent(VideoRes videoRes) {
         RxBus.getDefault().postSticky(videoRes);//分发消息到其他页面
+    }
+
+    @Override
+    public void showBanner(List<HomeVideoData> videoRes) {
     }
 
     class MyAdapter extends FragmentPagerAdapter {

@@ -1,11 +1,13 @@
 package com.app.chao.chaoapp.contract.impl;
 
 import com.app.chao.chaoapp.base.RxPresenter;
-import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.contract.ActivityVideoListContract;
 import com.app.chao.chaoapp.net.RetrofitHelper;
 import com.app.chao.chaoapp.net.VideoHttpResponse;
 import com.app.chao.chaoapp.utils.RxUtil;
+
+import java.util.List;
 
 import rx.Subscription;
 import rx.functions.Action1;
@@ -25,27 +27,55 @@ public class ActivityVideoListPresenter extends RxPresenter implements ActivityV
 
     @Override
     public void start() {
-        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoList(mView.getCatalogId(), page + "")
-                .compose(RxUtil.<VideoHttpResponse<VideoRes>>rxSchedulerHelper())
-                .compose(RxUtil.<VideoRes>handleResult())
-                .subscribe(new Action1<VideoRes>() {
+//        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoList(mView.getCatalogId(), page + "")
+//                .compose(RxUtil.<VideoHttpResponse<VideoRes>>rxSchedulerHelper())
+//                .compose(RxUtil.<VideoRes>handleResult())
+//                .subscribe(new Action1<VideoRes>() {
+//                    @Override
+//                    public void call(VideoRes res) {
+//                        if (res != null) {
+//                            if (page == 1) {
+//                                //mView.showContent(res.list);
+//                            } else {
+//                                //mView.showMoreContent(res.list);
+//                            }
+//                        }
+//                    }
+//                }, new Action1<Throwable>() {
+//                    @Override
+//                    public void call(Throwable throwable) {
+//                        if (page > 1) {
+//                            page--;
+//                        }
+//                        //mView.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
+//                    }
+//                });
+//        addSubscribe(rxSubscription);
+        getVideoHomeData();
+    }
+
+    @Override
+    public void getVideoHomeData() {
+        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoHomeData()
+                .compose(RxUtil.<VideoHttpResponse<List<HomeVideoData>>>rxSchedulerHelper())
+                .compose(RxUtil.<List<HomeVideoData>>handleResult())
+                .subscribe(new Action1<List<HomeVideoData>>() {
                     @Override
-                    public void call(VideoRes res) {
+                    public void call(final List<HomeVideoData> res) {
                         if (res != null) {
+
                             if (page == 1) {
-                                mView.showContent(res.list);
+                                mView.showContent(res);
                             } else {
-                                mView.showMoreContent(res.list);
+                                mView.showMoreContent(res);
                             }
                         }
                     }
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        if (page > 1) {
-                            page--;
-                        }
-                        //mView.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
+                        System.out.println(throwable);
+                        //view.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
                     }
                 });
         addSubscribe(rxSubscription);

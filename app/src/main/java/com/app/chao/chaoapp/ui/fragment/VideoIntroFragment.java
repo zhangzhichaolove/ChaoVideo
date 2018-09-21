@@ -1,5 +1,6 @@
 package com.app.chao.chaoapp.ui.fragment;
 
+import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -8,6 +9,7 @@ import android.view.ViewGroup;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.RelatedAdapter;
+import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.impl.VideoInfoPresenter;
 import com.app.chao.chaoapp.utils.JumpUtil;
@@ -19,6 +21,8 @@ import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 import org.simple.eventbus.EventBus;
 import org.simple.eventbus.Subscriber;
+
+import java.io.Serializable;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -35,6 +39,15 @@ public class VideoIntroFragment extends BaseFragment {
     @Override
     protected int getLayout() {
         return R.layout.fragment_video_intro;
+    }
+
+
+    public static VideoIntroFragment newInstance(HomeVideoData videoInfo) {
+        Bundle args = new Bundle();
+        args.putSerializable("video", videoInfo);
+        VideoIntroFragment fragment = new VideoIntroFragment();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -55,7 +68,7 @@ public class VideoIntroFragment extends BaseFragment {
         adapter.setOnItemClickListener(new RecyclerArrayAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-                JumpUtil.goGSYYVideoActivity(getContext(), adapter.getItem(position));
+                //JumpUtil.goGSYYVideoActivity(getContext(), adapter.getItem(position));
                 getActivity().finish();
             }
         });
@@ -70,6 +83,8 @@ public class VideoIntroFragment extends BaseFragment {
 
             }
         });
+        HomeVideoData video = (HomeVideoData) getArguments().getSerializable("video");
+        setData(video);
     }
 
     @Override
@@ -79,14 +94,14 @@ public class VideoIntroFragment extends BaseFragment {
     }
 
     @Subscriber(tag = VideoInfoPresenter.Refresh_Video_Info)
-    public void setData(VideoRes videoInfo) {
-        String dir = "导演：" + StringUtils.removeOtherCode(videoInfo.director);
-        String act = "主演：" + StringUtils.removeOtherCode(videoInfo.actors);
-        String des = dir + "\n" + act + "\n" + "简介：" + StringUtils.removeOtherCode(videoInfo.description);
+    public void setData(HomeVideoData videoInfo) {
+        String dir = "导演：" + StringUtils.removeOtherCode("Mr·Zhang");
+        String act = "主演：" + StringUtils.removeOtherCode("Mr·Zhang");
+        String des = dir + "\n" + act + "\n" + "简介：" + StringUtils.removeOtherCode(videoInfo.getDescription());
         tvExpand.setText(des);
-        if (videoInfo.list.size() > 1)
-            adapter.addAll(videoInfo.list.get(1).childList);
-        else
-            adapter.addAll(videoInfo.list.get(0).childList);
+//        if (videoInfo.list.size() > 1)
+//            adapter.addAll(videoInfo.list.get(1).childList);
+//        else
+//            adapter.addAll(videoInfo.list.get(0).childList);
     }
 }

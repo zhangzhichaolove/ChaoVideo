@@ -11,7 +11,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.app.chao.chaoapp.R;
-import com.app.chao.chaoapp.adapter.BannerAdapter;
 import com.app.chao.chaoapp.adapter.FragmentOneAdapter;
 import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
@@ -92,7 +91,7 @@ public class TabFragmentJC extends BaseFragment implements FragmentOneContract.V
             for (int i = 1; i < videoRes.list.size(); i++) {
                 if (videoRes.list.get(i).title.equals("精彩推荐")) {//Banner图
                     videoInfos = videoRes.list.get(i).childList;
-                    adapter.addAll(videoInfos);
+                    //adapter.addAll(videoInfos);
                     break;
                 }
             }
@@ -108,7 +107,7 @@ public class TabFragmentJC extends BaseFragment implements FragmentOneContract.V
                     public View onCreateView(ViewGroup parent) {
                         banner.setHintView(new IconHintView(getContext(), R.mipmap.ic_page_indicator_focused, R.mipmap.ic_page_indicator, ScreenUtil.dip2px(getContext(), 10)));
                         banner.setHintPadding(0, 0, 0, ScreenUtil.dip2px(getContext(), 8));
-                        banner.setAdapter(new BannerAdapter(getContext(), videoRes.list.get(0).childList));
+                        //banner.setAdapter(new BannerAdapter(getContext(), videoRes.list.get(0).childList));
                         return headerView;
                     }
 

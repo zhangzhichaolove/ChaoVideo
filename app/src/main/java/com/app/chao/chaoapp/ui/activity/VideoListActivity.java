@@ -11,11 +11,10 @@ import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.VideoListAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.baseadapter.recyclerview.MultiItemTypeAdapter;
+import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoInfo;
-import com.app.chao.chaoapp.bean.VideoType;
 import com.app.chao.chaoapp.contract.ActivityVideoListContract;
 import com.app.chao.chaoapp.contract.impl.ActivityVideoListPresenter;
-import com.app.chao.chaoapp.utils.BeanUtil;
 import com.app.chao.chaoapp.utils.JumpUtil;
 import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.cjj.MaterialRefreshLayout;
@@ -38,7 +37,6 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     @BindView(R.id.toolbar)
     Toolbar toolbar;
     VideoListAdapter adapter;
-    VideoInfo videoInfo;
 
 
     @Override
@@ -49,7 +47,7 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     @Override
     protected void init() {
         new ActivityVideoListPresenter(this);
-
+        mPresenter.getVideoHomeData();
         toolbar.setTitle(getIntent().getStringExtra("title"));
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -72,7 +70,7 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
         adapter.setOnItemClickListener(new MultiItemTypeAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, RecyclerView.ViewHolder holder, int position) {
-                JumpUtil.goGSYYVideoActivity(VideoListActivity.this, videoInfo = BeanUtil.VideoType2VideoInfo(adapter.getItem(position), videoInfo));
+                JumpUtil.goGSYYVideoActivity(VideoListActivity.this, adapter.getItem(position));
             }
 
             @Override
@@ -123,13 +121,13 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     }
 
     @Override
-    public void showContent(List<VideoType> list) {
+    public void showContent(List<HomeVideoData> list) {
         adapter.setData(list);
         close();
     }
 
     @Override
-    public void showMoreContent(List<VideoType> list) {
+    public void showMoreContent(List<HomeVideoData> list) {
         adapter.addAll(list);
         close();
     }

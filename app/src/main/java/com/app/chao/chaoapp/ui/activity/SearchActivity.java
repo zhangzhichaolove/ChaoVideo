@@ -17,13 +17,12 @@ import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.VideoListAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.baseadapter.recyclerview.MultiItemTypeAdapter;
+import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.SearchKey;
 import com.app.chao.chaoapp.bean.VideoInfo;
-import com.app.chao.chaoapp.bean.VideoType;
 import com.app.chao.chaoapp.contract.ActivityVideoListContract;
 import com.app.chao.chaoapp.contract.impl.ActivityVideoSearchPresenter;
 import com.app.chao.chaoapp.listener.AppBarStateChangeListener;
-import com.app.chao.chaoapp.utils.BeanUtil;
 import com.app.chao.chaoapp.utils.JumpUtil;
 import com.app.chao.chaoapp.utils.RealmHelper;
 import com.app.chao.chaoapp.utils.ScreenUtil;
@@ -58,7 +57,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     @BindView(R.id.img_search_clear)
     ImageView img_search_clear;
     VideoListAdapter adapter;
-    VideoInfo videoInfo;
     boolean isOpen = false;
 
     @Override
@@ -108,7 +106,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         adapter.setOnItemClickListener(new MultiItemTypeAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, RecyclerView.ViewHolder holder, int position) {
-                JumpUtil.goGSYYVideoActivity(SearchActivity.this, videoInfo = BeanUtil.VideoType2VideoInfo(adapter.getItem(position), videoInfo));
+                JumpUtil.goGSYYVideoActivity(SearchActivity.this, adapter.getItem(position));
             }
 
             @Override
@@ -240,7 +238,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     }
 
     @Override
-    public void showContent(List<VideoType> list) {
+    public void showContent(List<HomeVideoData> list) {
         adapter.setData(list);
         if (list != null && list.size() > 0) {
             materialRefreshLayout.setLoadMore(true);
@@ -250,7 +248,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     }
 
     @Override
-    public void showMoreContent(List<VideoType> list) {
+    public void showMoreContent(List<HomeVideoData> list) {
         adapter.addAll(list);
         close();
     }

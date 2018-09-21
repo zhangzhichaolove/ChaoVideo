@@ -15,10 +15,9 @@ import android.widget.ImageView;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.base.Preconditions;
-import com.app.chao.chaoapp.bean.VideoInfo;
+import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.VideoInfoContract;
-import com.app.chao.chaoapp.contract.impl.VideoInfoPresenter;
 import com.app.chao.chaoapp.ui.fragment.VideoCommentFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoIntroFragment;
 import com.app.chao.chaoapp.utils.ImageLoader;
@@ -43,8 +42,9 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
-    private String[] mTitles = new String[]{"简介", "评论"};
-    VideoInfo videoInfo;
+    //    private String[] mTitles = new String[]{"简介", "评论"};
+    private String[] mTitles = new String[]{"简介"};
+    HomeVideoData videoInfo;
     @BindView(R.id.viewpagertab)
     TabLayout viewpagertab;
     @BindView(R.id.viewpager)
@@ -159,13 +159,13 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
     }
 
     private void getIntentData() {
+        videoInfo = (HomeVideoData) getIntent().getSerializableExtra("videoInfo");
         fragments = new ArrayList<>();
-        VideoIntroFragment videoIntroFragment = new VideoIntroFragment();
+        VideoIntroFragment videoIntroFragment = VideoIntroFragment.newInstance(videoInfo);
         VideoCommentFragment videoCommentFragment = new VideoCommentFragment();
         fragments.add(videoIntroFragment);
         fragments.add(videoCommentFragment);
 
-        videoInfo = (VideoInfo) getIntent().getSerializableExtra("videoInfo");
 
         MyAdapter adapter = new MyAdapter(getSupportFragmentManager(), this);
         viewpager.setAdapter(adapter);
@@ -176,7 +176,20 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
                 new TabLayout.TabLayoutOnPageChangeListener(viewpagertab);
         viewpager.addOnPageChangeListener(listener);
 
-        new VideoInfoPresenter(this, videoInfo);
+
+        toolbar.setTitle(videoInfo.getTitle());
+        if (!TextUtils.isEmpty(videoInfo.getImage())) {
+            ImageView imageView = new ImageView(this);
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            ImageLoader.load(this, videoInfo.getImage(), imageView);
+            videoPlayer.setThumbImageView(imageView);
+        }
+        if (!TextUtils.isEmpty(videoInfo.getUrl())) {
+            videoPlayer.setUp(videoInfo.getUrl(), true, null, videoInfo.getTitle());
+            videoPlayer.startPlayLogic();
+        }
+
+        //new VideoInfoPresenter(this, videoInfo);
 
     }
 

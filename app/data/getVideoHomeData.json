@@ -1,0 +1,65 @@
+{
+	"code": 200,
+	"msg": "成功",
+	"data": [{
+			"title": "治愈系动画：蠢萌企鹅和心机山雀",
+			"url": "http://baobab.kaiyanapp.com/api/v1/playUrl?vid=127769&resourceType=video&editionType=default&source=aliyun",
+			"image": "http://img.kaiyanapp.com/e989dbc46d84cf2dd5ee60c84e9623b2.png?imageMogr2/quality/60/format/jpg",
+			"description": "当单纯可爱小企鹅遭遇邪恶的小山雀会怎样？插图画家 Rurutea 制作的正能量企鹅宝宝在社交网络上有着很高的人气，天真善良的蠢萌企鹅和可爱到冒泡的配音绝对会让丧丧的你充满元气~ From GrayParkaService "
+		},
+		{
+			"title": "一条视频教你彻底解决背疼问题",
+			"url": "http://baobab.kaiyanapp.com/api/v1/playUrl?vid=126259&resourceType=video&editionType=default&source=aliyun",
+			"image": "http://img.kaiyanapp.com/8c3471cc4f85d5687a625e511c3f2634.jpeg?imageMogr2/quality/60/format/jpg",
+			"description": "无论你是学生党还是上班族，相信很多人每天坐着的时间普遍会超过 8 小时。如果你正忍受着背痛或者为了未来的自己着想，请一定看完本片，别忘了分享给你的朋友家人哦~"
+		},
+		{
+			"title": "3 分钟教你如何戒掉成人电影",
+			"url": "http://baobab.kaiyanapp.com/api/v1/playUrl?vid=125492&resourceType=video&editionType=default&source=aliyun",
+			"image": "http://img.kaiyanapp.com/9db44fefea630cc211cdc6601ff82736.jpeg?imageMogr2/quality/60/format/jpg",
+			"description": "事实证明，过度观看成人片会扰乱你的多巴胺分泌。多巴胺是大脑的神经链接，影响着你的正常生活。如果你的多巴胺分泌失常，你可能会丧失动力，然后会不自觉的忽略掉生活中其他有趣的事情。From After Skool"
+		},
+		{
+			"title": "白天念经，晚上开演唱会，这个和尚太酷了！",
+			"url": "http://baobab.kaiyanapp.com/api/v1/playUrl?vid=127382&resourceType=video&editionType=default&source=aliyun",
+			"image": "http://img.kaiyanapp.com/0570d3713870c0a9221df3c4c5b1938f.jpeg?imageMogr2/quality/60/format/jpg",
+			"description": "39 岁的药师寺宽邦，7 年前开始修行，继承了家里 400 年历史的寺庙，现在是日本海禅寺第 16 代的副主持。前不久，他来到中国浙江参加音乐节，人们都在诧异，「啊，唱歌那么好听，居然是个和尚」。原来，宽邦还是位歌手，组乐队 15 年，乐队名叫「喫茶去」，而他在音乐节唱的是「般若心经」。"
+		},
+		{
+			"title": "堪比漫画的唯美，这居然是铁路广告？",
+			"url": "http://baobab.kaiyanapp.com/api/v1/playUrl?vid=115512&resourceType=video&editionType=default&source=aliyun",
+			"image": "http://img.kaiyanapp.com/5325311d050f56f7295166fb89c34697.jpeg?imageMogr2/quality/60/format/jpg",
+			"description": "这是英国大西部铁路公司的动画短片，主角是来自作家伊妮·布来敦的儿童冒险小说「Famous Five」的小伙伴们，与书里一样，这一次他们乘着火车开始了新的冒险……From 750 MPH - Audio Post Production Company"
+		},
+		{
+			"title": "梦魇时分：你还睡得着吗？",
+			"url": "http://baobab.kaiyanapp.com/api/v1/playUrl?vid=100750&resourceType=video&editionType=default&source=aliyun",
+			"image": "http://img.kaiyanapp.com/c33c6d236df3270bc9d016795f8e1932.jpeg?imageMogr2/quality/60/format/jpg",
+			"description": "视觉工作室 Veli Creative 带来这个关于「恶梦」的创意短片，将梦中所出现的恐惧、绝望、焦虑和悲伤等视效化，将抽象的情绪表现得更为具象。对比感强烈的色彩和各类元素的加入，让人在迷幻的同时，那被梦魇束缚的压迫感也随之被放大。From Veli Creative"
+		},
+		{
+			"title": "一条视频学会肌肉塑形的最快方法",
+			"url": "http://baobab.kaiyanapp.com/api/v1/playUrl?vid=125720&resourceType=video&editionType=default&source=aliyun",
+			"image": "http://img.kaiyanapp.com/54af1a5894edd4289386f2aa48414b33.jpeg?imageMogr2/quality/60/format/jpg",
+			"description": "好身材都是锻炼出来的，看看片中的主人公就知道了。如果你想拥有和他一样完美的身材，那就赶紧按照他的方法动起来吧！"
+		},
+		{
+			"title": "24 个小技巧让你摆脱失眠",
+			"url": "http://baobab.kaiyanapp.com/api/v1/playUrl?vid=124947&resourceType=video&editionType=default&source=aliyun",
+			"image": "http://img.kaiyanapp.com/82ce15e9b095d0f4f99ec77be9446c85.png?imageMogr2/quality/60/format/jpg",
+			"description": "你是不是经常睡不着？试过很多方法都没有用？这里有 24 个治疗失眠的小技巧，让你彻底摆脱痛苦，像婴儿一样熟睡！看完记得分享给身边的朋友哦。"
+		},
+		{
+			"title": "催泪亲情广告：谢谢你和我在一起",
+			"url": "http://baobab.kaiyanapp.com/api/v1/playUrl?vid=119505&resourceType=video&editionType=default&source=aliyun",
+			"image": "http://img.kaiyanapp.com/9d0a6ceb63625f713e2702a61d665456.png?imageMogr2/quality/60/format/jpg",
+			"description": "从出生到长大，父母总是无微不至地照顾着你。即使有过困扰和痛苦，他们依然微笑面对。是时候像片中的男孩一样，对爸妈说一声：谢谢！                 From akachanhonpo 赤ちゃん本舗"
+		},
+		{
+			"title": "获奖实验短片：无所畏惧",
+			"url": "http://baobab.kaiyanapp.com/api/v1/playUrl?vid=126882&resourceType=video&editionType=default&source=aliyun",
+			"image": "http://img.kaiyanapp.com/c8de09df208e72a3a3c41da93c26ae6f.jpeg?imageMogr2/quality/60/format/jpg",
+			"description": "本片原名「Mamoon」，阿拉伯语里是不再害怕的意思，讲述了一对母子举步维艰的生存故事。导演 Ben Steer 用实物投影搭配 CG 技术完成了这个作品，获得了包括英国动画奖在内的多项大奖。From Blue Zoo"
+		}
+	]
+}

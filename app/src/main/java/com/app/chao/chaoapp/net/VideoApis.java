@@ -3,7 +3,11 @@
 package com.app.chao.chaoapp.net;
 
 
+import com.app.chao.chaoapp.bean.HomeVideoData;
+import com.app.chao.chaoapp.bean.SpecialVideoData;
 import com.app.chao.chaoapp.bean.VideoRes;
+
+import java.util.List;
 
 import retrofit2.http.GET;
 import retrofit2.http.Query;
@@ -14,7 +18,7 @@ import rx.Observable;
  */
 
 public interface VideoApis {
-    String HOST = "http://api.svipmovie.com/front/";
+    String HOST = "http://api.peakchao.top/";
 
     /**
      * 首页
@@ -23,6 +27,22 @@ public interface VideoApis {
      */
     @GET("homePageApi/homePage.do")
     Observable<VideoHttpResponse<VideoRes>> getHomePage();
+
+    /**
+     * 首页-获取Banner
+     *
+     * @return
+     */
+    @GET("getVideoHomeData")
+    Observable<VideoHttpResponse<List<HomeVideoData>>> getVideoHomeData();
+
+    /**
+     * 首页-获取专题
+     *
+     * @return
+     */
+    @GET("getVideoSpecialData")
+    Observable<VideoHttpResponse<List<SpecialVideoData>>> getVideoSpecialData();
 
     /**
      * 影片详情
