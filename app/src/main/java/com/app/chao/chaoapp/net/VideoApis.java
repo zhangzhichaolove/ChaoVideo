@@ -18,7 +18,7 @@ import rx.Observable;
  */
 
 public interface VideoApis {
-    String HOST = "http://api.peakchao.top/";
+    String HOST = "http://api.apiopen.top/";
 
     /**
      * 首页

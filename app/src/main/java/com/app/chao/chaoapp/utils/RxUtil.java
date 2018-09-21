@@ -47,9 +47,9 @@ public class RxUtil {
                     @Override
                     public Observable<T> call(VideoHttpResponse<T> videoHttpResponse) {
                         if (videoHttpResponse.getCode() == 200) {
-                            return createData(videoHttpResponse.getData());
-                        } else if (!TextUtils.isEmpty(videoHttpResponse.getMsg())) {
-                            return Observable.error(new ApiException("*" + videoHttpResponse.getMsg()));
+                            return createData(videoHttpResponse.getResult());
+                        } else if (!TextUtils.isEmpty(videoHttpResponse.getMessage())) {
+                            return Observable.error(new ApiException("*" + videoHttpResponse.getMessage()));
                         } else {
                             return Observable.error(new ApiException("*" + "服务器返回error"));
                         }

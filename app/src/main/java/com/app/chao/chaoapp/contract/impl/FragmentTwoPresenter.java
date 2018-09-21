@@ -103,9 +103,9 @@ public class FragmentTwoPresenter extends RxPresenter implements FragmentTwoCont
         @Override
         public T call(VideoHttpResponse<T> httpResult) {
             if (httpResult.getCode() != 200) {
-                throw new ServerException(httpResult.getCode(), httpResult.getMsg());
+                throw new ServerException(httpResult.getCode(), httpResult.getMessage());
             }
-            return httpResult.getData();
+            return httpResult.getResult();
         }
     }
 

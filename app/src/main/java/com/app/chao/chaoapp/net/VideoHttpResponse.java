@@ -7,8 +7,8 @@ package com.app.chao.chaoapp.net;
 public class VideoHttpResponse<T> {
 
     private int code;
-    private String msg;
-    private T data;
+    private String message;
+    private T result;
 
     public int getCode() {
         return code;
@@ -18,19 +18,19 @@ public class VideoHttpResponse<T> {
         this.code = code;
     }
 
-    public String getMsg() {
-        return msg;
+    public String getMessage() {
+        return message;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public T getData() {
-        return data;
+    public T getResult() {
+        return result;
     }
 
-    public void setData(T data) {
-        this.data = data;
+    public void setResult(T result) {
+        this.result = result;
     }
 }
