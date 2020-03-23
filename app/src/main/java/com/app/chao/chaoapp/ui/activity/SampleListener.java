@@ -1,12 +1,24 @@
 package com.app.chao.chaoapp.ui.activity;
 
-import com.shuyu.gsyvideoplayer.listener.StandardVideoAllCallBack;
+
+import com.shuyu.gsyvideoplayer.listener.VideoAllCallBack;
 
 /**
  * Created by shuyu on 2016/11/23.
  */
 
-public class SampleListener implements StandardVideoAllCallBack {
+public class SampleListener implements VideoAllCallBack {
+
+
+    @Override
+    public void onStartPrepared(String url, Object... objects) {
+
+    }
+
+    @Override
+    public void onPrepared(String url, Object... objects) {
+
+    }
 
     @Override
     public void onClickStartIcon(String url, Object... objects) {
@@ -65,6 +77,7 @@ public class SampleListener implements StandardVideoAllCallBack {
 
     @Override
     public void onQuitSmallWidget(String url, Object... objects) {
+
     }
 
     @Override
@@ -88,6 +101,11 @@ public class SampleListener implements StandardVideoAllCallBack {
     }
 
     @Override
+    public void onPlayError(String url, Object... objects) {
+
+    }
+
+    @Override
     public void onClickStartThumb(String url, Object... objects) {
 
     }
@@ -99,16 +117,6 @@ public class SampleListener implements StandardVideoAllCallBack {
 
     @Override
     public void onClickBlankFullscreen(String url, Object... objects) {
-
-    }
-
-    @Override
-    public void onPrepared(String url, Object... objects) {
-
-    }
-
-    @Override
-    public void onPlayError(String url, Object... objects) {
 
     }
 }

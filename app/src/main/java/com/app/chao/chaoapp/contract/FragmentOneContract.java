@@ -14,7 +14,7 @@ public interface FragmentOneContract {
 
     interface View extends BaseView<Presenter> {
 
-        void showContent(List<VideoRes> videoRes);
+        void showContent(int page, List<VideoRes> videoRes);
 
         void refreshFaild(String msg);
 

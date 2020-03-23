@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.chao.chaoapp.R;
@@ -63,6 +63,7 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
         return R.layout.fragment_tabone;
     }
 
+
     @Override
     protected void initView(View inflater) {
         new FragmentOnePresenter(this);
@@ -72,7 +73,14 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
         etSearchKey = headerView.findViewById(R.id.etSearchKey);
         banner.setPlayDelay(2000);
         recyclerView.setAdapter(adapter = new FragmentOneAdapter(getContext()));
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return position == 0 ? 2 : 1;
+            }
+        });
+        recyclerView.setLayoutManager(gridLayoutManager);
         adapter.setOnItemClickListener(new RecyclerArrayAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
@@ -96,7 +104,7 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
         materialRefreshLayout.setIsOverLay(true);//是否覆盖
         materialRefreshLayout.setWaveShow(true);//显示波纹
         materialRefreshLayout.setShowProgressBg(true);//显示进度背景
-        materialRefreshLayout.setLoadMore(false);//加载更多
+        materialRefreshLayout.setLoadMore(true);//加载更多
         //materialRefreshLayout.setSunStyle(true);
         materialRefreshLayout.setProgressColors(getResources().getIntArray(R.array.material_colors));//设置进度颜色
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
@@ -113,7 +121,8 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
 
             @Override
             public void onRefreshLoadMore(final MaterialRefreshLayout materialRefreshLayout) {
-                mPresenter.showContent(page + 1);
+                page++;
+                mPresenter.showContent(page);
             }
         });
         //materialRefreshLayout.autoRefresh();
@@ -142,9 +151,16 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
     }
 
     @Override
-    public void showContent(List<VideoRes> videoRes) {
+    public void showContent(int page, List<VideoRes> videoRes) {
+        if (page <= 1) {
+            adapter.clear();
+        }
+        if (videoRes.size() <= 0) {
+            materialRefreshLayout.setLoadMore(false);
+        } else {
+            materialRefreshLayout.setLoadMore(true);
+        }
         adapter.addAll(videoRes);
-        materialRefreshLayout.finishRefresh();
         materialRefreshLayout.finishRefreshLoadMore();
     }
 

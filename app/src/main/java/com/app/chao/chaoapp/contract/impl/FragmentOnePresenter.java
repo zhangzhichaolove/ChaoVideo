@@ -42,7 +42,7 @@ public class FragmentOnePresenter extends RxPresenter implements FragmentOneCont
                     @Override
                     public void call(final PageInfo<List<VideoRes>> res) {
                         if (res != null) {
-                            view.showContent(res.getRecords());
+                            view.showContent(page, res.getRecords());
                         }
                     }
                 }, new Action1<Throwable>() {

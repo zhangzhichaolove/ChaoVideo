@@ -83,7 +83,7 @@ public class TabFragmentJC extends BaseFragment implements FragmentOneContract.V
 
 
     @Override
-    public void showContent(final List<VideoRes> videoRes) {
+    public void showContent(int page, final List<VideoRes> videoRes) {
         Log.e("TAG", videoRes.toString());
         if (videoRes != null) {
             adapter.clear();

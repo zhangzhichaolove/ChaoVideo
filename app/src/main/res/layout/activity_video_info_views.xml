@@ -9,7 +9,7 @@
 
     <include layout="@layout/toolbar" />
 
-    <com.app.chao.chaoapp.ui.activity.LandLayoutVideo
+    <com.shuyu.gsyvideoplayer.video.NormalGSYVideoPlayer
         android:id="@+id/detail_player"
         android:layout_width="match_parent"
         android:layout_height="200dp" />

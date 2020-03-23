@@ -1,7 +1,6 @@
 package com.app.chao.chaoapp.ui.activity;
 
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.text.TextUtils;
 import android.view.View;
@@ -21,16 +20,21 @@ import com.app.chao.chaoapp.ui.fragment.VideoCommentFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoIntroFragment;
 import com.app.chao.chaoapp.utils.ImageLoader;
 import com.google.android.material.tabs.TabLayout;
-import com.shuyu.gsyvideoplayer.GSYPreViewManager;
-import com.shuyu.gsyvideoplayer.GSYVideoPlayer;
+import com.shuyu.gsyvideoplayer.GSYVideoManager;
+import com.shuyu.gsyvideoplayer.cache.CacheFactory;
+import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
 import com.shuyu.gsyvideoplayer.listener.LockClickListener;
+import com.shuyu.gsyvideoplayer.player.PlayerFactory;
+import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
-import com.shuyu.gsyvideoplayer.video.StandardGSYVideoPlayer;
+import com.shuyu.gsyvideoplayer.video.NormalGSYVideoPlayer;
+import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
+import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 
 public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract.View {
     VideoInfoContract.Presenter mPresenter;
@@ -38,7 +42,7 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
     //推荐使用StandardGSYVideoPlayer，功能一致
     //CustomGSYVideoPlayer部分功能处于试验阶段
     @BindView(R.id.detail_player)
-    LandLayoutVideo videoPlayer;
+    NormalGSYVideoPlayer videoPlayer;
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
@@ -82,12 +86,31 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         list.add(videoOptionModel);
         GSYVideoManager.instance().setOptionModelList(list);*/
 
+
+        //EXOPlayer内核，支持格式更多
+        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+        //系统内核模式
+        //PlayerFactory.setPlayManager(SystemPlayerManager.class);
+        //ijk内核，默认模式
+        //PlayerFactory.setPlayManager(IjkPlayerManager.class);
+        //exo缓存模式，支持m3u8，只支持exo
+        //CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
+        //代理缓存模式，支持所有模式，不支持m3u8等，默认
+        CacheFactory.setCacheManager(ProxyCacheManager.class);
+        GSYVideoType.setShowType(GSYVideoType.SCREEN_MATCH_FULL);
+
+        //切换绘制模式
+        GSYVideoType.setRenderType(GSYVideoType.SUFRACE);
+        GSYVideoType.setRenderType(GSYVideoType.GLSURFACE);
+        GSYVideoType.setRenderType(GSYVideoType.TEXTURE);
+
         //增加封面
         ImageView imageView = new ImageView(this);
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         imageView.setImageResource(R.mipmap.xxx1);
         videoPlayer.setThumbImageView(imageView);
 
+        //增加title
         resolveNormalVideoUI();
 
         //外部辅助的旋转，帮助全屏
@@ -99,9 +122,8 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         //关闭自动旋转
         videoPlayer.setRotateViewAuto(false);
         videoPlayer.setLockLand(false);
-        videoPlayer.setShowFullAnimation(true);
+        videoPlayer.setShowFullAnimation(false);
         videoPlayer.setNeedLockFull(true);
-        videoPlayer.setOpenPreView(true);
         videoPlayer.getFullscreenButton().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -113,38 +135,27 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
             }
         });
 
-        videoPlayer.setStandardVideoAllCallBack(new SampleListener() {
+        videoPlayer.setVideoAllCallBack(new SampleListener() {
+
             @Override
             public void onPrepared(String url, Object... objects) {
-                super.onPrepared(url, objects);
                 //开始播放了才能旋转和全屏
                 orientationUtils.setEnable(true);
                 isPlay = true;
             }
 
             @Override
-            public void onAutoComplete(String url, Object... objects) {
-                super.onAutoComplete(url, objects);
-            }
-
-            @Override
-            public void onClickStartError(String url, Object... objects) {
-                super.onClickStartError(url, objects);
-            }
-
-            @Override
-            public void onPlayError(String url, Object... objects) {
-                super.onPlayError(url, objects);
-                videoPlayer.startPlayLogic();//第三方播放器Bug，在某些情况下，第一次播放总会失败，设置播放错误的监听，重新播放。
-            }
-
-            @Override
             public void onQuitFullscreen(String url, Object... objects) {
-                super.onQuitFullscreen(url, objects);
                 if (orientationUtils != null) {
                     orientationUtils.backToProtVideo();
                 }
             }
+
+            @Override
+            public void onPlayError(String url, Object... objects) {
+                videoPlayer.startPlayLogic();//第三方播放器Bug，在某些情况下，第一次播放总会失败，设置播放错误的监听，重新播放。
+            }
+
         });
 
         videoPlayer.setLockClickListener(new LockClickListener() {
@@ -196,12 +207,10 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
     @Override
     public void onBackPressed() {
-
         if (orientationUtils != null) {
             orientationUtils.backToProtVideo();
         }
-
-        if (StandardGSYVideoPlayer.backFromWindowFull(this)) {
+        if (GSYVideoManager.backFromWindowFull(this)) {
             return;
         }
         super.onBackPressed();
@@ -211,43 +220,61 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
     @Override
     protected void onPause() {
         super.onPause();
+        GSYVideoManager.onPause();
         isPause = true;
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        GSYVideoManager.onResume();
         isPause = false;
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        GSYVideoPlayer.releaseAllVideos();
-        GSYPreViewManager.instance().releaseMediaPlayer();
+        //videoPlayer.release();
+        GSYVideoManager.releaseAllVideos();
         if (orientationUtils != null)
             orientationUtils.releaseListener();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
         //如果旋转了就全屏
-        if (isPlay && !isPause) {
-            if (newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_USER) {
-                if (!videoPlayer.isIfCurrentIsFullscreen()) {
-                    videoPlayer.startWindowFullscreen(GSYVVideoActivity.this, true, true);
-                }
-            } else {
-                //新版本isIfCurrentIsFullscreen的标志位内部提前设置了，所以不会和手动点击冲突
-                if (videoPlayer.isIfCurrentIsFullscreen()) {
-                    StandardGSYVideoPlayer.backFromWindowFull(this);
-                }
-                if (orientationUtils != null) {
-                    orientationUtils.setEnable(true);
-                }
+        boolean backUpIsPlay = isPlay;
+        if (!isPause && videoPlayer.getVisibility() == View.VISIBLE) {
+            if (isADStarted()) {
+                isPlay = false;
+                videoPlayer.getCurrentPlayer().onConfigurationChanged(this, newConfig, orientationUtils, true, true);
             }
         }
+        super.onConfigurationChanged(newConfig);
+        isPlay = backUpIsPlay;
+//        super.onConfigurationChanged(newConfig);
+//        //如果旋转了就全屏
+//        if (isPlay && !isPause) {
+//            if (newConfig.orientation == ActivityInfo.SCREEN_ORIENTATION_USER) {
+//                if (!videoPlayer.isIfCurrentIsFullscreen()) {
+//                    videoPlayer.startWindowFullscreen(GSYVVideoActivity.this, true, true);
+//                }
+//            } else {
+//                //新版本isIfCurrentIsFullscreen的标志位内部提前设置了，所以不会和手动点击冲突
+//                if (videoPlayer.isIfCurrentIsFullscreen()) {
+//                    GSYVideoADManager.backFromWindowFull(this);
+//                }
+//                if (orientationUtils != null) {
+//                    orientationUtils.setEnable(true);
+//                }
+//            }
+//        }
+    }
+
+    protected boolean isADStarted() {
+        return videoPlayer.getCurrentPlayer().getCurrentState() >= 0 &&
+                videoPlayer.getCurrentPlayer().getCurrentState() != GSYVideoView.CURRENT_STATE_NORMAL
+                && videoPlayer.getCurrentPlayer().getCurrentState() != GSYVideoView.CURRENT_STATE_AUTO_COMPLETE;
     }
 
 

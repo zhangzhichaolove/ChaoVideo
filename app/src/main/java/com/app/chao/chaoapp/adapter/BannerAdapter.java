@@ -30,7 +30,7 @@ public class BannerAdapter extends StaticPagerAdapter {
     public View getView(ViewGroup container, final int position) {
         ImageView imageView = new ImageView(ctx);
         imageView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         imageView.setBackgroundResource(R.mipmap.default_320);
         //加载图片
         ImageLoader.load(ctx, list.get(position).getImg(), imageView);
