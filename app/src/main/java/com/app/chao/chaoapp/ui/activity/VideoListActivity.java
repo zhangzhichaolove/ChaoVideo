@@ -1,18 +1,18 @@
 package com.app.chao.chaoapp.ui.activity;
 
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
+
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.VideoListAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.baseadapter.recyclerview.MultiItemTypeAdapter;
-import com.app.chao.chaoapp.bean.HomeVideoData;
-import com.app.chao.chaoapp.bean.VideoInfo;
+import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.ActivityVideoListContract;
 import com.app.chao.chaoapp.contract.impl.ActivityVideoListPresenter;
 import com.app.chao.chaoapp.utils.JumpUtil;
@@ -121,13 +121,13 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     }
 
     @Override
-    public void showContent(List<HomeVideoData> list) {
+    public void showContent(List<VideoRes> list) {
         adapter.setData(list);
         close();
     }
 
     @Override
-    public void showMoreContent(List<HomeVideoData> list) {
+    public void showMoreContent(List<VideoRes> list) {
         adapter.addAll(list);
         close();
     }

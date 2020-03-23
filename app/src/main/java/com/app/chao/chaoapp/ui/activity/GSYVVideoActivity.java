@@ -3,24 +3,24 @@ package com.app.chao.chaoapp.ui.activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.base.Preconditions;
-import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.VideoInfoContract;
 import com.app.chao.chaoapp.ui.fragment.VideoCommentFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoIntroFragment;
 import com.app.chao.chaoapp.utils.ImageLoader;
+import com.google.android.material.tabs.TabLayout;
 import com.shuyu.gsyvideoplayer.GSYPreViewManager;
 import com.shuyu.gsyvideoplayer.GSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.listener.LockClickListener;
@@ -44,7 +44,7 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
     Toolbar toolbar;
     //    private String[] mTitles = new String[]{"简介", "评论"};
     private String[] mTitles = new String[]{"简介"};
-    HomeVideoData videoInfo;
+    VideoRes videoInfo;
     @BindView(R.id.viewpagertab)
     TabLayout viewpagertab;
     @BindView(R.id.viewpager)
@@ -159,7 +159,8 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
     }
 
     private void getIntentData() {
-        videoInfo = (HomeVideoData) getIntent().getSerializableExtra("videoInfo");
+        videoInfo = (VideoRes) getIntent().getSerializableExtra("videoInfo");
+        showContent(videoInfo);
         fragments = new ArrayList<>();
         VideoIntroFragment videoIntroFragment = VideoIntroFragment.newInstance(videoInfo);
         VideoCommentFragment videoCommentFragment = new VideoCommentFragment();
@@ -178,14 +179,14 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
 
         toolbar.setTitle(videoInfo.getTitle());
-        if (!TextUtils.isEmpty(videoInfo.getImage())) {
+        if (!TextUtils.isEmpty(videoInfo.getImg())) {
             ImageView imageView = new ImageView(this);
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            ImageLoader.load(this, videoInfo.getImage(), imageView);
+            ImageLoader.load(this, videoInfo.getImg(), imageView);
             videoPlayer.setThumbImageView(imageView);
         }
-        if (!TextUtils.isEmpty(videoInfo.getUrl())) {
-            videoPlayer.setUp(videoInfo.getUrl(), true, null, videoInfo.getTitle());
+        if (!TextUtils.isEmpty(videoInfo.getVideo())) {
+            videoPlayer.setUp(videoInfo.getVideo(), true, null, videoInfo.getTitle());
             videoPlayer.startPlayLogic();
         }
 
@@ -266,14 +267,14 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
     public void showContent(VideoRes videoRes) {
         this.videoRes = videoRes;
         toolbar.setTitle(videoRes.title);
-        if (!TextUtils.isEmpty(videoRes.pic)) {
+        if (!TextUtils.isEmpty(videoRes.getImg())) {
             ImageView imageView = new ImageView(this);
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            ImageLoader.load(this, videoRes.pic, imageView);
+            ImageLoader.load(this, videoRes.getImg(), imageView);
             videoPlayer.setThumbImageView(imageView);
         }
-        if (!TextUtils.isEmpty(videoRes.getVideoUrl())) {
-            videoPlayer.setUp(videoRes.getVideoUrl(), true, null, videoRes.title);
+        if (!TextUtils.isEmpty(videoRes.getVideo())) {
+            videoPlayer.setUp(videoRes.getVideo(), true, null, videoRes.title);
             videoPlayer.startPlayLogic();
         }
     }

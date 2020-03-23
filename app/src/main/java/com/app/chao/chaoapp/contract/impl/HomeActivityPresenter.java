@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.base.RxPresenter;
-import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.HomeActivityContract;
 import com.app.chao.chaoapp.net.RetrofitHelper;
@@ -42,12 +41,12 @@ public class HomeActivityPresenter extends RxPresenter implements HomeActivityCo
 
     @Override
     public void getVideoHomeData() {
-        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoHomeData()
-                .compose(RxUtil.<VideoHttpResponse<List<HomeVideoData>>>rxSchedulerHelper())
-                .compose(RxUtil.<List<HomeVideoData>>handleResult())
-                .subscribe(new Action1<List<HomeVideoData>>() {
+        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoBanner()
+                .compose(RxUtil.<VideoHttpResponse<List<VideoRes>>>rxSchedulerHelper())
+                .compose(RxUtil.<List<VideoRes>>handleResult())
+                .subscribe(new Action1<List<VideoRes>>() {
                     @Override
-                    public void call(final List<HomeVideoData> res) {
+                    public void call(final List<VideoRes> res) {
                         if (res != null) {
                             Log.e(TAG, res.toString());
                             view.showBanner(res);
@@ -66,12 +65,12 @@ public class HomeActivityPresenter extends RxPresenter implements HomeActivityCo
 
     @Override
     public void start() {
-        Subscription rxSubscription = RetrofitHelper.getVideoApi().getHomePage()
-                .compose(RxUtil.<VideoHttpResponse<VideoRes>>rxSchedulerHelper())
-                .compose(RxUtil.<VideoRes>handleResult())
-                .subscribe(new Action1<VideoRes>() {
+        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoBanner()
+                .compose(RxUtil.<VideoHttpResponse<List<VideoRes>>>rxSchedulerHelper())
+                .compose(RxUtil.<List<VideoRes>>handleResult())
+                .subscribe(new Action1<List<VideoRes>>() {
                     @Override
-                    public void call(final VideoRes res) {
+                    public void call(final List<VideoRes> res) {
                         if (res != null) {
                             Log.e(TAG, res.toString());
                             view.showContent(res);

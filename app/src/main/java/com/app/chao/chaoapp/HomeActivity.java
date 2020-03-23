@@ -4,22 +4,19 @@ import android.animation.Animator;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
 import com.app.chao.chaoapp.base.Preconditions;
-import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.HomeActivityContract;
 import com.app.chao.chaoapp.contract.impl.HomeActivityPresenter;
@@ -31,6 +28,9 @@ import com.app.chao.chaoapp.ui.fragment.TabFragmentTwo;
 import com.app.chao.chaoapp.utils.ILayoutAnimationController;
 import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.tabs.TabLayout;
 
 import java.util.List;
 
@@ -148,12 +148,12 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
     }
 
     @Override
-    public void showContent(VideoRes videoRes) {
+    public void showContent(List<VideoRes> videoRes) {
         RxBus.getDefault().postSticky(videoRes);//分发消息到其他页面
     }
 
     @Override
-    public void showBanner(List<HomeVideoData> videoRes) {
+    public void showBanner(List<VideoRes> videoRes) {
     }
 
     class MyAdapter extends FragmentPagerAdapter {

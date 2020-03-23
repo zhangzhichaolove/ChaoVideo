@@ -1,18 +1,17 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.neenbedankt.android-apt'
 apply plugin: 'realm-android'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.app.chao.chaoapp"
         minSdkVersion 16
-        targetSdkVersion 25
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true//TODO SVG
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 //        splits {
 //            abi {
 //                enable true
@@ -50,6 +49,15 @@ android {
 //            jniLibs.srcDirs 'lib'
 //        }
 //    }
+
+
+    compileOptions {
+
+        sourceCompatibility JavaVersion.VERSION_1_8
+
+        targetCompatibility JavaVersion.VERSION_1_8
+
+    }
 }
 
 /*如果程序内出现不同的，support或者其他外部引用库的多个版本，Gradle在进行合并的时候会使用本地持有的，
@@ -59,7 +67,7 @@ configurations.all {
         def requested = details.requested
         if (requested.group == 'com.android.support') {
             if (!requested.name.startsWith("multidex")) {
-                details.useVersion '25.2.0'
+                details.useVersion '28.0.0'
             }
         }
     }
@@ -67,37 +75,37 @@ configurations.all {
 
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+//    androidTestCompile('androidx.test.espresso:espresso-core:3.1.0', {
+//        exclude group: 'com.android.support', module: 'support-annotations'
+//    })
     //compile 'com.android.support:support-v4:+'
-    compile 'com.android.support:appcompat-v7:+'
-    compile 'com.cjj.materialrefeshlayout:library:1.3.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'com.cjj.materialrefeshlayout:library:1.3.0'
     //compile 'com.android.support.constraint:constraint-layout:1.0.2'
     //testCompile 'junit:junit:4.12'
-    compile 'io.reactivex:rxjava:1.2.6'
-    compile 'io.reactivex:rxandroid:1.2.1'
-    compile 'com.google.dagger:dagger:2.4'
-    apt 'com.google.dagger:dagger-compiler:2.4'
-    compile 'com.squareup.retrofit2:retrofit:2.1.0'
-    compile 'com.squareup.okhttp3:okhttp:3.4.1'
-    compile 'com.squareup.okhttp3:logging-interceptor:3.4.1'
-    compile 'com.squareup.retrofit2:converter-gson:2.1.0'
-    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
-    compile 'com.nineoldandroids:library:2.4.0'
-    compile 'com.android.support:design:25.2.0'
-    compile 'com.android.support:cardview-v7:25.2.0'
-    compile 'com.flaviofaria:kenburnsview:1.0.7'
-    compile 'com.jakewharton:butterknife:8.5.1'
-    apt 'com.jakewharton:butterknife-compiler:8.5.1'
-    compile 'com.jude:easyrecyclerview:4.0.6'
-    compile 'com.github.bumptech.glide:glide:3.7.0'
-    compile 'com.jude:rollviewpager:1.4.5'
+    implementation 'io.reactivex:rxjava:1.2.6'
+    implementation 'io.reactivex:rxandroid:1.2.1'
+    implementation 'com.google.dagger:dagger:2.4'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.4'
+    implementation 'com.squareup.retrofit2:retrofit:2.1.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.4.1'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.4.1'
+    implementation 'com.squareup.retrofit2:converter-gson:2.1.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+    implementation 'com.nineoldandroids:library:2.4.0'
+    implementation 'com.google.android.material:material:1.1.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'com.flaviofaria:kenburnsview:1.0.7'
+    implementation 'com.jakewharton:butterknife:10.0.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:10.0.0'
+    implementation 'com.jude:easyrecyclerview:4.0.6'
+    implementation 'com.github.bumptech.glide:glide:3.7.0'
+    implementation 'com.jude:rollviewpager:1.4.5'
     //compile 'fm.jiecao:jiecaovideoplayer:4.7.1_preview'
 
-    compile 'fm.jiecao:jiecaovideoplayer:5.5.2'
+    implementation 'fm.jiecao:jiecaovideoplayer:5.5.2'
     //compile 'fm.jiecao:jiecaovideoplayer:4.8.3'
-    compile 'com.shuyu:GSYVideoPlayer:1.6.0'
-    compile 'org.simple:androideventbus:1.0.5.1'
+    implementation 'com.shuyu:GSYVideoPlayer:1.6.0'
+    implementation 'org.simple:androideventbus:1.0.5.1'
 }

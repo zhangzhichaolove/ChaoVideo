@@ -2,7 +2,6 @@ package com.app.chao.chaoapp.contract;
 
 import com.app.chao.chaoapp.base.BasePresenter;
 import com.app.chao.chaoapp.base.BaseView;
-import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoRes;
 
 import java.util.List;
@@ -15,9 +14,9 @@ public interface HomeActivityContract {
 
     interface View extends BaseView<Presenter> {
 
-        void showContent(VideoRes videoRes);
+        void showContent(List<VideoRes> videoRes);
 
-        void showBanner(List<HomeVideoData> videoRes);
+        void showBanner(List<VideoRes> videoRes);
 
     }
 

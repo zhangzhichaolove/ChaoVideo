@@ -3,7 +3,7 @@ package com.app.chao.chaoapp.contract;
 
 import com.app.chao.chaoapp.base.BasePresenter;
 import com.app.chao.chaoapp.base.BaseView;
-import com.app.chao.chaoapp.bean.VideoType;
+import com.app.chao.chaoapp.bean.VideoRes;
 
 import java.util.List;
 
@@ -16,9 +16,9 @@ public interface CommentContract {
 
         void refreshFaild(String msg);
 
-        void showContent(List<VideoType> list);
+        void showContent(List<VideoRes> list);
 
-        void showMoreContent(List<VideoType> list);
+        void showMoreContent(List<VideoRes> list);
     }
 
     interface Presenter extends BasePresenter {

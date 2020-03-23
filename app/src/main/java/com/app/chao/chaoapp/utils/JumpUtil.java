@@ -3,8 +3,8 @@ package com.app.chao.chaoapp.utils;
 import android.content.Context;
 import android.content.Intent;
 
-import com.app.chao.chaoapp.bean.HomeVideoData;
 import com.app.chao.chaoapp.bean.VideoInfo;
+import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.ui.activity.GSYVVideoActivity;
 import com.app.chao.chaoapp.ui.activity.JCVideoActivity;
 import com.app.chao.chaoapp.ui.activity.SearchActivity;
@@ -22,7 +22,7 @@ public class JumpUtil {
      * @param context
      * @param videoInfo
      */
-    public static void goGSYYVideoActivity(Context context, HomeVideoData videoInfo) {
+    public static void goGSYYVideoActivity(Context context, VideoRes videoInfo) {
         Intent intent = new Intent(context, GSYVVideoActivity.class);
         intent.putExtra("videoInfo", videoInfo);
         context.startActivity(intent);

@@ -1,9 +1,10 @@
 package com.app.chao.chaoapp.baseadapter.recyclerview;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.chao.chaoapp.baseadapter.recyclerview.base.ItemViewDelegate;
 import com.app.chao.chaoapp.baseadapter.recyclerview.base.ItemViewDelegateManager;

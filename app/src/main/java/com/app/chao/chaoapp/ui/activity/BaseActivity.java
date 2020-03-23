@@ -1,9 +1,10 @@
 package com.app.chao.chaoapp.ui.activity;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.app.chao.chaoapp.base.BasePresenter;
 

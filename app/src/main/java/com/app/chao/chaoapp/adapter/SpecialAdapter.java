@@ -9,7 +9,6 @@ import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.baseadapter.recyclerview.CommonAdapter;
 import com.app.chao.chaoapp.baseadapter.recyclerview.base.ViewHolder;
 import com.app.chao.chaoapp.bean.SpecialVideoData;
-import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.utils.ImageLoader;
 
 import java.util.List;

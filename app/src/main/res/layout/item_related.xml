@@ -23,5 +23,5 @@
         android:id="@+id/tv_title"
         style="@style/small_tv_style"
         android:layout_marginTop="3dp"
-        android:singleLine="true"/>
+        android:singleLine="true" />
 </LinearLayout>

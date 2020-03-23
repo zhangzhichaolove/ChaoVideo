@@ -1,9 +1,10 @@
 package com.app.chao.chaoapp.ui.activity;
 
-import android.support.v4.app.FragmentManager;
-import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.ui.fragment.PersonalCoreFragment;

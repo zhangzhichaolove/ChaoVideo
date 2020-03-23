@@ -1,10 +1,11 @@
 package com.app.chao.chaoapp.ui.fragment;
 
 import android.graphics.Color;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
+
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.SpecialAdapter;

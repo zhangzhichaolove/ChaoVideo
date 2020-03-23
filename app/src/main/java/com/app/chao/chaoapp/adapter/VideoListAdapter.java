@@ -8,7 +8,7 @@ import android.widget.ImageView;
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.baseadapter.recyclerview.CommonAdapter;
 import com.app.chao.chaoapp.baseadapter.recyclerview.base.ViewHolder;
-import com.app.chao.chaoapp.bean.HomeVideoData;
+import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.utils.ImageLoader;
 
 import java.util.List;
@@ -17,15 +17,15 @@ import java.util.List;
  * Created by Chao on 2017/3/22.
  */
 
-public class VideoListAdapter extends CommonAdapter<HomeVideoData> {
+public class VideoListAdapter extends CommonAdapter<VideoRes> {
 
 
-    public VideoListAdapter(Context context, int layoutId, List<HomeVideoData> datas) {
+    public VideoListAdapter(Context context, int layoutId, List<VideoRes> datas) {
         super(context, layoutId, datas);
     }
 
     @Override
-    protected void convert(ViewHolder holder, HomeVideoData videoType, int position) {
+    protected void convert(ViewHolder holder, VideoRes videoType, int position) {
         holder.setText(R.id.tv_title, videoType.getTitle());
         ImageView iv = holder.getView(R.id.img_video);
         iv.setScaleType(ImageView.ScaleType.FIT_XY);
@@ -35,6 +35,6 @@ public class VideoListAdapter extends CommonAdapter<HomeVideoData> {
 //        int height = data.getHeight()*width/data.getWidth();//计算View的高度
         params.height = (int) (width / 1.1);
         iv.setLayoutParams(params);
-        ImageLoader.load(mContext, videoType.getImage(), iv);
+        ImageLoader.load(mContext, videoType.getImg(), iv);
     }
 }

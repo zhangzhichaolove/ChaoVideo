@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.app.chao.chaoapp.BuildConfig;
 import com.app.chao.chaoapp.Constants;
-import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.utils.SystemUtils;
 
 import java.io.File;
@@ -21,10 +20,6 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 public class HttpMethods {
     public static final String BASE_HOST_URL = VideoApis.HOST;
@@ -119,34 +114,5 @@ public class HttpMethods {
         return SingletonHolder.INSTANCE;
     }
 
-    /**
-     * ClassificationPresenter
-     *
-     * @return
-     */
-    public Observable<VideoRes> queryClassification() {
-        return mService.getHomePage()
-                .map(new ServerResultFunc<VideoRes>())
-                .onErrorResumeNext(new HttpResultFunc<VideoRes>())
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
-    }
 
-    private class ServerResultFunc<T> implements Func1<VideoHttpResponse<T>, T> {
-        @Override
-        public T call(VideoHttpResponse<T> httpResult) {
-            if (httpResult.getCode() != 200) {
-                throw new ServerException(httpResult.getCode(), httpResult.getMessage());
-            }
-            return httpResult.getResult();
-        }
-    }
-
-    private class HttpResultFunc<T> implements Func1<Throwable, Observable<T>> {
-        @Override
-        public Observable<T> call(Throwable throwable) {
-            return Observable.error(throwable);
-        }
-    }
 }

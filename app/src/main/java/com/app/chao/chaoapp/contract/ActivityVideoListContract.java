@@ -2,8 +2,7 @@ package com.app.chao.chaoapp.contract;
 
 import com.app.chao.chaoapp.base.BasePresenter;
 import com.app.chao.chaoapp.base.BaseView;
-import com.app.chao.chaoapp.bean.HomeVideoData;
-import com.app.chao.chaoapp.bean.VideoType;
+import com.app.chao.chaoapp.bean.VideoRes;
 
 import java.util.List;
 
@@ -17,9 +16,9 @@ public interface ActivityVideoListContract {
 
         String getCatalogId();
 
-        void showContent(List<HomeVideoData> list);
+        void showContent(List<VideoRes> list);
 
-        void showMoreContent(List<HomeVideoData> list);
+        void showMoreContent(List<VideoRes> list);
 
 
     }

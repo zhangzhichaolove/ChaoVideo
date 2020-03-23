@@ -1,14 +1,15 @@
 package com.app.chao.chaoapp.utils;
 
 import android.content.Context;
-import android.support.annotation.AnimRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
+
+import androidx.annotation.AnimRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 /**
  * 自定义LayoutAnimationController，可通过{@link GetTransformedIndexUtils}工具类创造任意多个布局动画执行顺序，

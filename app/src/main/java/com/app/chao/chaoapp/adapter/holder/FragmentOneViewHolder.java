@@ -5,11 +5,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.app.chao.chaoapp.R;
-import com.app.chao.chaoapp.bean.HomeVideoData;
+import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.utils.ImageLoader;
 import com.jude.easyrecyclerview.adapter.BaseViewHolder;
 
-public class FragmentOneViewHolder extends BaseViewHolder<HomeVideoData> {
+public class FragmentOneViewHolder extends BaseViewHolder<VideoRes> {
     ImageView imgPicture;
     TextView tv_title;
 
@@ -21,8 +21,8 @@ public class FragmentOneViewHolder extends BaseViewHolder<HomeVideoData> {
     }
 
     @Override
-    public void setData(HomeVideoData data) {
+    public void setData(VideoRes data) {
         tv_title.setText(data.getTitle());
-        ImageLoader.load(getContext(), data.getImage(), imgPicture);
+        ImageLoader.load(getContext(), data.getImg(), imgPicture);
     }
 }

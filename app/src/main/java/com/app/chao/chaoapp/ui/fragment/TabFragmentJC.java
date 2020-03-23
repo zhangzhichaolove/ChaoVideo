@@ -1,14 +1,15 @@
 package com.app.chao.chaoapp.ui.fragment;
 
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.FragmentOneAdapter;
@@ -25,7 +26,6 @@ import com.jude.rollviewpager.hintview.IconHintView;
 import java.util.List;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 
 /**
  * Created by Chao on 2017/3/20.
@@ -58,9 +58,9 @@ public class TabFragmentJC extends BaseFragment implements FragmentOneContract.V
     protected void initView(View inflater) {
         new FragmentOnePresenter(this);
         headerView = LayoutInflater.from(mContext).inflate(R.layout.recommend_header, null);
-        banner = ButterKnife.findById(headerView, R.id.banner);
-        rlGoSearch = ButterKnife.findById(headerView, R.id.rlGoSearch);
-        etSearchKey = ButterKnife.findById(headerView, R.id.etSearchKey);
+        banner = headerView.findViewById(R.id.banner);
+        rlGoSearch = headerView.findViewById(R.id.rlGoSearch);
+        etSearchKey = headerView.findViewById(R.id.etSearchKey);
         banner.setPlayDelay(2000);
         recyclerView.setAdapter(adapter = new FragmentOneAdapter(getContext()));
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -78,29 +78,17 @@ public class TabFragmentJC extends BaseFragment implements FragmentOneContract.V
     @Override
     public void setPresenter(FragmentOneContract.Presenter presenter) {
         mPresenter = presenter;
-        presenter.onRefresh();
+        presenter.showContent(1);
     }
 
 
     @Override
-    public void showContent(final VideoRes videoRes) {
+    public void showContent(final List<VideoRes> videoRes) {
         Log.e("TAG", videoRes.toString());
         if (videoRes != null) {
             adapter.clear();
+            adapter.addAll(videoRes);
             List<VideoInfo> videoInfos;
-            for (int i = 1; i < videoRes.list.size(); i++) {
-                if (videoRes.list.get(i).title.equals("精彩推荐")) {//Banner图
-                    videoInfos = videoRes.list.get(i).childList;
-                    //adapter.addAll(videoInfos);
-                    break;
-                }
-            }
-            for (int i = 1; i < videoRes.list.size(); i++) {
-                if (videoRes.list.get(i).title.equals("免费推荐")) {
-                    recommend = videoRes.list.get(i).childList;
-                    break;
-                }
-            }
             if (adapter.getHeaderCount() == 0) {
                 adapter.addHeader(new RecyclerArrayAdapter.ItemView() {
                     @Override
@@ -127,9 +115,10 @@ public class TabFragmentJC extends BaseFragment implements FragmentOneContract.V
     }
 
     @Override
-    public void stopBanner(boolean stop) {
+    public void showBanner(List<VideoRes> videoRes) {
 
     }
+
 
     @Override
     public void onResume() {

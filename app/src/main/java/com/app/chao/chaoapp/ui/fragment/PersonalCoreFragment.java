@@ -1,13 +1,14 @@
 package com.app.chao.chaoapp.ui.fragment;
 
 import android.os.Bundle;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
+
+import androidx.appcompat.widget.Toolbar;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.ui.activity.PersonalCoreActivity;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
 
 import butterknife.BindView;
 

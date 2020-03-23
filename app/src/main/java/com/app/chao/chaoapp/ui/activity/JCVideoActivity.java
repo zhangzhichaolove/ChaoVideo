@@ -1,16 +1,16 @@
 package com.app.chao.chaoapp.ui.activity;
 
 import android.content.Context;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.base.Preconditions;
@@ -21,6 +21,7 @@ import com.app.chao.chaoapp.contract.impl.VideoInfoPresenter;
 import com.app.chao.chaoapp.ui.fragment.VideoCommentFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoIntroFragment;
 import com.app.chao.chaoapp.utils.ImageLoader;
+import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,11 +115,11 @@ public class JCVideoActivity extends BaseActivity implements VideoInfoContract.V
     public void showContent(VideoRes videoRes) {
         this.videoRes = videoRes;
         toolbar.setTitle(videoRes.title);
-        if (!TextUtils.isEmpty(videoRes.pic))
-            ImageLoader.load(this, videoRes.pic, videoplayer.thumbImageView);
-        if (!TextUtils.isEmpty(videoRes.getVideoUrl())) {
-            Log.e("TAG", videoRes.getVideoUrl());
-            videoplayer.setUp(videoRes.getVideoUrl()
+        if (!TextUtils.isEmpty(videoRes.getImg()))
+            ImageLoader.load(this, videoRes.getImg(), videoplayer.thumbImageView);
+        if (!TextUtils.isEmpty(videoRes.getVideo())) {
+            Log.e("TAG", videoRes.getVideo());
+            videoplayer.setUp(videoRes.getVideo()
                     , JCVideoPlayerStandard.SCREEN_LAYOUT_LIST, videoRes.title);
             videoplayer.onClick(videoplayer.thumbImageView);
         }

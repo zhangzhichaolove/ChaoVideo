@@ -6,7 +6,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.app.chao.chaoapp.R;
-import com.app.chao.chaoapp.bean.HomeVideoData;
+import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.utils.ImageLoader;
 import com.app.chao.chaoapp.utils.JumpUtil;
 import com.jude.rollviewpager.adapter.StaticPagerAdapter;
@@ -19,9 +19,9 @@ import java.util.List;
 public class BannerAdapter extends StaticPagerAdapter {
 
     private Context ctx;
-    private List<HomeVideoData> list;
+    private List<VideoRes> list;
 
-    public BannerAdapter(Context ctx, List<HomeVideoData> list) {
+    public BannerAdapter(Context ctx, List<VideoRes> list) {
         this.ctx = ctx;
         this.list = list;
     }
@@ -33,7 +33,7 @@ public class BannerAdapter extends StaticPagerAdapter {
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
         imageView.setBackgroundResource(R.mipmap.default_320);
         //加载图片
-        ImageLoader.load(ctx, list.get(position).getImage(), imageView);
+        ImageLoader.load(ctx, list.get(position).getImg(), imageView);
         //点击事件
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override

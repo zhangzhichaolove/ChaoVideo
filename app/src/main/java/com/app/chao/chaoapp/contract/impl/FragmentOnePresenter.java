@@ -2,12 +2,15 @@ package com.app.chao.chaoapp.contract.impl;
 
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.base.RxPresenter;
+import com.app.chao.chaoapp.bean.PageInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.FragmentOneContract;
 import com.app.chao.chaoapp.net.RetrofitHelper;
 import com.app.chao.chaoapp.net.VideoHttpResponse;
 import com.app.chao.chaoapp.utils.RxUtil;
 import com.app.chao.chaoapp.utils.StringUtils;
+
+import java.util.List;
 
 import rx.Subscription;
 import rx.functions.Action1;
@@ -26,15 +29,20 @@ public class FragmentOnePresenter extends RxPresenter implements FragmentOneCont
 
 
     @Override
-    public void onRefresh() {
-        Subscription rxSubscription = RetrofitHelper.getVideoApi().getHomePage()
-                .compose(RxUtil.<VideoHttpResponse<VideoRes>>rxSchedulerHelper())
-                .compose(RxUtil.<VideoRes>handleResult())
-                .subscribe(new Action1<VideoRes>() {
+    public void start() {
+
+    }
+
+    @Override
+    public void showContent(int page) {
+        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoList(page)
+                .compose(RxUtil.<VideoHttpResponse<PageInfo<List<VideoRes>>>>rxSchedulerHelper())
+                .compose(RxUtil.<PageInfo<List<VideoRes>>>handleResult())
+                .subscribe(new Action1<PageInfo<List<VideoRes>>>() {
                     @Override
-                    public void call(final VideoRes res) {
+                    public void call(final PageInfo<List<VideoRes>> res) {
                         if (res != null) {
-                            view.showContent(res);
+                            view.showContent(res.getRecords());
                         }
                     }
                 }, new Action1<Throwable>() {
@@ -47,7 +55,23 @@ public class FragmentOnePresenter extends RxPresenter implements FragmentOneCont
     }
 
     @Override
-    public void start() {
-
+    public void showBanner() {
+        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoBanner()
+                .compose(RxUtil.<VideoHttpResponse<List<VideoRes>>>rxSchedulerHelper())
+                .compose(RxUtil.<List<VideoRes>>handleResult())
+                .subscribe(new Action1<List<VideoRes>>() {
+                    @Override
+                    public void call(final List<VideoRes> res) {
+                        if (res != null) {
+                            view.showBanner(res);
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        view.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
+                    }
+                });
+        addSubscribe(rxSubscription);
     }
 }

@@ -1,41 +1,41 @@
 package com.app.chao.chaoapp.ui.activity;
 
-import android.graphics.Color;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.VideoListAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.baseadapter.recyclerview.MultiItemTypeAdapter;
-import com.app.chao.chaoapp.bean.HomeVideoData;
-import com.app.chao.chaoapp.bean.SearchKey;
-import com.app.chao.chaoapp.bean.VideoInfo;
+import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.ActivityVideoListContract;
 import com.app.chao.chaoapp.contract.impl.ActivityVideoSearchPresenter;
 import com.app.chao.chaoapp.listener.AppBarStateChangeListener;
 import com.app.chao.chaoapp.utils.JumpUtil;
-import com.app.chao.chaoapp.utils.RealmHelper;
 import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
 import com.app.chao.chaoapp.view.BaseToolBar;
 import com.app.chao.chaoapp.view.WordWrapView;
 import com.cjj.MaterialRefreshLayout;
 import com.cjj.MaterialRefreshListener;
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 import java.util.List;
 
 import butterknife.BindView;
+
+//import com.app.chao.chaoapp.bean.SearchKey;
+//import com.app.chao.chaoapp.utils.RealmHelper;
 
 /**
  * Created by Chao on 2017/3/23.
@@ -86,8 +86,8 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
             public void onClick(View v) {
                 mPresenter.onRefresh();
                 if (adapter.getItemCount() == 0 && !getCatalogId().isEmpty()) {
-                    SearchKey search = new SearchKey(getCatalogId(), System.currentTimeMillis());
-                    RealmHelper.getInstance().insertSearchHistory(search);
+//                    SearchKey search = new SearchKey(getCatalogId(), System.currentTimeMillis());
+//                    RealmHelper.getInstance().insertSearchHistory(search);
                     setHistory();
                 }
             }
@@ -165,26 +165,26 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         img_search_clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                RealmHelper.getInstance().deleteSearchHistoryAll();
+//                RealmHelper.getInstance().deleteSearchHistoryAll();
                 wvSearchHistory.removeAllViews();
             }
         });
     }
 
     private void setHistory() {
-        final List<SearchKey> searchHistory = RealmHelper.getInstance().getSearchHistoryListAll();
-        if (searchHistory != null && searchHistory.size() > 0) {
-            wvSearchHistory.removeAllViewsInLayout();
-            int size = searchHistory.size();
-            for (int i = 0; i < size; i++) {
-                final String query = searchHistory.get(i).getSearchKey();
-                TextView textView = new TextView(SearchActivity.this);
-                textView.setTextColor(Color.parseColor("#ffffff"));
-                textView.setText(query);
-                textView.setOnClickListener(onClickListener);
-                wvSearchHistory.addView(textView);
-            }
-        }
+//        final List<SearchKey> searchHistory = RealmHelper.getInstance().getSearchHistoryListAll();
+//        if (searchHistory != null && searchHistory.size() > 0) {
+//            wvSearchHistory.removeAllViewsInLayout();
+//            int size = searchHistory.size();
+//            for (int i = 0; i < size; i++) {
+//                final String query = searchHistory.get(i).getSearchKey();
+//                TextView textView = new TextView(SearchActivity.this);
+//                textView.setTextColor(Color.parseColor("#ffffff"));
+//                textView.setText(query);
+//                textView.setOnClickListener(onClickListener);
+//                wvSearchHistory.addView(textView);
+//            }
+//        }
     }
 
     View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -238,7 +238,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     }
 
     @Override
-    public void showContent(List<HomeVideoData> list) {
+    public void showContent(List<VideoRes> list) {
         adapter.setData(list);
         if (list != null && list.size() > 0) {
             materialRefreshLayout.setLoadMore(true);
@@ -248,7 +248,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     }
 
     @Override
-    public void showMoreContent(List<HomeVideoData> list) {
+    public void showMoreContent(List<VideoRes> list) {
         adapter.addAll(list);
         close();
     }

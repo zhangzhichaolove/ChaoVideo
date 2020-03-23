@@ -4,11 +4,11 @@ import android.content.Context;
 import android.view.ViewGroup;
 
 import com.app.chao.chaoapp.adapter.holder.FragmentOneViewHolder;
-import com.app.chao.chaoapp.bean.HomeVideoData;
+import com.app.chao.chaoapp.bean.VideoRes;
 import com.jude.easyrecyclerview.adapter.BaseViewHolder;
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 
-public class FragmentOneAdapter extends RecyclerArrayAdapter<HomeVideoData> {
+public class FragmentOneAdapter extends RecyclerArrayAdapter<VideoRes> {
 
     public FragmentOneAdapter(Context context) {
         super(context);

@@ -1,6 +1,6 @@
 package com.app.chao.chaoapp.contract.impl;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.base.RxPresenter;
@@ -10,6 +10,8 @@ import com.app.chao.chaoapp.net.RetrofitHelper;
 import com.app.chao.chaoapp.net.VideoHttpResponse;
 import com.app.chao.chaoapp.utils.RxUtil;
 import com.app.chao.chaoapp.utils.StringUtils;
+
+import java.util.List;
 
 import rx.Subscription;
 import rx.functions.Action1;
@@ -36,17 +38,17 @@ public class CommentPresenter extends RxPresenter implements CommentContract.Pre
     }
 
     private void getComment(String mediaId) {
-        Subscription rxSubscription = RetrofitHelper.getVideoApi().getCommentList(mediaId, page + "")
-                .compose(RxUtil.<VideoHttpResponse<VideoRes>>rxSchedulerHelper())
-                .compose(RxUtil.<VideoRes>handleResult())
-                .subscribe(new Action1<VideoRes>() {
+        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoBanner()
+                .compose(RxUtil.<VideoHttpResponse<List<VideoRes>>>rxSchedulerHelper())
+                .compose(RxUtil.<List<VideoRes>>handleResult())
+                .subscribe(new Action1<List<VideoRes>>() {
                     @Override
-                    public void call(VideoRes res) {
+                    public void call(List<VideoRes> res) {
                         if (res != null) {
                             if (page == 1) {
-                                mView.showContent(res.list);
+                                mView.showContent(res);
                             } else {
-                                mView.showMoreContent(res.list);
+                                mView.showMoreContent(res);
                             }
                         }
                     }

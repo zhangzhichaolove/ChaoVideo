@@ -1,15 +1,16 @@
 package com.app.chao.chaoapp.ui.fragment;
 
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.CommentAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
-import com.app.chao.chaoapp.bean.VideoType;
+import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.CommentContract;
 import com.app.chao.chaoapp.contract.impl.CommentPresenter;
 import com.app.chao.chaoapp.contract.impl.VideoInfoPresenter;
@@ -94,16 +95,16 @@ public class VideoCommentFragment extends BaseFragment<CommentContract.Presenter
     }
 
     @Override
-    public void showContent(List<VideoType> list) {
+    public void showContent(List<VideoRes> list) {
         if (list != null && list.size() < 30) {
             clearFooter();
         }
-        adapter.addAll(list);
+//        adapter.addAll(list);
     }
 
     @Override
-    public void showMoreContent(List<VideoType> list) {
-        adapter.addAll(list);
+    public void showMoreContent(List<VideoRes> list) {
+//        adapter.addAll(list);
     }
 
     @Override

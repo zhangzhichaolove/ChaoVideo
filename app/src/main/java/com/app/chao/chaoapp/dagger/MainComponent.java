@@ -1,6 +1,6 @@
 package com.app.chao.chaoapp.dagger;
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 import javax.inject.Singleton;
 
