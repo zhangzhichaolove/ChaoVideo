@@ -11,7 +11,7 @@ import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 /**
  * Description: 评论列表
  */
-public class CommentAdapter extends RecyclerArrayAdapter<VideoType> {
+public class CommentAdapter extends RecyclerArrayAdapter<String> {
 
 
     public CommentAdapter(Context context) {

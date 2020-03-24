@@ -14,7 +14,7 @@ import com.jude.easyrecyclerview.adapter.BaseViewHolder;
  * Description: 评论列表
  */
 
-public class CommentViewHolder extends BaseViewHolder<VideoType> {
+public class CommentViewHolder extends BaseViewHolder<String> {
     CImageView avatar;
     TextView tv_nick;
     TextView tv_time;
@@ -31,12 +31,11 @@ public class CommentViewHolder extends BaseViewHolder<VideoType> {
     }
 
     @Override
-    public void setData(VideoType data) {
-        tv_nick.setText(data.phoneNumber);
-        tv_time.setText(data.time);
-        tv_like.setText(data.likeNum);
-        tv_comment.setText(data.msg);
-        if (!TextUtils.isEmpty(data.userPic))
-            ImageLoader.load(getContext(), data.userPic, avatar);
+    public void setData(String data) {
+        tv_nick.setText("13594347818");
+        tv_time.setText("2020-06-18");
+        tv_like.setText("168");
+        tv_comment.setText("哇，简直是太好看啦。");
+        ImageLoader.load(getContext(), "https://c-ssl.duitang.com/uploads/item/201504/02/20150402H5812_cshdn.jpeg", avatar);
     }
 }

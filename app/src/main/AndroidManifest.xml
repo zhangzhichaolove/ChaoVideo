@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.app.chao.chaoapp">
+    package="com.app.chao.chaoapp" android:targetSandboxVersion="1">
 
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -17,10 +17,15 @@
         android:allowBackup="true"
         android:icon="@mipmap/bilibili_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/bilibili_icon"
         android:networkSecurityConfig="@xml/network_security_config"
+        android:roundIcon="@mipmap/bilibili_icon"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
+
         <activity
             android:name=".GuideActivity"
             android:launchMode="singleTask"

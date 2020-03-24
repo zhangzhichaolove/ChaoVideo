@@ -48,8 +48,8 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
     @BindView(R.id.toolbar)
     Toolbar toolbar;
-    //    private String[] mTitles = new String[]{"简介", "评论"};
-    private String[] mTitles = new String[]{"简介"};
+    private String[] mTitles = new String[]{"简介", "评论"};
+    //    private String[] mTitles = new String[]{"简介"};
     VideoRes videoInfo;
     @BindView(R.id.viewpagertab)
     TabLayout viewpagertab;

@@ -21,6 +21,7 @@ import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 import org.simple.eventbus.EventBus;
 import org.simple.eventbus.Subscriber;
 
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
@@ -53,6 +54,7 @@ public class VideoCommentFragment extends BaseFragment<CommentContract.Presenter
         itemDecoration.setPaddingStart(true);
         itemDecoration.setPaddingHeaderFooter(false);
         recyclerView.addItemDecoration(itemDecoration);
+        adapter.addAll(Arrays.asList("1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1"));
     }
 
     @Override
@@ -114,12 +116,14 @@ public class VideoCommentFragment extends BaseFragment<CommentContract.Presenter
 
     @Override
     public void onLoadMore() {
-        mPresenter.loadMore();
+        //mPresenter.loadMore();
+        adapter.stopMore();
     }
 
     @Override
     public void onRefresh() {
-        mPresenter.onRefresh();
+        //mPresenter.onRefresh();
+        adapter.clear();
     }
 
     public void showError(String msg) {

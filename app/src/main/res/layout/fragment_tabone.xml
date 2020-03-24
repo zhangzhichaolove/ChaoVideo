@@ -11,6 +11,7 @@
         android:id="@+id/refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:paddingBottom="10dp"
         app:isLoadMore="true"
         app:overlay="true"
         app:progress_colors="@array/material_colors"
