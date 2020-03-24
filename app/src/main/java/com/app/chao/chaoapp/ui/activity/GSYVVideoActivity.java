@@ -24,7 +24,9 @@ import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.cache.CacheFactory;
 import com.shuyu.gsyvideoplayer.cache.ProxyCacheManager;
 import com.shuyu.gsyvideoplayer.listener.LockClickListener;
+import com.shuyu.gsyvideoplayer.player.IjkPlayerManager;
 import com.shuyu.gsyvideoplayer.player.PlayerFactory;
+import com.shuyu.gsyvideoplayer.player.SystemPlayerManager;
 import com.shuyu.gsyvideoplayer.utils.GSYVideoType;
 import com.shuyu.gsyvideoplayer.utils.OrientationUtils;
 import com.shuyu.gsyvideoplayer.video.NormalGSYVideoPlayer;
@@ -88,21 +90,21 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
 
         //EXOPlayer内核，支持格式更多
-        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+        //PlayerFactory.setPlayManager(Exo2PlayerManager.class);
         //系统内核模式
-        //PlayerFactory.setPlayManager(SystemPlayerManager.class);
+        PlayerFactory.setPlayManager(SystemPlayerManager.class);
         //ijk内核，默认模式
         //PlayerFactory.setPlayManager(IjkPlayerManager.class);
         //exo缓存模式，支持m3u8，只支持exo
         //CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
         //代理缓存模式，支持所有模式，不支持m3u8等，默认
-        CacheFactory.setCacheManager(ProxyCacheManager.class);
+        //CacheFactory.setCacheManager(ProxyCacheManager.class);
         GSYVideoType.setShowType(GSYVideoType.SCREEN_MATCH_FULL);
 
         //切换绘制模式
         GSYVideoType.setRenderType(GSYVideoType.SUFRACE);
-        GSYVideoType.setRenderType(GSYVideoType.GLSURFACE);
-        GSYVideoType.setRenderType(GSYVideoType.TEXTURE);
+        //GSYVideoType.setRenderType(GSYVideoType.GLSURFACE);
+        //GSYVideoType.setRenderType(GSYVideoType.TEXTURE);
 
         //增加封面
         ImageView imageView = new ImageView(this);
