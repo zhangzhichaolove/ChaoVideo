@@ -1,11 +1,9 @@
 package com.app.chao.chaoapp.adapter.holder;
 
-import android.text.TextUtils;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.app.chao.chaoapp.R;
-import com.app.chao.chaoapp.bean.VideoType;
 import com.app.chao.chaoapp.utils.ImageLoader;
 import com.app.chao.chaoapp.view.CImageView;
 import com.jude.easyrecyclerview.adapter.BaseViewHolder;

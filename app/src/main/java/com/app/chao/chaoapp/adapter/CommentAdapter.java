@@ -4,7 +4,6 @@ import android.content.Context;
 import android.view.ViewGroup;
 
 import com.app.chao.chaoapp.adapter.holder.CommentViewHolder;
-import com.app.chao.chaoapp.bean.VideoType;
 import com.jude.easyrecyclerview.adapter.BaseViewHolder;
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 
