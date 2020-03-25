@@ -58,7 +58,7 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
     @BindView(R.id.home_fab3)
     FloatingActionButton home_fab3;
 
-    private String[] mTitles = new String[]{"推荐", "专题", "动漫", "喜剧", "爱情", "悬疑", "惊悚", "科幻", "记录"};
+    private String[] mTitles = new String[]{"推荐", "动作", "剧情", "犯罪", "爱情", "悬疑", "惊悚", "科幻", "动画"};
 
 
     @Override
@@ -166,7 +166,7 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
 
         @Override
         public Fragment getItem(int position) {
-            return position % 2 == 0 ? TabFragmentOne.newInstance() : TabFragmentTwo.newInstance();
+            return position == 0 ? TabFragmentOne.newInstance() : TabFragmentTwo.newInstance(mTitles[position]);
         }
 
         @Override

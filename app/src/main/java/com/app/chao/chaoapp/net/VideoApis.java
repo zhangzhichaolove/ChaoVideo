@@ -20,7 +20,7 @@ public interface VideoApis {
     String HOST = "http://web.peakchao.top:250/video/";
 
     /**
-     * 首页
+     * 首页-获取Banner
      *
      * @return
      */
@@ -28,12 +28,28 @@ public interface VideoApis {
     Observable<VideoHttpResponse<List<VideoRes>>> getVideoBanner();
 
     /**
-     * 首页-获取Banner
+     * 视频列表
      *
      * @return
      */
     @GET("getVideoList")
     Observable<VideoHttpResponse<PageInfo<List<VideoRes>>>> getVideoList(@Query("page") int page);
+
+    /**
+     * 视频列表
+     *
+     * @return
+     */
+    @GET("getVideoList")
+    Observable<VideoHttpResponse<PageInfo<List<VideoRes>>>> getSearchVideoList(@Query("page") int page, @Query("search") String search);
+
+    /**
+     * 视频列表
+     *
+     * @return
+     */
+    @GET("getVideoList")
+    Observable<VideoHttpResponse<PageInfo<List<VideoRes>>>> getTypeVideoList(@Query("page") int page, @Query("classes") String classes);
 
 
 }

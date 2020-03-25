@@ -161,6 +161,7 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
             materialRefreshLayout.setLoadMore(true);
         }
         adapter.addAll(videoRes);
+        materialRefreshLayout.finishRefresh();
         materialRefreshLayout.finishRefreshLoadMore();
     }
 

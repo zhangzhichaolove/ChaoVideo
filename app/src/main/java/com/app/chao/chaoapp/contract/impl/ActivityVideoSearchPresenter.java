@@ -27,31 +27,28 @@ public class ActivityVideoSearchPresenter extends RxPresenter implements Activit
 
     @Override
     public void start() {
-//        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoListByKeyWord(mView.getCatalogId(), page + "")
-//                .compose(RxUtil.<VideoHttpResponse<VideoRes>>rxSchedulerHelper())
-//                .compose(RxUtil.<VideoRes>handleResult())
-//                .subscribe(new Action1<VideoRes>() {
-//                    @Override
-//                    public void call(VideoRes res) {
-//                        if (res != null) {
-//                            if (page == 1) {
-//                                mView.showContent(res.list);
-//                            } else {
-//                                mView.showMoreContent(res.list);
-//                            }
-//                        }
-//                    }
-//                }, new Action1<Throwable>() {
-//                    @Override
-//                    public void call(Throwable throwable) {
-//                        if (page > 1) {
-//                            page--;
-//                        }
-//                        //mView.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
-//                    }
-//                });
-//        addSubscribe(rxSubscription);
-        getVideoHomeData();
+        Subscription rxSubscription = RetrofitHelper.getVideoApi().getSearchVideoList(page, mView.getCatalogId())
+                .compose(RxUtil.rxSchedulerHelper())
+                .compose(RxUtil.handleResult())
+                .subscribe(res -> {
+                    if (res != null) {
+                        if (page == 1) {
+                            mView.showContent(res.getRecords());
+                        } else {
+                            mView.showMoreContent(res.getRecords());
+                        }
+                    }
+                }, new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable throwable) {
+                        if (page > 1) {
+                            page--;
+                        }
+                        //mView.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
+                    }
+                });
+        addSubscribe(rxSubscription);
+        //getVideoHomeData();
     }
 
     @Override

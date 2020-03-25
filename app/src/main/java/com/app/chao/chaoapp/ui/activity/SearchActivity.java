@@ -250,6 +250,9 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     @Override
     public void showMoreContent(List<VideoRes> list) {
         adapter.addAll(list);
+        if (list != null && list.size() <= 0) {
+            materialRefreshLayout.setLoadMore(false);
+        }
         close();
     }
 

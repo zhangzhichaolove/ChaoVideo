@@ -2,7 +2,7 @@ package com.app.chao.chaoapp.contract;
 
 import com.app.chao.chaoapp.base.BasePresenter;
 import com.app.chao.chaoapp.base.BaseView;
-import com.app.chao.chaoapp.bean.SpecialVideoData;
+import com.app.chao.chaoapp.bean.VideoRes;
 
 import java.util.List;
 
@@ -14,12 +14,17 @@ public interface FragmentTwoContract {
 
     interface View extends BaseView<Presenter> {
 
-        void showContent(List<SpecialVideoData> videoRes);
+        String getType();
 
+        void showContent(List<VideoRes> list);
+
+        void showMoreContent(List<VideoRes> list);
     }
 
     interface Presenter extends BasePresenter {
         void onRefresh();
+
+        void loadMore();
     }
 
 }
