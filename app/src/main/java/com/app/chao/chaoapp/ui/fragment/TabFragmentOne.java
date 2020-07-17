@@ -1,6 +1,7 @@
 package com.app.chao.chaoapp.ui.fragment;
 
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -111,7 +112,8 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
                 //RxBus.getDefault().postSticky("Refresh");
-                mPresenter.showContent(1);
+                page = 1;
+                mPresenter.showContent(page++);
             }
 
             @Override
