@@ -17,7 +17,7 @@ import rx.Observable;
  */
 
 public interface VideoApis {
-    String HOST = "http://web.peakchao.top:250/";
+    String HOST = "http://home.peakchao.com:250/";
 
     /**
      * 首页-获取Banner
