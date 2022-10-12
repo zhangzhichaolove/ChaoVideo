@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/ChaoVideo.iml" filepath="$PROJECT_DIR$/ChaoVideo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Android.ChaoVideo.iml" filepath="$PROJECT_DIR$/.idea/modules/Android.ChaoVideo.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ChaoVideo.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ChaoVideo.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ChaoVideo.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ChaoVideo.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ChaoVideo.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ChaoVideo.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/ChaoVideo.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/ChaoVideo.app.unitTest.iml" />
     </modules>
   </component>
 </project>

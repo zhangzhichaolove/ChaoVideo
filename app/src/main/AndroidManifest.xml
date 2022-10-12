@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.app.chao.chaoapp"
     android:targetSandboxVersion="1">
 
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -30,7 +29,8 @@
         <activity
             android:name=".GuideActivity"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
