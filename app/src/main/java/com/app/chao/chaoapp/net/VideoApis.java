@@ -24,7 +24,7 @@ public interface VideoApis {
      *
      * @return
      */
-    @GET("getVideoBanner")
+    @GET("video/getVideoBanner")
     Observable<VideoHttpResponse<List<VideoRes>>> getVideoBanner();
 
     /**
@@ -32,7 +32,7 @@ public interface VideoApis {
      *
      * @return
      */
-    @GET("getVideoList")
+    @GET("video/getVideoList")
     Observable<VideoHttpResponse<PageInfo<List<VideoRes>>>> getVideoList(@Query("page") int page);
 
     /**
@@ -40,7 +40,7 @@ public interface VideoApis {
      *
      * @return
      */
-    @GET("getVideoList")
+    @GET("video/getVideoList")
     Observable<VideoHttpResponse<PageInfo<List<VideoRes>>>> getSearchVideoList(@Query("page") int page, @Query("search") String search);
 
     /**
@@ -48,7 +48,7 @@ public interface VideoApis {
      *
      * @return
      */
-    @GET("getVideoList")
+    @GET("video/getVideoList")
     Observable<VideoHttpResponse<PageInfo<List<VideoRes>>>> getTypeVideoList(@Query("page") int page, @Query("classes") String classes);
 
 
