@@ -1,5 +1,16 @@
 <resources>
     <string name="episode_number">第%1$d集</string>
+    <string name="cast">投屏</string>
+    <string name="cast_device_picker_title">选择投屏设备</string>
+    <string name="cast_searching">正在搜索同一局域网内的电视…</string>
+    <string name="cast_no_device">未发现设备，请确认手机和电视连接了同一网络并已开启投屏</string>
+    <string name="cast_connected">正在投屏到 %1$s</string>
+    <string name="cast_failed">投屏失败：%1$s</string>
+    <string name="cast_search_failed">搜索设备失败：%1$s</string>
+    <string name="cast_active_title">当前设备：%1$s</string>
+    <string name="cast_stop">停止投屏并在手机播放</string>
+    <string name="cast_switch_device">切换投屏设备</string>
+    <string name="cancel">取消</string>
     <string name="app_name">bilibili</string>
     <string name="cheese_ipsum">这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.</string>
     <string name="open">打开</string>

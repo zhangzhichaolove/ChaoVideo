@@ -3,10 +3,14 @@ package com.app.chao.chaoapp.ui.activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -16,6 +20,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.cast.DlnaCastManager;
 import com.app.chao.chaoapp.contract.VideoInfoContract;
 import com.app.chao.chaoapp.ui.fragment.EpisodeSelectionFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoCommentFragment;
@@ -56,6 +61,13 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
     private boolean isPlay;
     private boolean isPause;
+    private boolean isCasting;
+    private boolean castRequestPending;
+    private String currentVideoUrl;
+    private String currentVideoTitle;
+    private DlnaCastManager castManager;
+    private DlnaCastManager.Device castDevice;
+    private MenuItem castMenuItem;
 
     private OrientationUtils orientationUtils;
 
@@ -71,6 +83,7 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         toolbar = findViewById(R.id.toolbar);
         viewpagertab = findViewById(R.id.viewpagertab);
         viewpager = findViewById(R.id.viewpager);
+        castManager = new DlnaCastManager(this);
         // 必须在 setUp/startPlayLogic 之前选择播放器内核；完整 IJK 包已不再引入。
         PlayerFactory.setPlayManager(Exo2PlayerManager.class);
         CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
@@ -167,7 +180,9 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
             @Override
             public void onPlayError(String url, Object... objects) {
-                videoPlayer.startPlayLogic();//第三方播放器Bug，在某些情况下，第一次播放总会失败，设置播放错误的监听，重新播放。
+                if (!isCasting && !castRequestPending) {
+                    videoPlayer.startPlayLogic();//第三方播放器Bug，在某些情况下，第一次播放总会失败，设置播放错误的监听，重新播放。
+                }
             }
 
         });
@@ -234,11 +249,177 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         if (TextUtils.isEmpty(url)) {
             return;
         }
+        currentVideoUrl = url;
+        currentVideoTitle = title;
+        if (isCasting && castDevice != null) {
+            castCurrentVideo(castDevice, 0);
+            return;
+        }
+        playLocalVideo(url, title, releaseCurrent);
+    }
+
+    private void playLocalVideo(String url, String title, boolean releaseCurrent) {
         if (releaseCurrent) {
             GSYVideoManager.releaseAllVideos();
         }
         videoPlayer.setUp(url, true, null, title);
         videoPlayer.startPlayLogic();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.video_player, menu);
+        castMenuItem = menu.findItem(R.id.action_cast);
+        updateCastMenu();
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_cast) {
+            if (isCasting && castDevice != null) {
+                showCastActions();
+            } else if (!castRequestPending) {
+                showCastDevicePicker();
+            }
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showCastDevicePicker() {
+        List<DlnaCastManager.Device> devices = new ArrayList<>();
+        List<String> deviceNames = new ArrayList<>();
+        deviceNames.add(getString(R.string.cast_searching));
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, deviceNames);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.cast_device_picker_title)
+                .setAdapter(adapter, (dialogInterface, position) -> {
+                    if (!devices.isEmpty() && position < devices.size()) {
+                        castToDevice(devices.get(position));
+                    }
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .create();
+        dialog.setOnDismissListener(ignored -> castManager.cancelDiscovery());
+        dialog.show();
+
+        castManager.discover(new DlnaCastManager.DiscoveryCallback() {
+            @Override
+            public void onDeviceFound(DlnaCastManager.Device device) {
+                if (devices.contains(device)) {
+                    return;
+                }
+                if (devices.isEmpty()) {
+                    deviceNames.clear();
+                }
+                devices.add(device);
+                deviceNames.add(device.getName());
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onFinished() {
+                if (devices.isEmpty()) {
+                    deviceNames.clear();
+                    deviceNames.add(getString(R.string.cast_no_device));
+                    adapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onError(String error) {
+                deviceNames.clear();
+                deviceNames.add(getString(R.string.cast_search_failed, error));
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    private void castToDevice(DlnaCastManager.Device targetDevice) {
+        if (TextUtils.isEmpty(currentVideoUrl)) {
+            return;
+        }
+        long position = isCasting ? 0 : videoPlayer.getCurrentPositionWhenPlaying();
+        castRequestPending = true;
+        if (!isCasting) {
+            GSYVideoManager.onPause();
+        }
+        castManager.cast(targetDevice, currentVideoUrl, position,
+                new DlnaCastManager.CommandCallback() {
+                    @Override
+                    public void onSuccess() {
+                        castRequestPending = false;
+                        isCasting = true;
+                        castDevice = targetDevice;
+                        updateCastMenu();
+                        showToast(getString(R.string.cast_connected, targetDevice.getName()));
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        castRequestPending = false;
+                        if (!isCasting) {
+                            GSYVideoManager.onResume();
+                        }
+                        showToast(getString(R.string.cast_failed, error));
+                    }
+                });
+    }
+
+    private void castCurrentVideo(DlnaCastManager.Device targetDevice, long position) {
+        castRequestPending = true;
+        castManager.cast(targetDevice, currentVideoUrl, position,
+                new DlnaCastManager.CommandCallback() {
+                    @Override
+                    public void onSuccess() {
+                        castRequestPending = false;
+                        showToast(getString(R.string.cast_connected, targetDevice.getName()));
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        castRequestPending = false;
+                        showToast(getString(R.string.cast_failed, error));
+                    }
+                });
+    }
+
+    private void showCastActions() {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.cast_active_title, castDevice.getName()))
+                .setItems(new String[]{getString(R.string.cast_stop),
+                                getString(R.string.cast_switch_device)},
+                        (dialog, which) -> {
+                            if (which == 0) {
+                                stopCastingAndResumeLocal();
+                            } else {
+                                showCastDevicePicker();
+                            }
+                        })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void stopCastingAndResumeLocal() {
+        DlnaCastManager.Device previousDevice = castDevice;
+        isCasting = false;
+        castDevice = null;
+        updateCastMenu();
+        if (previousDevice != null) {
+            castManager.stop(previousDevice, null);
+        }
+        if (!TextUtils.isEmpty(currentVideoUrl)) {
+            playLocalVideo(currentVideoUrl, currentVideoTitle, true);
+        }
+    }
+
+    private void updateCastMenu() {
+        if (castMenuItem != null) {
+            castMenuItem.setIcon(isCasting
+                    ? R.drawable.ic_cast_connected : R.drawable.ic_cast);
+        }
     }
 
     @Override
@@ -251,24 +432,28 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
     @Override
     protected void onResume() {
         super.onResume();
-        GSYVideoManager.onResume();
+        if (!isCasting) {
+            GSYVideoManager.onResume();
+        }
         isPause = false;
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        // DLNA 播放由电视独立维持；离开页面时仅释放本页资源，不发送 Stop。
+        castManager.release();
         //videoPlayer.release();
         GSYVideoManager.releaseAllVideos();
         if (orientationUtils != null)
             orientationUtils.releaseListener();
+        super.onDestroy();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         //如果旋转了就全屏
         boolean backUpIsPlay = isPlay;
-        if (!isPause && videoPlayer.getVisibility() == View.VISIBLE) {
+        if (!isPause && !isCasting && videoPlayer.getVisibility() == View.VISIBLE) {
             if (isADStarted()) {
                 isPlay = false;
                 videoPlayer.getCurrentPlayer().onConfigurationChanged(this, newConfig, orientationUtils, true, true);
@@ -325,8 +510,7 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
             videoPlayer.setThumbImageView(imageView);
         }
         if (!TextUtils.isEmpty(videoRes.getVideo())) {
-            videoPlayer.setUp(videoRes.getVideo(), true, null, videoRes.title);
-            videoPlayer.startPlayLogic();
+            playVideo(videoRes.getVideo(), videoRes.title, true);
         }
     }
 
