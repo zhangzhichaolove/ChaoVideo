@@ -31,18 +31,22 @@ public class RetrofitHelper {
     private static VideoApis videoApi;
     private static GankApis gankApis;
 
-    public static VideoApis getVideoApi() {
+    public static synchronized VideoApis getVideoApi() {
         initOkHttp();
         if (videoApi == null) {
             Retrofit retrofit = new Retrofit.Builder()
                     .client(okHttpClient)
-                    .baseUrl(VideoApis.HOST)
+                    .baseUrl(ApiAddressManager.getBaseUrl())
                     .addConverterFactory(GsonConverterFactory.create())
                     .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                     .build();
             videoApi = retrofit.create(VideoApis.class);
         }
         return videoApi;
+    }
+
+    static synchronized void resetVideoApi() {
+        videoApi = null;
     }
 
     public static GankApis getGankApis() {

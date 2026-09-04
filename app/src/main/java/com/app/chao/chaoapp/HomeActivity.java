@@ -4,10 +4,13 @@ import android.animation.Animator;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
@@ -22,6 +25,7 @@ import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.HomeActivityContract;
 import com.app.chao.chaoapp.contract.impl.HomeActivityPresenter;
 import com.app.chao.chaoapp.dagger.Persion;
+import com.app.chao.chaoapp.net.ApiAddressManager;
 import com.app.chao.chaoapp.ui.activity.BaseActivity;
 import com.app.chao.chaoapp.ui.activity.PersonalCoreActivity;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentOne;
@@ -245,10 +249,35 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
                 }
             });
         } else if (id == R.id.home_fab2) {
-            showToast("home_fab2");
+            showApiAddressDialog();
         } else if (id == R.id.home_fab3) {
             showToast("home_fab3");
         }
+    }
+
+    private void showApiAddressDialog() {
+        EditText input = new EditText(this);
+        input.setSingleLine(true);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        input.setText(ApiAddressManager.getBaseUrl());
+        input.setSelection(input.length());
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.api_address_title)
+                .setView(input)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.save, null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setOnClickListener(view -> {
+                    if (!ApiAddressManager.saveBaseUrl(input.getText().toString())) {
+                        input.setError(getString(R.string.api_address_invalid));
+                        return;
+                    }
+                    dialog.dismiss();
+                    showToast(getString(R.string.api_address_saved));
+                }));
+        dialog.show();
     }
 
 }

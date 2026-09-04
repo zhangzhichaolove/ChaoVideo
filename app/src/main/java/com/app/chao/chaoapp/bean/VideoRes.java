@@ -1,6 +1,6 @@
 package com.app.chao.chaoapp.bean;
 
-import com.app.chao.chaoapp.net.VideoApis;
+import com.app.chao.chaoapp.net.ApiAddressManager;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
@@ -195,7 +195,7 @@ public class VideoRes implements Serializable {
     }
 
     private String resolveUrl(String value) {
-        HttpUrl baseUrl = HttpUrl.parse(VideoApis.HOST);
+        HttpUrl baseUrl = HttpUrl.parse(ApiAddressManager.getBaseUrl());
         HttpUrl resolvedUrl = baseUrl == null || value == null ? null : baseUrl.resolve(value);
         return resolvedUrl == null ? value : resolvedUrl.toString();
     }

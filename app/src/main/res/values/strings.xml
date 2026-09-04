@@ -11,6 +11,10 @@
     <string name="cast_stop">停止投屏并在手机播放</string>
     <string name="cast_switch_device">切换投屏设备</string>
     <string name="cancel">取消</string>
+    <string name="save">保存</string>
+    <string name="api_address_title">修改 API 地址</string>
+    <string name="api_address_invalid">请输入以 http:// 或 https:// 开头的有效地址</string>
+    <string name="api_address_saved">API 地址已保存，后续请求将使用新地址</string>
     <string name="app_name">bilibili</string>
     <string name="cheese_ipsum">这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.</string>
     <string name="open">打开</string>
