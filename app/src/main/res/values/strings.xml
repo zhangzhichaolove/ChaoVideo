@@ -10,6 +10,9 @@
     <string name="cast_active_title">当前设备：%1$s</string>
     <string name="cast_stop">停止投屏并在手机播放</string>
     <string name="cast_switch_device">切换投屏设备</string>
+    <string name="cast_stopped">已退出投屏</string>
+    <string name="cast_not_active">当前没有投屏</string>
+    <string name="cast_stop_failed">退出投屏失败：%1$s</string>
     <string name="cancel">取消</string>
     <string name="save">保存</string>
     <string name="api_address_title">修改 API 地址</string>

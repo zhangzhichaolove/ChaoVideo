@@ -112,6 +112,15 @@ public final class DlnaCastManager {
         });
     }
 
+    public boolean stopRemembered(CommandCallback callback) {
+        Device device = getRememberedDevice();
+        if (device == null) {
+            return false;
+        }
+        stop(device, callback);
+        return true;
+    }
+
     public void release() {
         released = true;
         cancelDiscovery();

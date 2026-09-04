@@ -22,6 +22,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.cast.DlnaCastManager;
 import com.app.chao.chaoapp.contract.HomeActivityContract;
 import com.app.chao.chaoapp.contract.impl.HomeActivityPresenter;
 import com.app.chao.chaoapp.dagger.Persion;
@@ -53,6 +54,7 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
     FloatingActionButton home_fab;
     FloatingActionButton home_fab2;
     FloatingActionButton home_fab3;
+    private DlnaCastManager castManager;
 
     private String[] mTitles = new String[]{"推荐", "动作", "剧情", "犯罪", "爱情", "悬疑", "惊悚", "科幻", "动画"};
 
@@ -71,6 +73,7 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
         home_fab = findViewById(R.id.home_fab);
         home_fab2 = findViewById(R.id.home_fab2);
         home_fab3 = findViewById(R.id.home_fab3);
+        castManager = new DlnaCastManager(this);
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -251,8 +254,29 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
         } else if (id == R.id.home_fab2) {
             showApiAddressDialog();
         } else if (id == R.id.home_fab3) {
-            showToast("home_fab3");
+            boolean stopping = castManager.stopRemembered(new DlnaCastManager.CommandCallback() {
+                @Override
+                public void onSuccess() {
+                    showToast(getString(R.string.cast_stopped));
+                }
+
+                @Override
+                public void onError(String error) {
+                    showToast(getString(R.string.cast_stop_failed, error));
+                }
+            });
+            if (!stopping) {
+                showToast(getString(R.string.cast_not_active));
+            }
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (castManager != null) {
+            castManager.release();
+        }
+        super.onDestroy();
     }
 
     private void showApiAddressDialog() {
