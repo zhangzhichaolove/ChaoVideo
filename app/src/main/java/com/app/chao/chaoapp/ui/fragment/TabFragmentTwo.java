@@ -31,7 +31,6 @@ import java.util.List;
 public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> implements FragmentTwoContract.View {
     SwipeRefreshLayout materialRefreshLayout;
     RecyclerView recyclerView;
-    //SpecialAdapter adapter;
     FragmentOneAdapter adapter;
     View listState;
     ProgressBar listStateProgress;
@@ -40,7 +39,6 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
     EndlessScrollListener endlessScrollListener;
 
     public static TabFragmentTwo newInstance(String type) {
-        //if (fragment == null)
         TabFragmentTwo fragment = new TabFragmentTwo();
         Bundle bundle = new Bundle();
         bundle.putString("type", type);
@@ -71,23 +69,9 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
             mPresenter.onRefresh();
         });
         new FragmentTwoPresenter(this);
-        //设置Item增加、移除动画
-        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(
                 ScreenUtil.dip2px(getContext(), 8)));
-//        recyclerView.setAdapter(adapter = new SpecialAdapter(getActivity(), R.layout.item_found, null));
-//        adapter.setOnItemClickListener(new MultiItemTypeAdapter.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(View view, RecyclerView.ViewHolder holder, int position) {
-//                JumpUtil.go2VideoListActivity(mContext, "1", adapter.getItem(position).getTitle());
-//            }
-//
-//            @Override
-//            public boolean onItemLongClick(View view, RecyclerView.ViewHolder holder, int position) {
-//                return false;
-//            }
-//        });
         recyclerView.setAdapter(adapter = new FragmentOneAdapter(getContext()));
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
         recyclerView.setLayoutManager(gridLayoutManager);
@@ -96,7 +80,6 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         recyclerView.addOnScrollListener(endlessScrollListener);
         adapter.setOnItemClickListener(position ->
                 JumpUtil.goGSYYVideoActivity(mContext, adapter.getItem(position)));
-        //getEvent();
         listener();
     }
 
@@ -108,30 +91,6 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         });
         materialRefreshLayout.setRefreshing(true);
         mPresenter.onRefresh();
-    }
-
-    private void getEvent() {
-        new FragmentTwoPresenter(this);
-//        presenter.start();
-//        mRxSub = RxBus.getDefault().toObservableSticky(VideoRes.class)
-//                .subscribe(new RxBusSubscriber<VideoRes>() {
-//                    @Override
-//                    protected void onEvent(VideoRes videoRes) {
-//                        List<VideoInfo> list = new ArrayList<>();
-//                        for (int i = 0; videoRes != null && i < videoRes.list.size(); i++) {
-//                            if (!TextUtils.isEmpty(videoRes.list.get(i).moreURL) && !TextUtils.isEmpty(videoRes.list.get(i).title)) {
-//                                VideoInfo videoInfo = videoRes.list.get(i).childList.get(0);//由于此处得到的是公共实体类，如果修改也将修改整个JavaBean的数据。因为同一地址操作的是同一对象，所以不能通过进行地址给对象赋值
-//                                VideoInfo clone = videoInfo.clone();
-//                                clone.title = videoRes.list.get(i).title;
-//                                clone.moreURL = videoRes.list.get(i).moreURL;
-//                                list.add(clone);
-//                            }
-//                        }
-//                        adapter.setData(list);
-//                        close();
-//                    }
-//                });
-//        RxSubscriptions.add(mRxSub);
     }
 
     private void close() {
@@ -196,17 +155,4 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         listStateMessage.setText(getString(R.string.video_load_failed,
                 TextUtils.isEmpty(message) ? getString(R.string.unknown_error) : message));
     }
-
-//    @Override
-//    public void showContent(List<SpecialVideoData> videoRes) {
-//        adapter.setData(videoRes);
-//        close();
-//    }
-
-//    @Override
-//    public void setPresenter(FragmentTwoContract.Presenter presenter) {
-//        mPresenter = Preconditions.checkNotNull(presenter);
-//        mPresenter.start();
-//    }
-
 }

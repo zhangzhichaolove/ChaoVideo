@@ -35,18 +35,14 @@ public class PersonalCoreFragment extends BaseFragment {
     protected void initView(View view) {
         toolbar = view.findViewById(R.id.toolbar);
         collapsing_toolbar = view.findViewById(R.id.collapsing_toolbar);
-        ((PersonalCoreActivity) getActivity()).setSupportActionBar(toolbar);
-        ((PersonalCoreActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        collapsing_toolbar.setTitle("个人中心");//设置Toolbar标题
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getActivity().finish();
-            }
-        });
+        PersonalCoreActivity activity = (PersonalCoreActivity) requireActivity();
+        activity.setSupportActionBar(toolbar);
+        if (activity.getSupportActionBar() != null) {
+            activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        collapsing_toolbar.setTitle(getString(R.string.user_profile));
+        toolbar.setNavigationOnClickListener(clicked -> activity.finish());
         StatusBarUtils.applyTopInset(toolbar);
-        //CollapsingToolbarLayout layout = (CollapsingToolbarLayout) view.findViewById(R.id.collapsing_toolbar);
-        //layout.setTitle("1111");
     }
 
 }

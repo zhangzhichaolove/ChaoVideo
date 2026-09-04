@@ -6,7 +6,6 @@ import android.content.Intent;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.ui.activity.GSYVVideoActivity;
 import com.app.chao.chaoapp.ui.activity.SearchActivity;
-import com.app.chao.chaoapp.ui.activity.VideoListActivity;
 
 
 /**
@@ -40,33 +39,4 @@ public class JumpUtil {
         context.startActivity(intent);
     }
 
-    /**
-     * 专题列表页
-     *
-     * @param context
-     * @param catalogId
-     * @param title
-     */
-    public static void go2VideoListActivity(Context context, String catalogId, String title) {
-        Intent intent = new Intent(context, VideoListActivity.class);
-        intent.putExtra("catalogId", catalogId);
-        intent.putExtra("title", title);
-        context.startActivity(intent);
-    }
-//    public static void go2VideoListSearchActivity(Context context, String searchStr, String title) {
-//        Intent intent = new Intent(context, VideoListActivity.class);
-//        intent.putExtra("searchStr", searchStr);
-//        intent.putExtra("title", title);
-//        context.startActivity(intent);
-//    }
-//
-//    public static void go2MainActivity(Context context) {
-//        jump(context, MainActivity.class);
-//        ((WelcomeActivity) context).finish();
-//    }
-//
-//    private static void jump(Context a, Class<?> clazz) {
-//        Intent intent = new Intent(a, clazz);
-//        a.startActivity(intent);
-//    }
 }

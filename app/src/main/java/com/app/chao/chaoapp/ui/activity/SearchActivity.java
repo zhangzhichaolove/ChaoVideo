@@ -1,6 +1,5 @@
 package com.app.chao.chaoapp.ui.activity;
 
-import android.util.Log;
 import android.graphics.Color;
 import android.text.TextUtils;
 import android.view.View;
@@ -22,7 +21,6 @@ import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.data.VideoLibraryRepository;
 import com.app.chao.chaoapp.contract.ActivityVideoListContract;
 import com.app.chao.chaoapp.contract.impl.ActivityVideoSearchPresenter;
-import com.app.chao.chaoapp.listener.AppBarStateChangeListener;
 import com.app.chao.chaoapp.utils.JumpUtil;
 import com.app.chao.chaoapp.utils.EndlessScrollListener;
 import com.app.chao.chaoapp.utils.GridSpacingItemDecoration;
@@ -30,13 +28,9 @@ import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
 import com.app.chao.chaoapp.view.BaseToolBar;
 import com.app.chao.chaoapp.view.WordWrapView;
-import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 
 import java.util.List;
-
-//import com.app.chao.chaoapp.bean.SearchKey;
-//import com.app.chao.chaoapp.utils.RealmHelper;
 
 /**
  * Created by Chao on 2017/3/23.
@@ -45,7 +39,6 @@ import java.util.List;
 public class SearchActivity extends BaseActivity<ActivityVideoListContract.Presenter> implements ActivityVideoListContract.View {
     SwipeRefreshLayout materialRefreshLayout;
     RecyclerView recyclerView;
-    AppBarLayout appbar;
     BaseToolBar toolbar;
     WordWrapView wvSearchHistory;
     LinearLayout rl_history;
@@ -55,7 +48,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     ProgressBar listStateProgress;
     TextView listStateMessage;
     Button listStateRetry;
-    boolean isOpen = false;
     EndlessScrollListener endlessScrollListener;
     VideoLibraryRepository libraryRepository;
 
@@ -68,7 +60,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     protected void init() {
         materialRefreshLayout = findViewById(R.id.refresh);
         recyclerView = findViewById(R.id.recyclerView);
-        appbar = findViewById(R.id.appbar);
         toolbar = findViewById(R.id.toolbar);
         wvSearchHistory = findViewById(R.id.wv_search_history);
         rl_history = findViewById(R.id.rl_history);
@@ -127,25 +118,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         endlessScrollListener = new EndlessScrollListener(
                 (GridLayoutManager) recyclerView.getLayoutManager(), () -> mPresenter.loadMore());
         recyclerView.addOnScrollListener(endlessScrollListener);
-        //materialRefreshLayout.autoRefresh();
-
-        appbar.addOnOffsetChangedListener(new AppBarStateChangeListener() {
-            @Override
-            public void onStateChanged(AppBarLayout appBarLayout, State state) {
-                Log.d("STATE", state.name());
-                if (state == State.EXPANDED) {
-                    //展开状态
-                    isOpen = true;
-                } else if (state == State.COLLAPSED) {
-                    //折叠状态
-                    isOpen = false;
-                } else {
-                    //中间状态
-                }
-            }
-        });
-        //appbar.setExpanded(false);//默认不展开
-
         img_search_clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

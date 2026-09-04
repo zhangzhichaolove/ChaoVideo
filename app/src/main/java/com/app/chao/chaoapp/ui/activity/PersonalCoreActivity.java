@@ -1,9 +1,6 @@
 package com.app.chao.chaoapp.ui.activity;
 
 import android.view.MenuItem;
-import android.view.View;
-
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 
 import com.app.chao.chaoapp.R;
@@ -23,20 +20,6 @@ public class PersonalCoreActivity extends BaseActivity {
 
     @Override
     protected void init() {
-//        setTitle("个人中心");
-//        getSupportActionBar().setHomeButtonEnabled(true); //设置返回键可用
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);//TODO 此页面toolbar未使用。
-        toolbar.setTitle("个人中心");
-        setSupportActionBar(toolbar);
-        //关键下面两句话，设置了回退按钮，及点击事件的效果
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-        getSupportActionBar().hide();
         StatusBarUtils.setTranslucent(this);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -45,7 +28,6 @@ public class PersonalCoreActivity extends BaseActivity {
             fragment = PersonalCoreFragment.newInstance();
             getSupportFragmentManager().beginTransaction().add(R.id.fl_cotent, fragment, fragment.getClass().getName()).commit();
         }
-        //new LoginPresenter(fragment);
     }
 
     @Override//返回键监听
