@@ -44,7 +44,7 @@ public class BaseToolBar extends Toolbar {
 
     private void initView() {
         if (mView == null) {
-            mView = LayoutInflater.from(getContext()).inflate(R.layout.base_toolbar, null);
+            mView = LayoutInflater.from(getContext()).inflate(R.layout.base_toolbar, this, false);
             back = (ImageView) mView.findViewById(R.id.back);
             img_clear = (ImageView) mView.findViewById(R.id.img_clear);
             mSearch = (EditText) mView.findViewById(R.id.edt_search);
@@ -120,4 +120,4 @@ public class BaseToolBar extends Toolbar {
         }
     }
 
-}  
+}

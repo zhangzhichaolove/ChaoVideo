@@ -23,8 +23,9 @@
             android:id="@+id/iv_expand_text_view_animation_toggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
+            android:contentDescription="@string/expand"
             android:visibility="invisible" />
 
         <TextView
@@ -32,7 +33,7 @@
             style="@style/common_tv_style"
             android:layout_centerVertical="true"
             android:layout_marginTop="10dp"
-            android:layout_toLeftOf="@+id/iv_expand_text_view_animation_toggle"
+            android:layout_toStartOf="@+id/iv_expand_text_view_animation_toggle"
             android:lineSpacingMultiplier="1.2"
             android:textColor="@android:color/white"
             tools:text="展开" />

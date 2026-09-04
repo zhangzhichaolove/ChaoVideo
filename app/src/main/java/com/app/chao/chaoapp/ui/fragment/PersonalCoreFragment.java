@@ -44,9 +44,7 @@ public class PersonalCoreFragment extends BaseFragment {
                 getActivity().finish();
             }
         });
-        CollapsingToolbarLayout.LayoutParams lp = (CollapsingToolbarLayout.LayoutParams) toolbar.getLayoutParams();
-        lp.topMargin = StatusBarUtils.getStatusBarHeight();
-        toolbar.setLayoutParams(lp);
+        StatusBarUtils.applyTopInset(toolbar);
         //CollapsingToolbarLayout layout = (CollapsingToolbarLayout) view.findViewById(R.id.collapsing_toolbar);
         //layout.setTitle("1111");
     }

@@ -6,11 +6,11 @@
         android:id="@+id/action_cast"
         android:icon="@drawable/ic_cast"
         android:title="@string/cast"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_favorite"
         android:title="@string/add_favorite"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_speed"
         android:title="@string/playback_speed"

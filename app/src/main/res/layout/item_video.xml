@@ -17,6 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="260dp"
             android:layout_centerVertical="true"
+            android:contentDescription="@string/video_cover"
             android:background="@mipmap/default_320" />
     </RelativeLayout>
 

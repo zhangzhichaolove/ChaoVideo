@@ -52,8 +52,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_margin="20dp"
+            android:contentDescription="@string/api_address_title"
             android:src="@mipmap/bilibili_icon" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -61,8 +62,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_margin="20dp"
+            android:contentDescription="@string/cast_stop"
             android:src="@mipmap/cnblogs" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -70,8 +72,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_margin="20dp"
+            android:contentDescription="@string/more_actions"
             android:src="@mipmap/wangwang" />
     </RelativeLayout>
 

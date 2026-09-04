@@ -48,6 +48,7 @@ public final class DlnaCastManager {
     private static final String DEVICE_SERVICE_TYPE = "device_service_type";
     private static final String DEVICE_RENDERING_CONTROL_URL = "device_rendering_control_url";
     private static final String DEVICE_RENDERING_SERVICE_TYPE = "device_rendering_service_type";
+    private static final String MEDIA_URL = "media_url";
     private static final String RECENT_DEVICES = "recent_devices";
     // All pages share one queue so a new cast always replaces the preceding cast in order.
     private static final ExecutorService COMMAND_EXECUTOR = Executors.newSingleThreadExecutor();
@@ -98,7 +99,7 @@ public final class DlnaCastManager {
                         // The new cast is already active; an offline old renderer should not fail it.
                     }
                 }
-                rememberDevice(device);
+                rememberDevice(device, mediaUrl);
                 postSuccess(callback);
             } catch (Exception error) {
                 postError(callback, readableError(error));
@@ -544,7 +545,12 @@ public final class DlnaCastManager {
                 preferences.getString(DEVICE_RENDERING_SERVICE_TYPE, null));
     }
 
-    private void rememberDevice(Device device) {
+    public String getRememberedMediaUrl() {
+        return context.getSharedPreferences(CAST_SESSION, Context.MODE_PRIVATE)
+                .getString(MEDIA_URL, null);
+    }
+
+    private void rememberDevice(Device device, String mediaUrl) {
         context.getSharedPreferences(CAST_SESSION, Context.MODE_PRIVATE)
                 .edit()
                 .putString(DEVICE_NAME, device.name)
@@ -553,6 +559,7 @@ public final class DlnaCastManager {
                 .putString(DEVICE_SERVICE_TYPE, device.serviceType)
                 .putString(DEVICE_RENDERING_CONTROL_URL, device.renderingControlUrl)
                 .putString(DEVICE_RENDERING_SERVICE_TYPE, device.renderingServiceType)
+                .putString(MEDIA_URL, mediaUrl)
                 .apply();
         rememberRecentDevice(device);
     }
@@ -617,6 +624,7 @@ public final class DlnaCastManager {
                     .remove(DEVICE_SERVICE_TYPE)
                     .remove(DEVICE_RENDERING_CONTROL_URL)
                     .remove(DEVICE_RENDERING_SERVICE_TYPE)
+                    .remove(MEDIA_URL)
                     .apply();
         }
     }

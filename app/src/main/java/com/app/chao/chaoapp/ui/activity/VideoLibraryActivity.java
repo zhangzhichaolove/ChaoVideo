@@ -54,7 +54,7 @@ public class VideoLibraryActivity extends BaseActivity {
         Toolbar toolbar = findViewById(R.id.library_toolbar);
         toolbar.setTitle(historyMode ? R.string.watch_history : R.string.video_favorites);
         setSupportActionBar(toolbar);
-        toolbar.setNavigationIcon(androidx.appcompat.R.drawable.abc_ic_ab_back_material);
+        toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
         toolbar.setNavigationOnClickListener(view -> finish());
 
         emptyView = findViewById(R.id.library_empty);

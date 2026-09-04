@@ -1,7 +1,9 @@
 package com.app.chao.chaoapp.ui.activity;
 
+import android.Manifest;
 import android.content.res.Configuration;
 import android.app.PictureInPictureParams;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,12 +23,16 @@ import android.app.DownloadManager;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
+import android.content.pm.PackageManager;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
@@ -99,6 +105,14 @@ public class GSYVVideoActivity extends BaseActivity implements
     private long castDurationMs;
     private boolean castPlaying = true;
     private int castStatusFailures;
+    private final ActivityResultLauncher<String> storagePermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+                if (granted) {
+                    enqueueCurrentVideoDownload();
+                } else {
+                    showToast(getString(R.string.download_permission_denied));
+                }
+            });
     private final Handler castStatusHandler = new Handler(Looper.getMainLooper());
     private final Runnable castStatusPoller = new Runnable() {
         @Override
@@ -139,6 +153,7 @@ public class GSYVVideoActivity extends BaseActivity implements
     @Override
     protected void init() {
         videoPlayer = findViewById(R.id.detail_player);
+        videoPlayer.post(this::updatePictureInPictureParams);
         playerContainer = findViewById(R.id.player_container);
         playbackError = findViewById(R.id.playback_error);
         findViewById(R.id.playback_retry).setOnClickListener(view -> {
@@ -499,10 +514,26 @@ public class GSYVVideoActivity extends BaseActivity implements
             showToast(getString(R.string.picture_in_picture_unavailable));
             return;
         }
-        PictureInPictureParams params = new PictureInPictureParams.Builder()
-                .setAspectRatio(new Rational(16, 9))
-                .build();
-        enterPictureInPictureMode(params);
+        enterPictureInPictureMode(createPictureInPictureParams(false));
+    }
+
+    private void updatePictureInPictureParams() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && videoPlayer != null) {
+            setPictureInPictureParams(createPictureInPictureParams(!isCasting));
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private PictureInPictureParams createPictureInPictureParams(boolean autoEnter) {
+        PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder()
+                .setAspectRatio(new Rational(16, 9));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Rect sourceRect = new Rect();
+            videoPlayer.getGlobalVisibleRect(sourceRect);
+            builder.setAutoEnterEnabled(autoEnter)
+                    .setSourceRectHint(sourceRect);
+        }
+        return builder.build();
     }
 
     private void addFullscreenEpisodeButton(NormalGSYVideoPlayer player) {
@@ -623,6 +654,7 @@ public class GSYVVideoActivity extends BaseActivity implements
         isCasting = true;
         GSYVideoManager.onPause();
         videoPlayer.post(GSYVideoManager::onPause);
+        updatePictureInPictureParams();
         updateCastMenu();
         startCastStatusPolling();
     }
@@ -631,7 +663,7 @@ public class GSYVVideoActivity extends BaseActivity implements
         if (TextUtils.isEmpty(currentVideoUrl)) {
             return;
         }
-        long position = isCasting ? 0 : videoPlayer.getCurrentPositionWhenPlaying();
+        long position = isCasting ? castPositionMs : videoPlayer.getCurrentPositionWhenPlaying();
         castRequestPending = true;
         if (!isCasting) {
             GSYVideoManager.onPause();
@@ -647,6 +679,7 @@ public class GSYVVideoActivity extends BaseActivity implements
                         castPlaying = true;
                         startCastStatusPolling();
                         updateCastMenu();
+                        updatePictureInPictureParams();
                         showToast(getString(R.string.cast_connected, targetDevice.getName()));
                     }
 
@@ -771,15 +804,19 @@ public class GSYVVideoActivity extends BaseActivity implements
 
     private void stopCastingAndResumeLocal() {
         DlnaCastManager.Device previousDevice = castDevice;
+        boolean sameMedia = TextUtils.equals(currentVideoUrl,
+                castManager.getRememberedMediaUrl());
+        long resumePosition = sameMedia ? castPositionMs : 0;
         isCasting = false;
         castDevice = null;
         updateCastMenu();
+        updatePictureInPictureParams();
         castStatusHandler.removeCallbacks(castStatusPoller);
         if (previousDevice != null) {
             castManager.stop(previousDevice, null);
         }
         if (!TextUtils.isEmpty(currentVideoUrl)) {
-            playLocalVideo(currentVideoUrl, currentVideoTitle, true);
+            playLocalVideo(currentVideoUrl, currentVideoTitle, true, resumePosition);
         }
     }
 
@@ -804,6 +841,16 @@ public class GSYVVideoActivity extends BaseActivity implements
             showToast(getString(R.string.video_missing));
             return;
         }
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P
+                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            return;
+        }
+        enqueueCurrentVideoDownload();
+    }
+
+    private void enqueueCurrentVideoDownload() {
         try {
             String name = currentVideoTitle == null ? "video" : currentVideoTitle;
             name = name.replaceAll("[\\\\/:*?\"<>|]", "_") + ".mp4";

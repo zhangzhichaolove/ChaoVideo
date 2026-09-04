@@ -82,9 +82,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         libraryRepository = VideoLibraryRepository.get(this);
         StatusBarUtils.setTranslucent(this);
 
-        CollapsingToolbarLayout.LayoutParams lp = (CollapsingToolbarLayout.LayoutParams) toolbar.getLayoutParams();
-        lp.topMargin = StatusBarUtils.getStatusBarHeight();
-        toolbar.setLayoutParams(lp);
+        StatusBarUtils.applyTopInset(toolbar);
 
         new ActivityVideoSearchPresenter(this);
 

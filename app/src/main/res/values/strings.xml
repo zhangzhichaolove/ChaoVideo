@@ -35,8 +35,14 @@
     <string name="retry">重试</string>
     <string name="unknown_error">未知错误</string>
     <string name="comments_empty">暂无评论</string>
-    <string name="app_name">bilibili</string>
-    <string name="cheese_ipsum">这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.</string>
+    <string name="app_name">ChaoVideo</string>
+    <string name="about">关于</string>
+    <string name="about_app_title">ChaoVideo</string>
+    <string name="about_app_content">本地视频客户端，可连接自定义 API 浏览和播放视频。</string>
+    <string name="about_features_title">主要功能</string>
+    <string name="about_features_content">支持搜索、收藏、观看记录、连续剧选集、画中画、视频下载和 DLNA 投屏。</string>
+    <string name="about_data_title">数据与网络</string>
+    <string name="about_data_content">收藏、记录和搜索历史保存在本机；视频与封面由当前设置的 API 地址提供。</string>
     <string name="open">打开</string>
     <string name="close">关闭</string>
     <string name="expand">展开</string>
@@ -50,7 +56,6 @@
     <string name="api_log_clear">清空</string>
     <string name="api_log_read_failed">读取失败：%1$s</string>
     <string name="copied">已复制</string>
-    <string name="api_logs_hint">长按修改 API 地址按钮可查看完整响应日志</string>
     <string name="playback_speed">播放速度</string>
     <string name="picture_in_picture">画中画</string>
     <string name="picture_in_picture_unavailable">当前系统不支持画中画</string>
@@ -81,6 +86,15 @@
     <string name="download_video">下载当前视频</string>
     <string name="download_started">已开始下载</string>
     <string name="download_failed">下载失败，请检查地址和网络</string>
+    <string name="download_permission_denied">未获得存储权限，下载已取消</string>
     <string name="cast_recent_device">常用：%1$s</string>
     <string name="cast_device_unreachable">投屏设备暂时不可达，请检查电视或网络</string>
+    <string name="more_actions">更多操作</string>
+    <string name="navigate_back">返回</string>
+    <string name="user_profile">个人中心</string>
+    <string name="search">搜索</string>
+    <string name="search_video_hint">搜索喜欢的电影</string>
+    <string name="clear_search">清空搜索内容</string>
+    <string name="video_cover">视频封面</string>
+    <string name="recommended_videos">精彩推荐</string>
 </resources>

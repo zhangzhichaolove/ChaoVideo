@@ -119,17 +119,27 @@ public class MultiItemTypeAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
     }
 
     public void setData(List<T> mDatas) {
+        int previousCount = this.mDatas.size();
         this.mDatas.clear();
+        if (previousCount > 0) {
+            notifyItemRangeRemoved(0, previousCount);
+        }
         if (mDatas != null) {
             this.mDatas.addAll(mDatas);
+            if (!mDatas.isEmpty()) {
+                notifyItemRangeInserted(0, mDatas.size());
+            }
         }
-        notifyDataSetChanged();
     }
 
     public void clear() {
-        if (mDatas != null)
+        if (mDatas != null) {
+            int previousCount = mDatas.size();
             mDatas.clear();
-        notifyDataSetChanged();
+            if (previousCount > 0) {
+                notifyItemRangeRemoved(0, previousCount);
+            }
+        }
     }
 
     public void addAll(List<T> datas) {

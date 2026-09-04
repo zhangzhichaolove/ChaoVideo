@@ -26,6 +26,7 @@
                 android:id="@+id/backdrop"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                android:contentDescription="@null"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/banner"
                 app:layout_collapseMode="parallax"
@@ -74,8 +75,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginBottom="5dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="34dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="34dp"
             android:layout_marginTop="10dp">
 
             <TextView
@@ -86,7 +87,7 @@
             <ImageView
                 android:id="@+id/img_search_clear"
                 style="@style/both_wrap_style"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:background="@mipmap/search_history_clear"
                 android:contentDescription="@string/clear_search_history" />
         </RelativeLayout>
@@ -96,8 +97,7 @@
             android:id="@+id/wv_search_history"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/tv_search_history"
-            android:layout_marginLeft="6dp"
-            android:layout_marginRight="6dp" />
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp" />
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
