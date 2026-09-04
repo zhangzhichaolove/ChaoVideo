@@ -23,18 +23,13 @@ import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 import java.util.List;
 
-import butterknife.BindView;
-
 /**
  * Created by Chao on 2017/3/22.
  */
 
 public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Presenter> implements ActivityVideoListContract.View {
-    @BindView(R.id.refresh)
     MaterialRefreshLayout materialRefreshLayout;
-    @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
     VideoListAdapter adapter;
 
@@ -46,6 +41,9 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
 
     @Override
     protected void init() {
+        materialRefreshLayout = findViewById(R.id.refresh);
+        recyclerView = findViewById(R.id.recyclerView);
+        toolbar = findViewById(R.id.toolbar);
         new ActivityVideoListPresenter(this);
         mPresenter.getVideoHomeData();
         toolbar.setTitle(getIntent().getStringExtra("title"));
@@ -88,7 +86,7 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
         materialRefreshLayout.setWaveShow(true);//显示波纹
         materialRefreshLayout.setShowProgressBg(true);//显示进度背景
         materialRefreshLayout.setLoadMore(true);//加载更多
-        materialRefreshLayout.setProgressColors(getResources().getIntArray(R.array.material_colors));//设置进度颜色
+        materialRefreshLayout.setProgressColors(getResources().getIntArray(com.cjj.R.array.material_colors));//设置进度颜色
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {

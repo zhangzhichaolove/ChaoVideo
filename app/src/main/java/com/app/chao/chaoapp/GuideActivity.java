@@ -13,8 +13,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.flaviofaria.kenburnsview.KenBurnsView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
@@ -22,7 +20,6 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 public class GuideActivity extends AppCompatActivity {
-    @BindView(R.id.splash_bg_img)
     KenBurnsView mBgImg;
 
     @Override
@@ -34,8 +31,8 @@ public class GuideActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         //getSupportActionBar().hide();
         setContentView(R.layout.activity_guide);
+        mBgImg = findViewById(R.id.splash_bg_img);
         //绑定activity
-        ButterKnife.bind(this);
         //Glide.with(this).load(R.drawable.pic_cinema).into(mBgImg);
         mBgImg.setImageResource(R.mipmap.bilibili_start);
         Observable.create(new Observable.OnSubscribe<Drawable>() {

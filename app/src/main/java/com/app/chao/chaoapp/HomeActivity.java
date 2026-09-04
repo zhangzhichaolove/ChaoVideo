@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
@@ -36,26 +37,17 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import butterknife.BindView;
-
 /**
  * Created by Chao on 2017/3/13.
  */
 
 public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements View.OnClickListener, HomeActivityContract.View {
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
-    @BindView(R.id.dl_left)
     DrawerLayout mDrawerLayout;
-    @BindView(R.id.tabs)
     TabLayout tabs;
-    @BindView(R.id.viewpager)
     ViewPager viewpager;
-    @BindView(R.id.home_fab)
     FloatingActionButton home_fab;
-    @BindView(R.id.home_fab2)
     FloatingActionButton home_fab2;
-    @BindView(R.id.home_fab3)
     FloatingActionButton home_fab3;
 
     private String[] mTitles = new String[]{"推荐", "动作", "剧情", "犯罪", "爱情", "悬疑", "惊悚", "科幻", "动画"};
@@ -68,6 +60,31 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
 
     @Override
     protected void init() {
+        toolbar = findViewById(R.id.toolbar);
+        mDrawerLayout = findViewById(R.id.dl_left);
+        tabs = findViewById(R.id.tabs);
+        viewpager = findViewById(R.id.viewpager);
+        home_fab = findViewById(R.id.home_fab);
+        home_fab2 = findViewById(R.id.home_fab2);
+        home_fab3 = findViewById(R.id.home_fab3);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    mDrawerLayout.closeDrawer(GravityCompat.START);
+                    return;
+                }
+                long secondTime = System.currentTimeMillis();
+                if (secondTime - firstTime > 1500) {
+                    showToast("再按一次退出");
+                    firstTime = secondTime;
+                } else {
+                    RxBus.getDefault().removeAllStickyEvents();
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
         StatusBarUtils.setTranslucent(this);
         mDrawerLayout.setScrimColor(Color.TRANSPARENT);//设置取消阴影
         setSupportActionBar(toolbar);
@@ -183,78 +200,54 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
 
     private Long firstTime = 0L;
 
-    @Override
-    public void onBackPressed() {
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            long secondTime = System.currentTimeMillis();
-            if (secondTime - firstTime > 1500) {
-                showToast("再按一次退出");
-                firstTime = secondTime;
-            } else {
-                // 移除所有Sticky事件
-                RxBus.getDefault().removeAllStickyEvents();
-                super.onBackPressed();
-                android.os.Process.killProcess(android.os.Process.myPid());
-                System.exit(0);
-            }
-        }
-
-    }
-
     boolean animateStart = false;
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.iv_user_icon:
-                if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    mDrawerLayout.closeDrawer(GravityCompat.START);
+        int id = v.getId();
+        if (id == R.id.iv_user_icon) {
+            if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                mDrawerLayout.closeDrawer(GravityCompat.START);
+            }
+            startActivity(new Intent(HomeActivity.this, PersonalCoreActivity.class));
+        } else if (id == R.id.home_fab) {
+            boolean tag = ((boolean) home_fab2.getTag());
+            if (!animateStart && tag) {//没有动画在执行
+                animateStart = true;
+                home_fab2.setTag(false);
+                home_fab2.animate().setDuration(600).translationY(-home_fab.getHeight() - 10).start();
+                home_fab3.animate().setDuration(1200).setStartDelay(0).translationY(-home_fab.getHeight() * 2 - 10 * 2).start();
+            } else if (!animateStart && !tag) {
+                animateStart = true;
+                home_fab2.setTag(true);
+                home_fab3.animate().setDuration(1200).translationY(0).start();
+                home_fab2.animate().setDuration(600).setStartDelay(0).translationY(0).start();
+            }
+            home_fab3.animate().setListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+
                 }
-                startActivity(new Intent(HomeActivity.this, PersonalCoreActivity.class));
-                break;
-            case R.id.home_fab:
-                boolean tag = ((boolean) home_fab2.getTag());
-                if (!animateStart && tag) {//没有动画在执行
-                    animateStart = true;
-                    home_fab2.setTag(false);
-                    home_fab2.animate().setDuration(600).translationY(-home_fab.getHeight() - 10).start();
-                    home_fab3.animate().setDuration(1200).setStartDelay(0).translationY(-home_fab.getHeight() * 2 - 10 * 2).start();
-                } else if (!animateStart && !tag) {
-                    animateStart = true;
-                    home_fab2.setTag(true);
-                    home_fab3.animate().setDuration(1200).translationY(0).start();
-                    home_fab2.animate().setDuration(600).setStartDelay(0).translationY(0).start();
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    animateStart = false;
                 }
-                home_fab3.animate().setListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(Animator animation) {
 
-                    }
+                @Override
+                public void onAnimationCancel(Animator animation) {
 
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        animateStart = false;
-                    }
+                }
 
-                    @Override
-                    public void onAnimationCancel(Animator animation) {
+                @Override
+                public void onAnimationRepeat(Animator animation) {
 
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(Animator animation) {
-
-                    }
-                });
-                break;
-            case R.id.home_fab2:
-                showToast("home_fab2");
-                break;
-            case R.id.home_fab3:
-                showToast("home_fab3");
-                break;
+                }
+            });
+        } else if (id == R.id.home_fab2) {
+            showToast("home_fab2");
+        } else if (id == R.id.home_fab3) {
+            showToast("home_fab3");
         }
     }
 

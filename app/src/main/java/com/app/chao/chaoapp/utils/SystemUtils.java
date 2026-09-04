@@ -208,7 +208,7 @@ public class SystemUtils {
         gpsIntent.addCategory("android.intent.category.ALTERNATIVE");
         gpsIntent.setData(Uri.parse("custom:3"));
         try {
-            PendingIntent.getBroadcast(context, 0, gpsIntent, 0).send();
+            PendingIntent.getBroadcast(context, 0, gpsIntent, PendingIntent.FLAG_IMMUTABLE).send();
         } catch (CanceledException e) {
             e.printStackTrace();
         }
@@ -465,8 +465,7 @@ public class SystemUtils {
      * @return
      */
     public static String getIMEI(Context context) {
-        TelephonyManager mTelephonyMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        String imei = mTelephonyMgr.getDeviceId();
+        String imei = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         if (TextUtils.isEmpty(imei) || imei.equals("000000000000000")) {
             imei = "0";
         }
@@ -481,13 +480,7 @@ public class SystemUtils {
      * @return
      */
     public static String getIMSI(Context context) {
-        TelephonyManager mTelephonyMgr = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        String imsi = mTelephonyMgr.getSubscriberId();
-        if (TextUtils.isEmpty(imsi)) {
-            return "0";
-        } else {
-            return imsi;
-        }
+        return "0";
     }
 
     /**
@@ -552,19 +545,7 @@ public class SystemUtils {
      * @return
      */
     public static String getSerialNumber(Context context) {
-        String serial = null;
-        try {
-            Class<?> c = Class.forName("android.os.SystemProperties");
-            Method get = c.getMethod("get", String.class);
-            serial = (String) get.invoke(c, "ro.serialno");
-            if (serial == null || serial.trim().length() <= 0) {
-                TelephonyManager tManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-                serial = tManager.getDeviceId();
-            }
-            Log.e(TAG, "Serial:" + serial);
-        } catch (Exception ignored) {
-            ignored.printStackTrace();
-        }
+        String serial = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         return serial;
     }
 

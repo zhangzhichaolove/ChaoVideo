@@ -25,14 +25,11 @@ import com.jude.rollviewpager.hintview.IconHintView;
 
 import java.util.List;
 
-import butterknife.BindView;
-
 /**
  * Created by Chao on 2017/3/20.
  */
 
 public class TabFragmentJC extends BaseFragment implements FragmentOneContract.View {
-    @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     RollPagerView banner;
     TextView etSearchKey;
@@ -56,6 +53,7 @@ public class TabFragmentJC extends BaseFragment implements FragmentOneContract.V
 
     @Override
     protected void initView(View inflater) {
+        recyclerView = inflater.findViewById(R.id.recyclerView);
         new FragmentOnePresenter(this);
         headerView = LayoutInflater.from(mContext).inflate(R.layout.recommend_header, null);
         banner = headerView.findViewById(R.id.banner);

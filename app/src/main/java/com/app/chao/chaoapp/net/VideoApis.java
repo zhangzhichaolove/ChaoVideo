@@ -17,7 +17,7 @@ import rx.Observable;
  */
 
 public interface VideoApis {
-    String HOST = "http://home.peakchao.com:250/";
+    String HOST = "http://nas.peakchao.kdns.fr:55008/";
 
     /**
      * 首页-获取Banner

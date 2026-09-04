@@ -30,7 +30,6 @@ import com.jude.rollviewpager.hintview.IconHintView;
 
 import java.util.List;
 
-import butterknife.BindView;
 import rx.Subscription;
 
 /**
@@ -38,9 +37,7 @@ import rx.Subscription;
  */
 
 public class TabFragmentOne extends BaseFragment implements FragmentOneContract.View {
-    @BindView(R.id.refresh)
     MaterialRefreshLayout materialRefreshLayout;
-    @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     RollPagerView banner;
     TextView etSearchKey;
@@ -67,6 +64,8 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
 
     @Override
     protected void initView(View inflater) {
+        materialRefreshLayout = inflater.findViewById(R.id.refresh);
+        recyclerView = inflater.findViewById(R.id.recyclerView);
         new FragmentOnePresenter(this);
         headerView = LayoutInflater.from(mContext).inflate(R.layout.recommend_header, null);
         banner = headerView.findViewById(R.id.banner);
@@ -107,7 +106,7 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
         materialRefreshLayout.setShowProgressBg(true);//显示进度背景
         materialRefreshLayout.setLoadMore(true);//加载更多
         //materialRefreshLayout.setSunStyle(true);
-        materialRefreshLayout.setProgressColors(getResources().getIntArray(R.array.material_colors));//设置进度颜色
+        materialRefreshLayout.setProgressColors(getResources().getIntArray(com.cjj.R.array.material_colors));//设置进度颜色
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {

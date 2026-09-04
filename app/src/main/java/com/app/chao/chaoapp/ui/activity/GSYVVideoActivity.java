@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -16,6 +17,7 @@ import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.VideoInfoContract;
+import com.app.chao.chaoapp.ui.fragment.EpisodeSelectionFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoCommentFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoIntroFragment;
 import com.app.chao.chaoapp.utils.ImageLoader;
@@ -32,26 +34,21 @@ import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 
-public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract.View {
+public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract.View,
+        EpisodeSelectionFragment.OnEpisodeSelectedListener {
     VideoInfoContract.Presenter mPresenter;
 
     //推荐使用StandardGSYVideoPlayer，功能一致
     //CustomGSYVideoPlayer部分功能处于试验阶段
-    @BindView(R.id.detail_player)
     NormalGSYVideoPlayer videoPlayer;
 
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
-    private String[] mTitles = new String[]{"简介", "评论"};
-    //    private String[] mTitles = new String[]{"简介"};
+    private final List<String> titles = new ArrayList<>();
     VideoRes videoInfo;
-    @BindView(R.id.viewpagertab)
     TabLayout viewpagertab;
-    @BindView(R.id.viewpager)
     ViewPager viewpager;
     VideoRes videoRes;
     List<Fragment> fragments;
@@ -70,6 +67,25 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
     @Override
     protected void init() {
+        videoPlayer = findViewById(R.id.detail_player);
+        toolbar = findViewById(R.id.toolbar);
+        viewpagertab = findViewById(R.id.viewpagertab);
+        viewpager = findViewById(R.id.viewpager);
+        // 必须在 setUp/startPlayLogic 之前选择播放器内核；完整 IJK 包已不再引入。
+        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (orientationUtils != null) {
+                    orientationUtils.backToProtVideo();
+                }
+                if (!GSYVideoManager.backFromWindowFull(GSYVVideoActivity.this)) {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
         getIntentData();
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -88,13 +104,11 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
 
         //EXOPlayer内核，支持格式更多
-        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
         //系统内核模式
         //PlayerFactory.setPlayManager(SystemPlayerManager.class);
         //ijk内核，默认模式
         //PlayerFactory.setPlayManager(IjkPlayerManager.class);
         //exo缓存模式，支持m3u8，只支持exo
-        CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
         //代理缓存模式，支持所有模式，不支持m3u8等，默认
         //CacheFactory.setCacheManager(ProxyCacheManager.class);
         GSYVideoType.setShowType(GSYVideoType.SCREEN_MATCH_FULL);
@@ -171,12 +185,17 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
     private void getIntentData() {
         videoInfo = (VideoRes) getIntent().getSerializableExtra("videoInfo");
-        showContent(videoInfo);
         fragments = new ArrayList<>();
         VideoIntroFragment videoIntroFragment = VideoIntroFragment.newInstance(videoInfo);
         VideoCommentFragment videoCommentFragment = new VideoCommentFragment();
         fragments.add(videoIntroFragment);
+        titles.add("简介");
+        if (videoInfo.getEpisodes() > 0) {
+            fragments.add(EpisodeSelectionFragment.newInstance(videoInfo));
+            titles.add("选集");
+        }
         fragments.add(videoCommentFragment);
+        titles.add("评论");
 
 
         MyAdapter adapter = new MyAdapter(getSupportFragmentManager(), this);
@@ -197,8 +216,7 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
             videoPlayer.setThumbImageView(imageView);
         }
         if (!TextUtils.isEmpty(videoInfo.getVideo())) {
-            videoPlayer.setUp(videoInfo.getVideo(), true, null, videoInfo.getTitle());
-            videoPlayer.startPlayLogic();
+            playVideo(videoInfo.getVideo(), videoInfo.getTitle(), false);
         }
 
         //new VideoInfoPresenter(this, videoInfo);
@@ -206,16 +224,22 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
     }
 
     @Override
-    public void onBackPressed() {
-        if (orientationUtils != null) {
-            orientationUtils.backToProtVideo();
-        }
-        if (GSYVideoManager.backFromWindowFull(this)) {
-            return;
-        }
-        super.onBackPressed();
+    public void onEpisodeSelected(int episode) {
+        String title = videoInfo.getTitle() + " 第" + episode + "集";
+        playVideo(videoInfo.getEpisodeVideo(episode), title, true);
+        toolbar.setTitle(title);
     }
 
+    private void playVideo(String url, String title, boolean releaseCurrent) {
+        if (TextUtils.isEmpty(url)) {
+            return;
+        }
+        if (releaseCurrent) {
+            GSYVideoManager.releaseAllVideos();
+        }
+        videoPlayer.setUp(url, true, null, title);
+        videoPlayer.startPlayLogic();
+    }
 
     @Override
     protected void onPause() {
@@ -326,12 +350,12 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
         @Override
         public int getCount() {
-            return mTitles.length;
+            return fragments.size();
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return mTitles[position];
+            return titles.get(position);
 //            return null;
         }
     }

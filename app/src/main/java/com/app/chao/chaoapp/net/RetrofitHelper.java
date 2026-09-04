@@ -66,6 +66,7 @@ public class RetrofitHelper {
                 HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
                 loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
                 builder.addInterceptor(loggingInterceptor);
+                builder.addInterceptor(new JsonLoggingInterceptor());
             }
             File cacheFile = new File(Constants.PATH_CACHE);
             Cache cache = new Cache(cacheFile, 1024 * 1024 * 50);

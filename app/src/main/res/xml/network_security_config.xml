@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">web.peakchao.top</domain>
-        <domain includeSubdomains="true">file.peakchao.com</domain>
+        <domain includeSubdomains="true">http://nas.peakchao.kdns.fr</domain>
         <domain includeSubdomains="true">*</domain>
     </domain-config>
     <domain-config cleartextTrafficPermitted="true">

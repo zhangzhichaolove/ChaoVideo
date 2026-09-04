@@ -21,11 +21,8 @@ import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 import org.simple.eventbus.EventBus;
 import org.simple.eventbus.Subscriber;
 
-import butterknife.BindView;
-
 public class VideoIntroFragment extends BaseFragment {
 
-    @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     TextViewExpandableAnimation tvExpand;
     View headerView;
@@ -48,6 +45,7 @@ public class VideoIntroFragment extends BaseFragment {
 
     @Override
     protected void initView(View inflater) {
+        recyclerView = inflater.findViewById(R.id.recyclerView);
         EventBus.getDefault().register(this);
 
         headerView = LayoutInflater.from(mContext).inflate(R.layout.intro_header, null);

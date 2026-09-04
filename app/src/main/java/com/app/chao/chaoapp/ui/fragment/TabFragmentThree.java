@@ -7,7 +7,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.utils.RxSubscriptions;
 
-import butterknife.BindView;
 import rx.Subscription;
 
 /**
@@ -16,7 +15,6 @@ import rx.Subscription;
 
 public class TabFragmentThree extends BaseFragment {
     static TabFragmentThree fragment;
-    @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     Subscription mRxSub;
 
@@ -33,6 +31,7 @@ public class TabFragmentThree extends BaseFragment {
 
     @Override
     protected void initView(View inflater) {
+        recyclerView = inflater.findViewById(R.id.recyclerView);
 
     }
 

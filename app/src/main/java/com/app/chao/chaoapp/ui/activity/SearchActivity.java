@@ -32,8 +32,6 @@ import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 import java.util.List;
 
-import butterknife.BindView;
-
 //import com.app.chao.chaoapp.bean.SearchKey;
 //import com.app.chao.chaoapp.utils.RealmHelper;
 
@@ -42,19 +40,12 @@ import butterknife.BindView;
  */
 
 public class SearchActivity extends BaseActivity<ActivityVideoListContract.Presenter> implements ActivityVideoListContract.View {
-    @BindView(R.id.refresh)
     MaterialRefreshLayout materialRefreshLayout;
-    @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
-    @BindView(R.id.appbar)
     AppBarLayout appbar;
-    @BindView(R.id.toolbar)
     BaseToolBar toolbar;
-    @BindView(R.id.wv_search_history)
     WordWrapView wvSearchHistory;
-    @BindView(R.id.rl_history)
     LinearLayout rl_history;
-    @BindView(R.id.img_search_clear)
     ImageView img_search_clear;
     VideoListAdapter adapter;
     boolean isOpen = false;
@@ -66,6 +57,13 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
 
     @Override
     protected void init() {
+        materialRefreshLayout = findViewById(R.id.refresh);
+        recyclerView = findViewById(R.id.recyclerView);
+        appbar = findViewById(R.id.appbar);
+        toolbar = findViewById(R.id.toolbar);
+        wvSearchHistory = findViewById(R.id.wv_search_history);
+        rl_history = findViewById(R.id.rl_history);
+        img_search_clear = findViewById(R.id.img_search_clear);
         StatusBarUtils.setTranslucent(this);
 
         CollapsingToolbarLayout.LayoutParams lp = (CollapsingToolbarLayout.LayoutParams) toolbar.getLayoutParams();
@@ -126,7 +124,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         materialRefreshLayout.setWaveShow(true);//显示波纹
         materialRefreshLayout.setShowProgressBg(true);//显示进度背景
         materialRefreshLayout.setLoadMore(false);//加载更多
-        materialRefreshLayout.setProgressColors(getResources().getIntArray(R.array.material_colors));//设置进度颜色
+        materialRefreshLayout.setProgressColors(getResources().getIntArray(com.cjj.R.array.material_colors));//设置进度颜色
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {

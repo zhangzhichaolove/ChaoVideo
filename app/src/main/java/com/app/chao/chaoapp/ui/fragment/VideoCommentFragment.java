@@ -24,13 +24,10 @@ import org.simple.eventbus.Subscriber;
 import java.util.Arrays;
 import java.util.List;
 
-import butterknife.BindView;
-
 /**
  * Description: 详情--评论
  */
 public class VideoCommentFragment extends BaseFragment<CommentContract.Presenter> implements CommentContract.View, SwipeRefreshLayout.OnRefreshListener, RecyclerArrayAdapter.OnLoadMoreListener {
-    @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     CommentAdapter adapter;
 
@@ -41,6 +38,7 @@ public class VideoCommentFragment extends BaseFragment<CommentContract.Presenter
 
     @Override
     protected void initView(View inflater) {
+        recyclerView = inflater.findViewById(R.id.recyclerView);
         mPresenter = new CommentPresenter(this);
         EventBus.getDefault().register(this);
 //        ((CommentPresenter) mPresenter).onRefresh();

@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -26,21 +27,16 @@ import com.google.android.material.tabs.TabLayout;
 import java.util.ArrayList;
 import java.util.List;
 
-import butterknife.BindView;
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayer;
 import fm.jiecao.jcvideoplayer_lib.JCVideoPlayerStandard;
 
 public class JCVideoActivity extends BaseActivity implements VideoInfoContract.View {
     VideoInfoContract.Presenter mPresenter;
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
     private String[] mTitles = new String[]{"简介", "评论"};
     VideoInfo videoInfo;
-    @BindView(R.id.videoplayer)
     JCVideoPlayerStandard videoplayer;
-    @BindView(R.id.viewpagertab)
     TabLayout viewpagertab;
-    @BindView(R.id.viewpager)
     ViewPager viewpager;
     VideoRes videoRes;
     List<Fragment> fragments;
@@ -53,6 +49,19 @@ public class JCVideoActivity extends BaseActivity implements VideoInfoContract.V
 
     @Override
     protected void init() {
+        toolbar = findViewById(R.id.toolbar);
+        videoplayer = findViewById(R.id.videoplayer);
+        viewpagertab = findViewById(R.id.viewpagertab);
+        viewpager = findViewById(R.id.viewpager);
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (!JCVideoPlayer.backPress()) {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
         getIntentData();
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -96,14 +105,6 @@ public class JCVideoActivity extends BaseActivity implements VideoInfoContract.V
     protected void onPause() {
         super.onPause();
         JCVideoPlayer.releaseAllVideos();
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (JCVideoPlayer.backPress()) {
-            return;
-        }
-        super.onBackPressed();
     }
 
     @Override

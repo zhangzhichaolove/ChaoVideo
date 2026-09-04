@@ -23,7 +23,6 @@ import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 import java.util.List;
 
-import butterknife.BindView;
 import rx.Subscription;
 
 /**
@@ -31,9 +30,7 @@ import rx.Subscription;
  */
 
 public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.View {
-    @BindView(R.id.refresh)
     MaterialRefreshLayout materialRefreshLayout;
-    @BindView(R.id.recyclerView)
     RecyclerView recyclerView;
     //SpecialAdapter adapter;
     FragmentOneAdapter adapter;
@@ -57,6 +54,8 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
 
     @Override
     protected void initView(View inflater) {
+        materialRefreshLayout = inflater.findViewById(R.id.refresh);
+        recyclerView = inflater.findViewById(R.id.recyclerView);
         new FragmentTwoPresenter(this);
         //设置Item增加、移除动画
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
@@ -98,7 +97,7 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
         materialRefreshLayout.setWaveShow(true);//显示波纹
         materialRefreshLayout.setShowProgressBg(true);//显示进度背景
         materialRefreshLayout.setLoadMore(true);//加载更多
-        materialRefreshLayout.setProgressColors(getResources().getIntArray(R.array.material_colors));//设置进度颜色
+        materialRefreshLayout.setProgressColors(getResources().getIntArray(com.cjj.R.array.material_colors));//设置进度颜色
         materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {

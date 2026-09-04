@@ -1,8 +1,11 @@
 package com.app.chao.chaoapp.bean;
 
+import com.app.chao.chaoapp.net.VideoApis;
 import com.google.gson.annotations.SerializedName;
 
 import java.io.Serializable;
+
+import okhttp3.HttpUrl;
 
 /**
  * {
@@ -37,6 +40,7 @@ public class VideoRes implements Serializable {
     public String img;
     public String video;
     public String videoTime;
+    public int episodes;
 
 
     public String getId() {
@@ -128,7 +132,7 @@ public class VideoRes implements Serializable {
     }
 
     public String getImg() {
-        return img;
+        return resolveUrl(img);
     }
 
     public void setImg(String img) {
@@ -136,7 +140,7 @@ public class VideoRes implements Serializable {
     }
 
     public String getVideo() {
-        return video;
+        return resolveUrl(video);
     }
 
     public void setVideo(String video) {
@@ -149,5 +153,50 @@ public class VideoRes implements Serializable {
 
     public void setVideoTime(String videoTime) {
         this.videoTime = videoTime;
+    }
+
+    public int getEpisodes() {
+        return episodes;
+    }
+
+    public void setEpisodes(int episodes) {
+        this.episodes = episodes;
+    }
+
+    public String getEpisodeVideo(int episode) {
+        if (video == null || episode < 1) {
+            return getVideo();
+        }
+
+        int suffixStart = video.lastIndexOf('_');
+        int extensionStart = video.lastIndexOf('.');
+        if (suffixStart > video.lastIndexOf('/') && extensionStart > suffixStart
+                && isNumber(video.substring(suffixStart + 1, extensionStart))) {
+            return resolveUrl(video.substring(0, suffixStart + 1)
+                    + episode + video.substring(extensionStart));
+        }
+        if (extensionStart > video.lastIndexOf('/')) {
+            return resolveUrl(video.substring(0, extensionStart)
+                    + "_" + episode + video.substring(extensionStart));
+        }
+        return resolveUrl(video + "_" + episode);
+    }
+
+    private boolean isNumber(String value) {
+        if (value.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            if (!Character.isDigit(value.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String resolveUrl(String value) {
+        HttpUrl baseUrl = HttpUrl.parse(VideoApis.HOST);
+        HttpUrl resolvedUrl = baseUrl == null || value == null ? null : baseUrl.resolve(value);
+        return resolvedUrl == null ? value : resolvedUrl.toString();
     }
 }

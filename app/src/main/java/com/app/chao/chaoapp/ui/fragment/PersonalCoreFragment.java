@@ -10,16 +10,12 @@ import com.app.chao.chaoapp.ui.activity.PersonalCoreActivity;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 
-import butterknife.BindView;
-
 /**
  * Created by Chao on 2017/3/13.
  */
 
 public class PersonalCoreFragment extends BaseFragment {
-    @BindView(R.id.toolbar)
     Toolbar toolbar;
-    @BindView(R.id.collapsing_toolbar)
     CollapsingToolbarLayout collapsing_toolbar;
 
     public static PersonalCoreFragment newInstance() {
@@ -37,6 +33,8 @@ public class PersonalCoreFragment extends BaseFragment {
 
     @Override
     protected void initView(View view) {
+        toolbar = view.findViewById(R.id.toolbar);
+        collapsing_toolbar = view.findViewById(R.id.collapsing_toolbar);
         ((PersonalCoreActivity) getActivity()).setSupportActionBar(toolbar);
         ((PersonalCoreActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         collapsing_toolbar.setTitle("个人中心");//设置Toolbar标题
