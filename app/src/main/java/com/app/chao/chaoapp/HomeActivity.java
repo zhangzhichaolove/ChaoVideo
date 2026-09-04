@@ -89,6 +89,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
             }
         });
         StatusBarUtils.setTranslucent(this);
+        StatusBarUtils.applyTopInset(findViewById(android.R.id.content), toolbar);
         mDrawerLayout.setScrimColor(Color.TRANSPARENT);//设置取消阴影
         setSupportActionBar(toolbar);
         //DrawerLayout要求Content View必须是DrawerLayout的第一个Child View

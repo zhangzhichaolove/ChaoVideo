@@ -4,9 +4,6 @@ import android.util.Log;
 
 import com.app.chao.chaoapp.App;
 import com.app.chao.chaoapp.BuildConfig;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParser;
 
 import java.io.IOException;
 
@@ -18,9 +15,6 @@ final class JsonLoggingInterceptor implements Interceptor {
     static final String TAG = "API_RESPONSE_JSON";
     private static final int MAX_CHARS_PER_LOG = 1000;
     private static final AtomicLong REQUEST_IDS = new AtomicLong();
-    private static final Gson PRETTY_GSON = new GsonBuilder()
-            .setPrettyPrinting()
-            .create();
 
     @Override
     public Response intercept(Chain chain) throws IOException {
@@ -41,12 +35,7 @@ final class JsonLoggingInterceptor implements Interceptor {
     }
 
     static void log(long requestId, String url, String body) {
-        String formattedBody = body;
-        try {
-            formattedBody = PRETTY_GSON.toJson(JsonParser.parseString(body));
-        } catch (RuntimeException ignored) {
-            // 非 JSON 响应仍按原文完整打印，便于定位服务端错误。
-        }
+        String formattedBody = PrettyJsonFormatter.format(body);
 
         Log.d(TAG, "#" + requestId + " response: " + redact(url));
         for (String line : formattedBody.split("\\n", -1)) {

@@ -72,7 +72,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         libraryRepository = VideoLibraryRepository.get(this);
         StatusBarUtils.setTranslucent(this);
 
-        StatusBarUtils.applyTopInset(toolbar);
+        StatusBarUtils.applyTopInset(findViewById(android.R.id.content), toolbar);
 
         new ActivityVideoSearchPresenter(this);
 

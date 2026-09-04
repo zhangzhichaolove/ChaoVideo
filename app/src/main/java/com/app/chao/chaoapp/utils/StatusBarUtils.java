@@ -28,16 +28,23 @@ public final class StatusBarUtils {
     }
 
     public static void applyTopInset(View view) {
-        ViewCompat.setOnApplyWindowInsetsListener(view, (target, insets) -> {
-            ViewGroup.LayoutParams params = target.getLayoutParams();
-            if (params instanceof ViewGroup.MarginLayoutParams) {
-                ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) params;
-                margins.topMargin = insets.getInsets(
-                        WindowInsetsCompat.Type.statusBars()).top;
-                target.setLayoutParams(margins);
+        applyTopInset(view, view);
+    }
+
+    public static void applyTopInset(View insetSource, View target) {
+        int initialPaddingTop = target.getPaddingTop();
+        int initialHeight = target.getLayoutParams().height;
+        ViewCompat.setOnApplyWindowInsetsListener(insetSource, (source, insets) -> {
+            int topInset = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            target.setPadding(target.getPaddingLeft(), initialPaddingTop + topInset,
+                    target.getPaddingRight(), target.getPaddingBottom());
+            if (initialHeight >= 0) {
+                ViewGroup.LayoutParams params = target.getLayoutParams();
+                params.height = initialHeight + topInset;
+                target.setLayoutParams(params);
             }
             return insets;
         });
-        ViewCompat.requestApplyInsets(view);
+        ViewCompat.requestApplyInsets(insetSource);
     }
 }

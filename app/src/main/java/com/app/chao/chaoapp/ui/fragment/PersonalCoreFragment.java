@@ -42,7 +42,7 @@ public class PersonalCoreFragment extends BaseFragment {
         }
         collapsing_toolbar.setTitle(getString(R.string.user_profile));
         toolbar.setNavigationOnClickListener(clicked -> activity.finish());
-        StatusBarUtils.applyTopInset(toolbar);
+        StatusBarUtils.applyTopInset(view, toolbar);
     }
 
 }
