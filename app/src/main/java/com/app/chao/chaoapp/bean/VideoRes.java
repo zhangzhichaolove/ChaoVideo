@@ -186,25 +186,29 @@ public class VideoRes implements Parcelable {
     }
 
     public String getEpisodeVideo(int episode) {
-        if (video == null || episode < 1) {
-            return getVideo();
-        }
-
-        int suffixStart = video.lastIndexOf('_');
-        int extensionStart = video.lastIndexOf('.');
-        if (suffixStart > video.lastIndexOf('/') && extensionStart > suffixStart
-                && isNumber(video.substring(suffixStart + 1, extensionStart))) {
-            return resolveUrl(video.substring(0, suffixStart + 1)
-                    + episode + video.substring(extensionStart));
-        }
-        if (extensionStart > video.lastIndexOf('/')) {
-            return resolveUrl(video.substring(0, extensionStart)
-                    + "_" + episode + video.substring(extensionStart));
-        }
-        return resolveUrl(video + "_" + episode);
+        return resolveUrl(episodePath(video, episode));
     }
 
-    private boolean isNumber(String value) {
+    static String episodePath(String source, int episode) {
+        if (source == null || episode < 1) {
+            return source;
+        }
+
+        int suffixStart = source.lastIndexOf('_');
+        int extensionStart = source.lastIndexOf('.');
+        if (suffixStart > source.lastIndexOf('/') && extensionStart > suffixStart
+                && isNumber(source.substring(suffixStart + 1, extensionStart))) {
+            return source.substring(0, suffixStart + 1)
+                    + episode + source.substring(extensionStart);
+        }
+        if (extensionStart > source.lastIndexOf('/')) {
+            return source.substring(0, extensionStart)
+                    + "_" + episode + source.substring(extensionStart);
+        }
+        return source + "_" + episode;
+    }
+
+    private static boolean isNumber(String value) {
         if (value.isEmpty()) {
             return false;
         }

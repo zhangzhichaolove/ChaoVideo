@@ -158,7 +158,7 @@ public class GSYVVideoActivity extends BaseActivity implements
         playbackError = findViewById(R.id.playback_error);
         findViewById(R.id.playback_retry).setOnClickListener(view -> {
             playbackError.setVisibility(View.GONE);
-            startVideo(currentVideoUrl, currentVideoTitle, true,
+            startVideo(currentVideoUrl, currentVideoTitle,
                     playbackProgressStore.getPosition(currentVideoUrl));
         });
         toolbar = findViewById(R.id.toolbar);
@@ -360,9 +360,9 @@ public class GSYVVideoActivity extends BaseActivity implements
                 String title = videoInfo.getTitle() + " 第" + currentEpisode + "集";
                 toolbar.setTitle(title);
                 episodeSelectionFragment.setSelectedEpisode(currentEpisode);
-                playVideo(videoInfo.getEpisodeVideo(currentEpisode), title, false);
+                playVideo(videoInfo.getEpisodeVideo(currentEpisode), title);
             } else {
-                playVideo(videoInfo.getVideo(), videoInfo.getTitle(), false);
+                playVideo(videoInfo.getVideo(), videoInfo.getTitle());
             }
         }
         libraryRepository.recordOpened(videoInfo, currentEpisode);
@@ -386,11 +386,11 @@ public class GSYVVideoActivity extends BaseActivity implements
             episodeSelectionFragment.setSelectedEpisode(episode);
         }
         String title = videoInfo.getTitle() + " 第" + episode + "集";
-        playVideo(videoInfo.getEpisodeVideo(episode), title, true);
+        playVideo(videoInfo.getEpisodeVideo(episode), title);
         toolbar.setTitle(title);
     }
 
-    private void playVideo(String url, String title, boolean releaseCurrent) {
+    private void playVideo(String url, String title) {
         if (TextUtils.isEmpty(url)) {
             return;
         }
@@ -404,29 +404,24 @@ public class GSYVVideoActivity extends BaseActivity implements
                     .setMessage(getString(R.string.resume_playback_message,
                             formatPlaybackPosition(savedPosition)))
                     .setNegativeButton(R.string.play_from_start,
-                            (dialog, which) -> startVideo(url, title, releaseCurrent, 0))
+                            (dialog, which) -> startVideo(url, title, 0))
                     .setPositiveButton(R.string.continue_playing,
-                            (dialog, which) -> startVideo(url, title, releaseCurrent,
-                                    savedPosition))
+                            (dialog, which) -> startVideo(url, title, savedPosition))
                     .show();
             return;
         }
-        startVideo(url, title, releaseCurrent, 0);
+        startVideo(url, title, 0);
     }
 
-    private void startVideo(String url, String title, boolean releaseCurrent, long positionMs) {
+    private void startVideo(String url, String title, long positionMs) {
         if (isCasting && castDevice != null) {
             castCurrentVideo(castDevice, positionMs);
             return;
         }
-        playLocalVideo(url, title, releaseCurrent, positionMs);
+        playLocalVideo(url, title, positionMs);
     }
 
-    private void playLocalVideo(String url, String title, boolean releaseCurrent) {
-        playLocalVideo(url, title, releaseCurrent, 0);
-    }
-
-    private void playLocalVideo(String url, String title, boolean releaseCurrent, long positionMs) {
+    private void playLocalVideo(String url, String title, long positionMs) {
         NormalGSYVideoPlayer target = (NormalGSYVideoPlayer) videoPlayer.getCurrentPlayer();
         target.setSeekOnStart(positionMs);
         target.setUp(url, true, null, title);
@@ -816,7 +811,7 @@ public class GSYVVideoActivity extends BaseActivity implements
             castManager.stop(previousDevice, null);
         }
         if (!TextUtils.isEmpty(currentVideoUrl)) {
-            playLocalVideo(currentVideoUrl, currentVideoTitle, true, resumePosition);
+            playLocalVideo(currentVideoUrl, currentVideoTitle, resumePosition);
         }
     }
 
