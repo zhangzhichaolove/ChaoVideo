@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.DisplayMetrics;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.baseadapter.recyclerview.CommonAdapter;
@@ -27,6 +28,20 @@ public class VideoListAdapter extends CommonAdapter<VideoRes> {
     @Override
     protected void convert(ViewHolder holder, VideoRes videoType, int position) {
         holder.setText(R.id.tv_title, videoType.getTitle());
+        TextView progress = holder.getView(R.id.tv_progress);
+        if (videoType.getLocalProgressMs() > 0) {
+            int percent = videoType.getLocalDurationMs() > 0
+                    ? (int) Math.min(100, videoType.getLocalProgressMs() * 100
+                    / videoType.getLocalDurationMs()) : 0;
+            String marker = videoType.getLocalWatchedEpisode() > 0
+                    ? mContext.getString(R.string.video_progress_episode,
+                    videoType.getLocalWatchedEpisode(), percent)
+                    : mContext.getString(R.string.video_progress_percent, percent);
+            progress.setText(marker);
+            progress.setVisibility(android.view.View.VISIBLE);
+        } else {
+            progress.setVisibility(android.view.View.GONE);
+        }
         ImageView iv = holder.getView(R.id.img_video);
         iv.setScaleType(ImageView.ScaleType.FIT_XY);
         ViewGroup.LayoutParams params = iv.getLayoutParams();

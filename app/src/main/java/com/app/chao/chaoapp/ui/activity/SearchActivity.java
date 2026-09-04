@@ -1,6 +1,7 @@
 package com.app.chao.chaoapp.ui.activity;
 
 import android.util.Log;
+import android.graphics.Color;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -19,6 +20,7 @@ import com.app.chao.chaoapp.adapter.VideoListAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.baseadapter.recyclerview.MultiItemTypeAdapter;
 import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.data.VideoLibraryRepository;
 import com.app.chao.chaoapp.contract.ActivityVideoListContract;
 import com.app.chao.chaoapp.contract.impl.ActivityVideoSearchPresenter;
 import com.app.chao.chaoapp.listener.AppBarStateChangeListener;
@@ -56,6 +58,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     Button listStateRetry;
     boolean isOpen = false;
     EndlessScrollListener endlessScrollListener;
+    VideoLibraryRepository libraryRepository;
 
     @Override
     protected int getLayout() {
@@ -76,6 +79,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         listStateMessage = findViewById(R.id.list_state_message);
         listStateRetry = findViewById(R.id.list_state_retry);
         listStateRetry.setOnClickListener(view -> requestSearch());
+        libraryRepository = VideoLibraryRepository.get(this);
         StatusBarUtils.setTranslucent(this);
 
         CollapsingToolbarLayout.LayoutParams lp = (CollapsingToolbarLayout.LayoutParams) toolbar.getLayoutParams();
@@ -95,11 +99,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
             @Override
             public void onClick(View v) {
                 requestSearch();
-                if (adapter.getItemCount() == 0 && !getCatalogId().isEmpty()) {
-//                    SearchKey search = new SearchKey(getCatalogId(), System.currentTimeMillis());
-//                    RealmHelper.getInstance().insertSearchHistory(search);
-                    setHistory();
-                }
             }
         });
 
@@ -153,26 +152,29 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         img_search_clear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                RealmHelper.getInstance().deleteSearchHistoryAll();
-                wvSearchHistory.removeAllViews();
+                libraryRepository.clearSearches(() -> {
+                    wvSearchHistory.removeAllViews();
+                    rl_history.setVisibility(View.GONE);
+                });
             }
         });
     }
 
     private void setHistory() {
-//        final List<SearchKey> searchHistory = RealmHelper.getInstance().getSearchHistoryListAll();
-//        if (searchHistory != null && searchHistory.size() > 0) {
-//            wvSearchHistory.removeAllViewsInLayout();
-//            int size = searchHistory.size();
-//            for (int i = 0; i < size; i++) {
-//                final String query = searchHistory.get(i).getSearchKey();
-//                TextView textView = new TextView(SearchActivity.this);
-//                textView.setTextColor(Color.parseColor("#ffffff"));
-//                textView.setText(query);
-//                textView.setOnClickListener(onClickListener);
-//                wvSearchHistory.addView(textView);
-//            }
-//        }
+        libraryRepository.loadSearches(searchHistory -> {
+            wvSearchHistory.removeAllViews();
+            rl_history.setVisibility(searchHistory.isEmpty() ? View.GONE : View.VISIBLE);
+            int horizontal = ScreenUtil.dip2px(this, 10);
+            int vertical = ScreenUtil.dip2px(this, 6);
+            for (String query : searchHistory) {
+                TextView textView = new TextView(this);
+                textView.setTextColor(Color.WHITE);
+                textView.setText(query);
+                textView.setPadding(horizontal, vertical, horizontal, vertical);
+                textView.setOnClickListener(onClickListener);
+                wvSearchHistory.addView(textView);
+            }
+        });
     }
 
     View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -262,6 +264,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         if (TextUtils.isEmpty(getCatalogId())) {
             return;
         }
+        libraryRepository.addSearch(getCatalogId());
         listState.setVisibility(View.VISIBLE);
         listStateProgress.setVisibility(View.VISIBLE);
         listStateRetry.setVisibility(View.GONE);

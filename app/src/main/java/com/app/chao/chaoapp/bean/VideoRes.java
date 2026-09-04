@@ -41,6 +41,9 @@ public class VideoRes implements Serializable {
     public String video;
     public String videoTime;
     public int episodes;
+    private int localWatchedEpisode;
+    private long localProgressMs;
+    private long localDurationMs;
 
 
     public String getId() {
@@ -161,6 +164,24 @@ public class VideoRes implements Serializable {
 
     public void setEpisodes(int episodes) {
         this.episodes = episodes;
+    }
+
+    public int getLocalWatchedEpisode() {
+        return localWatchedEpisode;
+    }
+
+    public long getLocalProgressMs() {
+        return localProgressMs;
+    }
+
+    public long getLocalDurationMs() {
+        return localDurationMs;
+    }
+
+    public void setLocalProgress(int episode, long positionMs, long durationMs) {
+        localWatchedEpisode = episode;
+        localProgressMs = positionMs;
+        localDurationMs = durationMs;
     }
 
     public String getEpisodeVideo(int episode) {

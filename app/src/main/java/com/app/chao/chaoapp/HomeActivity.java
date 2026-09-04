@@ -25,6 +25,7 @@ import com.app.chao.chaoapp.net.ApiAddressManager;
 import com.app.chao.chaoapp.ui.activity.BaseActivity;
 import com.app.chao.chaoapp.ui.activity.PersonalCoreActivity;
 import com.app.chao.chaoapp.ui.activity.ApiLogActivity;
+import com.app.chao.chaoapp.ui.activity.VideoLibraryActivity;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentOne;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentTwo;
 import com.app.chao.chaoapp.utils.ILayoutAnimationController;
@@ -92,6 +93,22 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
         //mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         //mDrawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         NavigationView navigationView = (NavigationView) findViewById(R.id.id_nv_menu);
+        navigationView.setNavigationItemSelectedListener(item -> {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+            if (item.getItemId() == R.id.wallet) {
+                startActivity(VideoLibraryActivity.favoritesIntent(this));
+                return true;
+            }
+            if (item.getItemId() == R.id.watch_history) {
+                startActivity(VideoLibraryActivity.historyIntent(this));
+                return true;
+            }
+            if (item.getItemId() == R.id.action_personal) {
+                startActivity(new Intent(this, PersonalCoreActivity.class));
+                return true;
+            }
+            return false;
+        });
         View view = navigationView.inflateHeaderView(R.layout.header_just_username);
         //navigationView.setItemIconTintList(null);
         view.findViewById(R.id.iv_user_icon).setOnClickListener(this);

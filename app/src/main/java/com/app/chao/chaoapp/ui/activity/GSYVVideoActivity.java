@@ -30,6 +30,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.cast.DlnaCastManager;
+import com.app.chao.chaoapp.data.VideoLibraryRepository;
 import com.app.chao.chaoapp.ui.fragment.EpisodeSelectionFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoCommentFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoIntroFragment;
@@ -53,6 +54,7 @@ import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 
 public class GSYVVideoActivity extends BaseActivity implements
         EpisodeSelectionFragment.OnEpisodeSelectedListener {
+    public static final String EXTRA_EPISODE = "episode";
     private static final int MAX_PLAY_RETRIES = 2;
     private static final long MIN_RESUME_POSITION_MS = 10_000L;
 
@@ -80,6 +82,9 @@ public class GSYVVideoActivity extends BaseActivity implements
     private MenuItem castMenuItem;
     private EpisodeSelectionFragment episodeSelectionFragment;
     private PlaybackProgressStore playbackProgressStore;
+    private VideoLibraryRepository libraryRepository;
+    private MenuItem favoriteMenuItem;
+    private boolean favorite;
     private int currentEpisode;
     private int playRetryCount;
     private float playbackSpeed = 1f;
@@ -129,6 +134,7 @@ public class GSYVVideoActivity extends BaseActivity implements
         viewpager = findViewById(R.id.viewpager);
         castManager = new DlnaCastManager(this);
         playbackProgressStore = new PlaybackProgressStore(this);
+        libraryRepository = VideoLibraryRepository.get(this);
         // 必须在 setUp/startPlayLogic 之前选择播放器内核；完整 IJK 包已不再引入。
         PlayerFactory.setPlayManager(Exo2PlayerManager.class);
         CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
@@ -263,13 +269,19 @@ public class GSYVVideoActivity extends BaseActivity implements
 
     private void getIntentData() {
         videoInfo = (VideoRes) getIntent().getSerializableExtra("videoInfo");
+        if (videoInfo == null) {
+            showToast(getString(R.string.video_missing));
+            finish();
+            return;
+        }
         fragments = new ArrayList<>();
         VideoIntroFragment videoIntroFragment = VideoIntroFragment.newInstance(videoInfo);
         VideoCommentFragment videoCommentFragment = new VideoCommentFragment();
         fragments.add(videoIntroFragment);
         titles.add("简介");
         if (videoInfo.getEpisodes() > 0) {
-            currentEpisode = 1;
+            currentEpisode = Math.max(1, Math.min(videoInfo.getEpisodes(),
+                    getIntent().getIntExtra(EXTRA_EPISODE, 1)));
             episodeSelectionFragment = EpisodeSelectionFragment.newInstance(videoInfo);
             fragments.add(episodeSelectionFragment);
             titles.add("选集");
@@ -294,8 +306,16 @@ public class GSYVVideoActivity extends BaseActivity implements
             videoPlayer.setThumbImageView(imageView);
         }
         if (!TextUtils.isEmpty(videoInfo.getVideo())) {
-            playVideo(videoInfo.getVideo(), videoInfo.getTitle(), false);
+            if (currentEpisode > 0) {
+                String title = videoInfo.getTitle() + " 第" + currentEpisode + "集";
+                toolbar.setTitle(title);
+                episodeSelectionFragment.setSelectedEpisode(currentEpisode);
+                playVideo(videoInfo.getEpisodeVideo(currentEpisode), title, false);
+            } else {
+                playVideo(videoInfo.getVideo(), videoInfo.getTitle(), false);
+            }
         }
+        libraryRepository.recordOpened(videoInfo, currentEpisode);
 
     }
 
@@ -373,6 +393,11 @@ public class GSYVVideoActivity extends BaseActivity implements
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.video_player, menu);
         castMenuItem = menu.findItem(R.id.action_cast);
+        favoriteMenuItem = menu.findItem(R.id.action_favorite);
+        libraryRepository.isFavorite(videoInfo, saved -> {
+            favorite = saved;
+            updateFavoriteMenu();
+        });
         updateCastMenu();
         return true;
     }
@@ -389,6 +414,14 @@ public class GSYVVideoActivity extends BaseActivity implements
         }
         if (item.getItemId() == R.id.action_speed) {
             showSpeedPicker();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_favorite) {
+            libraryRepository.toggleFavorite(videoInfo, saved -> {
+                favorite = saved;
+                updateFavoriteMenu();
+                showToast(getString(saved ? R.string.favorite_added : R.string.favorite_removed));
+            });
             return true;
         }
         if (item.getItemId() == R.id.action_picture_in_picture) {
@@ -697,12 +730,26 @@ public class GSYVVideoActivity extends BaseActivity implements
         }
     }
 
+    private void updateFavoriteMenu() {
+        if (favoriteMenuItem != null) {
+            favoriteMenuItem.setTitle(favorite
+                    ? R.string.remove_favorite : R.string.add_favorite);
+            favoriteMenuItem.setIcon(favorite
+                    ? android.R.drawable.btn_star_big_on : android.R.drawable.btn_star_big_off);
+        }
+    }
+
     @Override
     protected void onPause() {
         castStatusHandler.removeCallbacks(castStatusPoller);
         if (!isCasting && !TextUtils.isEmpty(currentVideoUrl)) {
-            playbackProgressStore.save(currentVideoUrl,
-                    videoPlayer.getCurrentPositionWhenPlaying());
+            long position = videoPlayer.getCurrentPositionWhenPlaying();
+            long duration = videoPlayer.getDuration();
+            playbackProgressStore.save(currentVideoUrl, position);
+            libraryRepository.updateProgress(videoInfo, currentEpisode, position, duration);
+        } else if (isCasting) {
+            libraryRepository.updateProgress(videoInfo, currentEpisode,
+                    castPositionMs, castDurationMs);
         }
         super.onPause();
         GSYVideoManager.onPause();

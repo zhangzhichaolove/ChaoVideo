@@ -8,6 +8,10 @@
         android:title="@string/cast"
         app:showAsAction="always" />
     <item
+        android:id="@+id/action_favorite"
+        android:title="@string/add_favorite"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/action_speed"
         android:title="@string/playback_speed"
         app:showAsAction="never" />

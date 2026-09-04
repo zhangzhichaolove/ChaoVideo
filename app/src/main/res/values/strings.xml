@@ -58,4 +58,19 @@
     <string name="cast_volume">投屏音量</string>
     <string name="cast_status">%1$s / %2$s</string>
     <string name="cast_control_failed">投屏控制失败：%1$s</string>
+    <string name="video_favorites">视频收藏</string>
+    <string name="watch_history">观看历史</string>
+    <string name="add_favorite">收藏</string>
+    <string name="remove_favorite">取消收藏</string>
+    <string name="favorite_added">已收藏</string>
+    <string name="favorite_removed">已取消收藏</string>
+    <string name="clear">清空</string>
+    <string name="clear_watch_history">清空观看历史</string>
+    <string name="clear_watch_history_confirm">收藏的视频会保留，只清除其观看进度。确定继续吗？</string>
+    <string name="video_library_empty">这里还没有内容</string>
+    <string name="video_progress_episode">看到第%1$d集 · %2$d%%</string>
+    <string name="video_progress_percent">已观看 %1$d%%</string>
+    <string name="search_history">搜索历史</string>
+    <string name="clear_search_history">清空搜索历史</string>
+    <string name="video_missing">视频信息不完整</string>
 </resources>

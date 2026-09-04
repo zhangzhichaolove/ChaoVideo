@@ -24,4 +24,10 @@
         style="@style/small_tv_style"
         android:layout_marginTop="3dp"
         android:singleLine="true" />
+
+    <TextView
+        android:id="@+id/tv_progress"
+        style="@style/small_tv_style"
+        android:layout_marginTop="2dp"
+        android:visibility="gone" />
 </LinearLayout>

@@ -23,6 +23,10 @@ public class JumpUtil {
     public static void goGSYYVideoActivity(Context context, VideoRes videoInfo) {
         Intent intent = new Intent(context, GSYVVideoActivity.class);
         intent.putExtra("videoInfo", videoInfo);
+        if (videoInfo != null && videoInfo.getLocalWatchedEpisode() > 0) {
+            intent.putExtra(GSYVVideoActivity.EXTRA_EPISODE,
+                    videoInfo.getLocalWatchedEpisode());
+        }
         context.startActivity(intent);
     }
 
