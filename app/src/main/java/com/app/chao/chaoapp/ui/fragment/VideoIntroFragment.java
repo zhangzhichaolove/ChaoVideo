@@ -11,15 +11,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.RelatedAdapter;
 import com.app.chao.chaoapp.bean.VideoRes;
-import com.app.chao.chaoapp.contract.impl.VideoInfoPresenter;
 import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.app.chao.chaoapp.utils.StringUtils;
 import com.app.chao.chaoapp.view.TextViewExpandableAnimation;
 import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
-import org.simple.eventbus.EventBus;
-import org.simple.eventbus.Subscriber;
 
 public class VideoIntroFragment extends BaseFragment {
 
@@ -46,8 +43,6 @@ public class VideoIntroFragment extends BaseFragment {
     @Override
     protected void initView(View inflater) {
         recyclerView = inflater.findViewById(R.id.recyclerView);
-        EventBus.getDefault().register(this);
-
         headerView = LayoutInflater.from(mContext).inflate(R.layout.intro_header, null);
         tvExpand = headerView.findViewById(R.id.tv_expand);
         recyclerView.setAdapter(adapter = new RelatedAdapter(getContext()));
@@ -81,13 +76,6 @@ public class VideoIntroFragment extends BaseFragment {
         setData(video);
     }
 
-    @Override
-    public void onDestroyView() {
-        EventBus.getDefault().unregister(this);
-        super.onDestroyView();
-    }
-
-    @Subscriber(tag = VideoInfoPresenter.Refresh_Video_Info)
     public void setData(VideoRes videoInfo) {
         String dir = "导演：" + StringUtils.removeOtherCode(videoInfo.getToStar());
         String act = "主演：" + StringUtils.removeOtherCode(videoInfo.getPerformer());

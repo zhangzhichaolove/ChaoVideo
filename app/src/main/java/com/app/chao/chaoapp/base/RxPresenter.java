@@ -1,7 +1,7 @@
 package com.app.chao.chaoapp.base;
 
-import rx.Subscription;
-import rx.subscriptions.CompositeSubscription;
+import io.reactivex.rxjava3.disposables.CompositeDisposable;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 /**
  * 基于Rx的Presenter封装,控制订阅的生命周期
@@ -9,17 +9,17 @@ import rx.subscriptions.CompositeSubscription;
 public abstract class RxPresenter<T> implements BasePresenter<T> {
 
     protected T mView;
-    protected CompositeSubscription mCompositeSubscription;
+    protected CompositeDisposable mCompositeSubscription;
 
     protected void unSubscribe() {
         if (mCompositeSubscription != null) {
-            mCompositeSubscription.unsubscribe();
+            mCompositeSubscription.clear();
         }
     }
 
-    protected void addSubscribe(Subscription subscription) {
+    protected void addSubscribe(Disposable subscription) {
         if (mCompositeSubscription == null) {
-            mCompositeSubscription = new CompositeSubscription();
+            mCompositeSubscription = new CompositeDisposable();
         }
         mCompositeSubscription.add(subscription);
     }

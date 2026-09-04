@@ -1,6 +1,5 @@
 package com.app.chao.chaoapp.ui.activity;
 
-import android.content.Context;
 import android.content.res.Configuration;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -13,20 +12,20 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.app.chao.chaoapp.R;
-import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.cast.DlnaCastManager;
-import com.app.chao.chaoapp.contract.VideoInfoContract;
 import com.app.chao.chaoapp.ui.fragment.EpisodeSelectionFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoCommentFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoIntroFragment;
 import com.app.chao.chaoapp.utils.ImageLoader;
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.shuyu.gsyvideoplayer.GSYVideoManager;
 import com.shuyu.gsyvideoplayer.cache.CacheFactory;
 import com.shuyu.gsyvideoplayer.listener.LockClickListener;
@@ -42,11 +41,10 @@ import java.util.List;
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
 import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 
-public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract.View,
+public class GSYVVideoActivity extends BaseActivity implements
         EpisodeSelectionFragment.OnEpisodeSelectedListener {
     private static final int MAX_PLAY_RETRIES = 2;
     private static final long MIN_RESUME_POSITION_MS = 10_000L;
-    VideoInfoContract.Presenter mPresenter;
 
     //推荐使用StandardGSYVideoPlayer，功能一致
     //CustomGSYVideoPlayer部分功能处于试验阶段
@@ -56,7 +54,7 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
     private final List<String> titles = new ArrayList<>();
     VideoRes videoInfo;
     TabLayout viewpagertab;
-    ViewPager viewpager;
+    ViewPager2 viewpager;
     VideoRes videoRes;
     List<Fragment> fragments;
 
@@ -238,14 +236,11 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         titles.add("评论");
 
 
-        MyAdapter adapter = new MyAdapter(getSupportFragmentManager(), this);
+        MyAdapter adapter = new MyAdapter(this);
         viewpager.setAdapter(adapter);
-
-        viewpagertab.setupWithViewPager(viewpager);
-        viewpager.setCurrentItem(0);
-        TabLayout.TabLayoutOnPageChangeListener listener =
-                new TabLayout.TabLayoutOnPageChangeListener(viewpagertab);
-        viewpager.addOnPageChangeListener(listener);
+        new TabLayoutMediator(viewpagertab, viewpager,
+                (tab, position) -> tab.setText(titles.get(position))).attach();
+        viewpager.setCurrentItem(0, false);
 
 
         toolbar.setTitle(videoInfo.getTitle());
@@ -258,8 +253,6 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         if (!TextUtils.isEmpty(videoInfo.getVideo())) {
             playVideo(videoInfo.getVideo(), videoInfo.getTitle(), false);
         }
-
-        //new VideoInfoPresenter(this, videoInfo);
 
     }
 
@@ -565,53 +558,20 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         videoPlayer.getBackButton().setVisibility(View.GONE);
     }
 
-    @Override
-    public void setPresenter(VideoInfoContract.Presenter presenter) {
-        mPresenter = Preconditions.checkNotNull(presenter);
-    }
-
-    @Override
-    public void showContent(VideoRes videoRes) {
-        this.videoRes = videoRes;
-        toolbar.setTitle(videoRes.title);
-        if (!TextUtils.isEmpty(videoRes.getImg())) {
-            ImageView imageView = new ImageView(this);
-            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            ImageLoader.load(this, videoRes.getImg(), imageView);
-            videoPlayer.setThumbImageView(imageView);
-        }
-        if (!TextUtils.isEmpty(videoRes.getVideo())) {
-            playVideo(videoRes.getVideo(), videoRes.title, true);
-        }
-    }
-
-    @Override
-    public void showError(String error) {
-        showToast(error);
-    }
-
-    class MyAdapter extends FragmentPagerAdapter {
-        private Context context;
-
-        public MyAdapter(FragmentManager fm, Context context) {
-            super(fm);
-            this.context = context;
+    class MyAdapter extends FragmentStateAdapter {
+        public MyAdapter(FragmentActivity activity) {
+            super(activity);
         }
 
+        @NonNull
         @Override
-        public Fragment getItem(int position) {
+        public Fragment createFragment(int position) {
             return fragments.get(position);
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return fragments.size();
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return titles.get(position);
-//            return null;
         }
     }
 }

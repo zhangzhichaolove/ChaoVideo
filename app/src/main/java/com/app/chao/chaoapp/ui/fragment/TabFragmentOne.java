@@ -23,7 +23,6 @@ import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.FragmentOneContract;
 import com.app.chao.chaoapp.contract.impl.FragmentOnePresenter;
 import com.app.chao.chaoapp.utils.JumpUtil;
-import com.app.chao.chaoapp.utils.RxSubscriptions;
 import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.cjj.MaterialRefreshLayout;
 import com.cjj.MaterialRefreshListener;
@@ -32,8 +31,6 @@ import com.jude.rollviewpager.RollPagerView;
 import com.jude.rollviewpager.hintview.IconHintView;
 
 import java.util.List;
-
-import rx.Subscription;
 
 /**
  * Created by Chao on 2017/3/13.
@@ -48,7 +45,6 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
     List<VideoInfo> recommend;
     View headerView;
     FragmentOneAdapter adapter;
-    Subscription mRxSub;
     int page = 1;
     View listState;
     ProgressBar listStateProgress;
@@ -162,12 +158,6 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
         listStateProgress.setVisibility(View.GONE);
         listStateRetry.setVisibility(View.GONE);
         listStateMessage.setText(R.string.video_empty);
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        RxSubscriptions.remove(mRxSub);
     }
 
     @Override

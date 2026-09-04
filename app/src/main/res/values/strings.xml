@@ -29,10 +29,21 @@
     <string name="video_load_failed">视频加载失败：%1$s</string>
     <string name="retry">重试</string>
     <string name="unknown_error">未知错误</string>
+    <string name="comments_empty">暂无评论</string>
     <string name="app_name">bilibili</string>
     <string name="cheese_ipsum">这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.这里是名片内容，这里为了测试，直接复制粘贴.</string>
     <string name="open">打开</string>
     <string name="close">关闭</string>
     <string name="expand">展开</string>
     <string name="shrink">收起</string>
+    <string name="api_logs_title">API 响应日志</string>
+    <string name="api_logs_empty">暂无大响应日志（超过 256 KiB 的响应会保存在这里）</string>
+    <string name="api_log_item">%1$s\n%2$s · %3$s</string>
+    <string name="api_log_copy_path">复制路径</string>
+    <string name="api_log_copy_content">复制内容</string>
+    <string name="api_log_share">分享</string>
+    <string name="api_log_clear">清空</string>
+    <string name="api_log_read_failed">读取失败：%1$s</string>
+    <string name="copied">已复制</string>
+    <string name="api_logs_hint">长按修改 API 地址按钮可查看完整响应日志</string>
 </resources>

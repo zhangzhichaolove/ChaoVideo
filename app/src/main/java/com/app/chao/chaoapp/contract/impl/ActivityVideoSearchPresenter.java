@@ -9,8 +9,8 @@ import com.app.chao.chaoapp.utils.RxUtil;
 
 import java.util.List;
 
-import rx.Subscription;
-import rx.functions.Action1;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Consumer;
 
 /**
  * Created by Chao on 2017/3/22.
@@ -28,7 +28,7 @@ public class ActivityVideoSearchPresenter extends RxPresenter implements Activit
 
     @Override
     public void start() {
-        Subscription rxSubscription = RetrofitHelper.getVideoApi().getSearchVideoList(page, mView.getCatalogId())
+        Disposable rxSubscription = RetrofitHelper.getVideoApi().getSearchVideoList(page, mView.getCatalogId())
                 .compose(RxUtil.rxSchedulerHelper())
                 .compose(RxUtil.handleResult())
                 .subscribe(res -> {
@@ -39,9 +39,9 @@ public class ActivityVideoSearchPresenter extends RxPresenter implements Activit
                             mView.showMoreContent(res.getRecords());
                         }
                     }
-                }, new Action1<Throwable>() {
+                }, new Consumer<Throwable>() {
                     @Override
-                    public void call(Throwable throwable) {
+                    public void accept(Throwable throwable) {
                         if (page > 1) {
                             page--;
                         }
@@ -57,12 +57,12 @@ public class ActivityVideoSearchPresenter extends RxPresenter implements Activit
 
     @Override
     public void getVideoHomeData() {
-        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoBanner()
+        Disposable rxSubscription = RetrofitHelper.getVideoApi().getVideoBanner()
                 .compose(RxUtil.<VideoHttpResponse<List<VideoRes>>>rxSchedulerHelper())
                 .compose(RxUtil.<List<VideoRes>>handleResult())
-                .subscribe(new Action1<List<VideoRes>>() {
+                .subscribe(new Consumer<List<VideoRes>>() {
                     @Override
-                    public void call(final List<VideoRes> res) {
+                    public void accept(final List<VideoRes> res) {
                         if (res != null) {
 
                             if (page == 1) {
@@ -72,9 +72,9 @@ public class ActivityVideoSearchPresenter extends RxPresenter implements Activit
                             }
                         }
                     }
-                }, new Action1<Throwable>() {
+                }, new Consumer<Throwable>() {
                     @Override
-                    public void call(Throwable throwable) {
+                    public void accept(Throwable throwable) {
                         if (mView != null) {
                             mView.refreshFailed(com.app.chao.chaoapp.utils.StringUtils
                                     .getErrorMsg(throwable.getMessage()));

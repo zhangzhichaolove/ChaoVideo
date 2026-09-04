@@ -17,9 +17,8 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
+import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
@@ -30,7 +29,6 @@ public class RetrofitHelper {
 
     private static OkHttpClient okHttpClient = null;
     private static VideoApis videoApi;
-    private static GankApis gankApis;
 
     public static synchronized VideoApis getVideoApi() {
         initOkHttp();
@@ -39,7 +37,7 @@ public class RetrofitHelper {
                     .client(okHttpClient)
                     .baseUrl(ApiAddressManager.getBaseUrl())
                     .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                    .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                     .build();
             videoApi = retrofit.create(VideoApis.class);
         }
@@ -50,27 +48,10 @@ public class RetrofitHelper {
         videoApi = null;
     }
 
-    public static GankApis getGankApis() {
-        initOkHttp();
-        if (gankApis == null) {
-            Retrofit retrofit = new Retrofit.Builder()
-                    .client(okHttpClient)
-                    .baseUrl(GankApis.HOST)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                    .build();
-            gankApis = retrofit.create(GankApis.class);
-        }
-        return gankApis;
-    }
-
     private static void initOkHttp() {
         if (okHttpClient == null) {
             OkHttpClient.Builder builder = new OkHttpClient.Builder();
             if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
-                loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
-                builder.addInterceptor(loggingInterceptor);
                 builder.addInterceptor(new JsonLoggingInterceptor());
             }
             File cacheFile = new File(Constants.PATH_CACHE);

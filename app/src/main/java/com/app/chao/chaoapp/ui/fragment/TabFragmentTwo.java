@@ -18,7 +18,6 @@ import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.FragmentTwoContract;
 import com.app.chao.chaoapp.contract.impl.FragmentTwoPresenter;
 import com.app.chao.chaoapp.utils.JumpUtil;
-import com.app.chao.chaoapp.utils.RxSubscriptions;
 import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.cjj.MaterialRefreshLayout;
 import com.cjj.MaterialRefreshListener;
@@ -26,8 +25,6 @@ import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
 import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 import java.util.List;
-
-import rx.Subscription;
 
 /**
  * Created by Chao on 2017/3/20.
@@ -38,7 +35,6 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
     RecyclerView recyclerView;
     //SpecialAdapter adapter;
     FragmentOneAdapter adapter;
-    Subscription mRxSub;
     View listState;
     ProgressBar listStateProgress;
     TextView listStateMessage;
@@ -176,12 +172,6 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         listStateMessage.setText(R.string.video_empty);
     }
 
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        RxSubscriptions.remove(mRxSub);
-    }
 
     @Override
     public void setPresenter(FragmentTwoContract.Presenter presenter) {

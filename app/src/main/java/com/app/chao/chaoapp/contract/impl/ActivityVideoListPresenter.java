@@ -9,8 +9,8 @@ import com.app.chao.chaoapp.utils.RxUtil;
 
 import java.util.List;
 
-import rx.Subscription;
-import rx.functions.Action1;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Consumer;
 
 /**
  * Created by Chao on 2017/3/22.
@@ -28,12 +28,12 @@ public class ActivityVideoListPresenter extends RxPresenter implements ActivityV
 
     @Override
     public void start() {
-//        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoList(mView.getCatalogId(), page + "")
+//        Disposable rxSubscription = RetrofitHelper.getVideoApi().getVideoList(mView.getCatalogId(), page + "")
 //                .compose(RxUtil.<VideoHttpResponse<VideoRes>>rxSchedulerHelper())
 //                .compose(RxUtil.<VideoRes>handleResult())
-//                .subscribe(new Action1<VideoRes>() {
+//                .subscribe(new Consumer<VideoRes>() {
 //                    @Override
-//                    public void call(VideoRes res) {
+//                    public void accept(VideoRes res) {
 //                        if (res != null) {
 //                            if (page == 1) {
 //                                //mView.showContent(res.list);
@@ -42,9 +42,9 @@ public class ActivityVideoListPresenter extends RxPresenter implements ActivityV
 //                            }
 //                        }
 //                    }
-//                }, new Action1<Throwable>() {
+//                }, new Consumer<Throwable>() {
 //                    @Override
-//                    public void call(Throwable throwable) {
+//                    public void accept(Throwable throwable) {
 //                        if (page > 1) {
 //                            page--;
 //                        }
@@ -57,12 +57,12 @@ public class ActivityVideoListPresenter extends RxPresenter implements ActivityV
 
     @Override
     public void getVideoHomeData() {
-        Subscription rxSubscription = RetrofitHelper.getVideoApi().getVideoBanner()
+        Disposable rxSubscription = RetrofitHelper.getVideoApi().getVideoBanner()
                 .compose(RxUtil.<VideoHttpResponse<List<VideoRes>>>rxSchedulerHelper())
                 .compose(RxUtil.<List<VideoRes>>handleResult())
-                .subscribe(new Action1<List<VideoRes>>() {
+                .subscribe(new Consumer<List<VideoRes>>() {
                     @Override
-                    public void call(final List<VideoRes> res) {
+                    public void accept(final List<VideoRes> res) {
                         if (res != null) {
 
                             if (page == 1) {
@@ -72,9 +72,9 @@ public class ActivityVideoListPresenter extends RxPresenter implements ActivityV
                             }
                         }
                     }
-                }, new Action1<Throwable>() {
+                }, new Consumer<Throwable>() {
                     @Override
-                    public void call(Throwable throwable) {
+                    public void accept(Throwable throwable) {
                         if (mView != null) {
                             mView.refreshFailed(com.app.chao.chaoapp.utils.StringUtils
                                     .getErrorMsg(throwable.getMessage()));

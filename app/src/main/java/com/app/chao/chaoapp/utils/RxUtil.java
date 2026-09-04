@@ -3,97 +3,35 @@ package com.app.chao.chaoapp.utils;
 import android.text.TextUtils;
 
 import com.app.chao.chaoapp.net.ApiException;
-import com.app.chao.chaoapp.net.GankHttpResponse;
 import com.app.chao.chaoapp.net.VideoHttpResponse;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.ObservableTransformer;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
-/**
- * Description: RxUtil
- */
-public class RxUtil {
-
-    /**
-     * 统一线程处理
-     *
-     * @param <T>
-     * @return
-     */
-    public static <T> Observable.Transformer<T, T> rxSchedulerHelper() {    //compose简化线程
-        return new Observable.Transformer<T, T>() {
-            @Override
-            public Observable<T> call(Observable<T> observable) {
-                return observable.subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread());
-            }
-        };
+/** Shared RxJava schedulers and API response validation. */
+public final class RxUtil {
+    private RxUtil() {
     }
 
-    /**
-     * 统一返回结果处理
-     *
-     * @param <T>
-     * @return
-     */
-    public static <T> Observable.Transformer<VideoHttpResponse<T>, T> handleResult() {   //compose判断结果
-        return new Observable.Transformer<VideoHttpResponse<T>, T>() {
-            @Override
-            public Observable<T> call(Observable<VideoHttpResponse<T>> httpResponseObservable) {
-                return httpResponseObservable.flatMap(new Func1<VideoHttpResponse<T>, Observable<T>>() {
-                    @Override
-                    public Observable<T> call(VideoHttpResponse<T> videoHttpResponse) {
-                        if (videoHttpResponse.isSuccess()) {
-                            return createData(videoHttpResponse.getResult());
-                        } else if (!TextUtils.isEmpty(videoHttpResponse.getMsg())) {
-                            return Observable.error(new ApiException("*" + videoHttpResponse.getMsg()));
-                        } else {
-                            return Observable.error(new ApiException("*" + "服务器返回error"));
-                        }
-                    }
-                });
-            }
-        };
+    public static <T> ObservableTransformer<T, T> rxSchedulerHelper() {
+        return upstream -> upstream.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
     }
 
-    public static <T> Observable.Transformer<GankHttpResponse<T>, T> handleGankResult() {   //compose判断结果
-        return new Observable.Transformer<GankHttpResponse<T>, T>() {
-            @Override
-            public Observable<T> call(Observable<GankHttpResponse<T>> httpResponseObservable) {
-                return httpResponseObservable.flatMap(new Func1<GankHttpResponse<T>, Observable<T>>() {
-                    @Override
-                    public Observable<T> call(GankHttpResponse<T> tGankHttpResponse) {
-                        if (!tGankHttpResponse.getError()) {
-                            return createData(tGankHttpResponse.getResults());
-                        } else {
-                            return Observable.error(new ApiException("服务器返回error"));
-                        }
-                    }
-                });
+    public static <T> ObservableTransformer<VideoHttpResponse<T>, T> handleResult() {
+        return upstream -> upstream.flatMap(response -> {
+            if (response != null && response.isSuccess()) {
+                return createData(response.getResult());
             }
-        };
-    }
-
-    /**
-     * 生成Observable
-     *
-     * @param <T>
-     * @return
-     */
-    public static <T> Observable<T> createData(final T t) {
-        return Observable.create(new Observable.OnSubscribe<T>() {
-            @Override
-            public void call(Subscriber<? super T> subscriber) {
-                try {
-                    subscriber.onNext(t);
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
-                }
-            }
+            String message = response == null ? null : response.getMsg();
+            return Observable.error(new ApiException("*" + (TextUtils.isEmpty(message)
+                    ? "服务器返回错误" : message)));
         });
+    }
+
+    public static <T> Observable<T> createData(T value) {
+        return value == null ? Observable.empty() : Observable.just(value);
     }
 }

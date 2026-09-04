@@ -3,10 +3,8 @@ package com.app.chao.chaoapp.utils;
 import android.content.Context;
 import android.content.Intent;
 
-import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.ui.activity.GSYVVideoActivity;
-import com.app.chao.chaoapp.ui.activity.JCVideoActivity;
 import com.app.chao.chaoapp.ui.activity.SearchActivity;
 import com.app.chao.chaoapp.ui.activity.VideoListActivity;
 
@@ -24,18 +22,6 @@ public class JumpUtil {
      */
     public static void goGSYYVideoActivity(Context context, VideoRes videoInfo) {
         Intent intent = new Intent(context, GSYVVideoActivity.class);
-        intent.putExtra("videoInfo", videoInfo);
-        context.startActivity(intent);
-    }
-
-    /**
-     * 播放页
-     *
-     * @param context
-     * @param videoInfo
-     */
-    public static void goJCVideoActivity(Context context, VideoInfo videoInfo) {
-        Intent intent = new Intent(context, JCVideoActivity.class);
         intent.putExtra("videoInfo", videoInfo);
         context.startActivity(intent);
     }

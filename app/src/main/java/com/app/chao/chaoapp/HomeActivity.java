@@ -1,7 +1,6 @@
 package com.app.chao.chaoapp;
 
 import android.animation.Animator;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.text.InputType;
@@ -16,45 +15,40 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
-import com.app.chao.chaoapp.base.Preconditions;
-import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.cast.DlnaCastManager;
-import com.app.chao.chaoapp.contract.HomeActivityContract;
-import com.app.chao.chaoapp.contract.impl.HomeActivityPresenter;
-import com.app.chao.chaoapp.dagger.Persion;
 import com.app.chao.chaoapp.net.ApiAddressManager;
 import com.app.chao.chaoapp.ui.activity.BaseActivity;
 import com.app.chao.chaoapp.ui.activity.PersonalCoreActivity;
+import com.app.chao.chaoapp.ui.activity.ApiLogActivity;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentOne;
 import com.app.chao.chaoapp.ui.fragment.TabFragmentTwo;
 import com.app.chao.chaoapp.utils.ILayoutAnimationController;
-import com.app.chao.chaoapp.utils.RxBus;
 import com.app.chao.chaoapp.utils.StatusBarUtils;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
-import java.util.List;
-
-import javax.inject.Inject;
 
 /**
  * Created by Chao on 2017/3/13.
  */
 
-public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements View.OnClickListener, HomeActivityContract.View {
+public class HomeActivity extends BaseActivity implements View.OnClickListener {
     Toolbar toolbar;
     DrawerLayout mDrawerLayout;
     TabLayout tabs;
-    ViewPager viewpager;
+    ViewPager2 viewpager;
     FloatingActionButton home_fab;
     FloatingActionButton home_fab2;
     FloatingActionButton home_fab3;
     private DlnaCastManager castManager;
+    private TabLayoutMediator tabMediator;
 
     private String[] mTitles = new String[]{"推荐", "动作", "剧情", "犯罪", "爱情", "悬疑", "惊悚", "科幻", "动画"};
 
@@ -86,7 +80,6 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
                     showToast("再按一次退出");
                     firstTime = secondTime;
                 } else {
-                    RxBus.getDefault().removeAllStickyEvents();
                     setEnabled(false);
                     getOnBackPressedDispatcher().onBackPressed();
                 }
@@ -104,24 +97,17 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
         view.findViewById(R.id.iv_user_icon).setOnClickListener(this);
         home_fab.setOnClickListener(this);
         home_fab2.setOnClickListener(this);
+        home_fab2.setOnLongClickListener(button -> {
+            startActivity(new Intent(this, ApiLogActivity.class));
+            return true;
+        });
         home_fab3.setOnClickListener(this);
         initView();
     }
 
     private void initView() {
-        new HomeActivityPresenter(this);
-        mPresenter.start();//加载全局数据，一次获取，然后子页面对数据做处理
-        //mPresenter.getVideoBanner();
-
-        MyAdapter adapter = new MyAdapter(getSupportFragmentManager(), this);
-        viewpager.setAdapter(adapter);
-
-        tabs.setupWithViewPager(viewpager);
-        viewpager.setCurrentItem(0);
-        //viewpager.setOffscreenPageLimit(3);
-        TabLayout.TabLayoutOnPageChangeListener listener =
-                new TabLayout.TabLayoutOnPageChangeListener(tabs);
-        viewpager.addOnPageChangeListener(listener);
+        attachPages();
+        viewpager.setCurrentItem(0, false);
 
         ILayoutAnimationController.setLayoutAnimation(
                 (ViewGroup) findViewById(R.id.tabs),
@@ -153,55 +139,32 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
         home_fab2.setTag(true);
-        // 构造桥梁对象
-        //MainComponent component = DaggerMainComponent.builder().mainModule(new MainModule(this)).build();
-        //注入
-        //component.inject(this);
-        //Log.e("TAG", persion.toString());
-
     }
 
-    @Inject
-    Persion persion;//标明需要注入的对象
-
-    @Inject
-
-    @Override
-    public void setPresenter(HomeActivityContract.Presenter presenter) {
-        mPresenter = (HomeActivityPresenter) Preconditions.checkNotNull(presenter);
+    private void attachPages() {
+        if (tabMediator != null) {
+            tabMediator.detach();
+        }
+        viewpager.setAdapter(new MyAdapter(this));
+        tabMediator = new TabLayoutMediator(tabs, viewpager,
+                (tab, position) -> tab.setText(mTitles[position]));
+        tabMediator.attach();
     }
 
-    @Override
-    public void showContent(List<VideoRes> videoRes) {
-        RxBus.getDefault().postSticky(videoRes);//分发消息到其他页面
-    }
-
-    @Override
-    public void showBanner(List<VideoRes> videoRes) {
-    }
-
-    class MyAdapter extends FragmentPagerAdapter {
-        private Context context;
-
-        public MyAdapter(FragmentManager fm, Context context) {
-            super(fm);
-            this.context = context;
+    class MyAdapter extends FragmentStateAdapter {
+        public MyAdapter(FragmentActivity activity) {
+            super(activity);
         }
 
+        @NonNull
         @Override
-        public Fragment getItem(int position) {
+        public Fragment createFragment(int position) {
             return position == 0 ? TabFragmentOne.newInstance() : TabFragmentTwo.newInstance(mTitles[position]);
         }
 
         @Override
-        public int getCount() {
+        public int getItemCount() {
             return mTitles.length;
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return mTitles[position];
-//            return null;
         }
     }
 
@@ -276,6 +239,9 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
         if (castManager != null) {
             castManager.release();
         }
+        if (tabMediator != null) {
+            tabMediator.detach();
+        }
         super.onDestroy();
     }
 
@@ -301,7 +267,7 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
                     }
                     dialog.dismiss();
                     showToast(getString(R.string.api_address_saved));
-                    mPresenter.start();
+                    attachPages();
                 });
             dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(view -> {
                 input.setText(com.app.chao.chaoapp.net.VideoApis.HOST);

@@ -3,13 +3,10 @@ package com.app.chao.chaoapp.contract.impl;
 import com.app.chao.chaoapp.base.RxPresenter;
 import com.app.chao.chaoapp.contract.FragmentTwoContract;
 import com.app.chao.chaoapp.net.RetrofitHelper;
-import com.app.chao.chaoapp.net.ServerException;
-import com.app.chao.chaoapp.net.VideoHttpResponse;
 import com.app.chao.chaoapp.utils.RxUtil;
 
-import rx.Subscription;
-import rx.functions.Action1;
-import rx.functions.Func1;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Consumer;
 
 /**
  * Created by Chao on 2017/3/20.
@@ -27,7 +24,7 @@ public class FragmentTwoPresenter extends RxPresenter implements FragmentTwoCont
 
     @Override
     public void start() {
-        Subscription rxSubscription = RetrofitHelper.getVideoApi().getTypeVideoList(page, view.getType())
+        Disposable rxSubscription = RetrofitHelper.getVideoApi().getTypeVideoList(page, view.getType())
                 .compose(RxUtil.rxSchedulerHelper())
                 .compose(RxUtil.handleResult())
                 .subscribe(res -> {
@@ -38,9 +35,9 @@ public class FragmentTwoPresenter extends RxPresenter implements FragmentTwoCont
                             view.showMoreContent(res.getRecords());
                         }
                     }
-                }, new Action1<Throwable>() {
+                }, new Consumer<Throwable>() {
                     @Override
-                    public void call(Throwable throwable) {
+                    public void accept(Throwable throwable) {
                         if (page > 1) {
                             page--;
                         }
@@ -52,16 +49,6 @@ public class FragmentTwoPresenter extends RxPresenter implements FragmentTwoCont
                 });
         addSubscribe(rxSubscription);
 
-    }
-
-    private class ServerResultFunc<T> implements Func1<VideoHttpResponse<T>, T> {
-        @Override
-        public T call(VideoHttpResponse<T> httpResult) {
-            if (httpResult.isSuccess()) {
-                throw new ServerException(400, httpResult.getMsg());
-            }
-            return httpResult.getResult();
-        }
     }
 
     @Override
