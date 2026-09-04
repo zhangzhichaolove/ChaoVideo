@@ -1,55 +1,138 @@
 package com.app.chao.chaoapp.adapter;
 
-import android.content.Context;
 import android.util.DisplayMetrics;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.app.chao.chaoapp.R;
-import com.app.chao.chaoapp.baseadapter.recyclerview.CommonAdapter;
-import com.app.chao.chaoapp.baseadapter.recyclerview.base.ViewHolder;
 import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.databinding.ItemRelatedBinding;
 import com.app.chao.chaoapp.utils.ImageLoader;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
-/**
- * Created by Chao on 2017/3/22.
- */
+/** Grid adapter backed by DiffUtil so list refreshes only rebind changed videos. */
+public final class VideoListAdapter extends ListAdapter<VideoRes, VideoListAdapter.Holder> {
+    private OnItemClickListener listener;
 
-public class VideoListAdapter extends CommonAdapter<VideoRes> {
+    public VideoListAdapter() {
+        super(new DiffUtil.ItemCallback<VideoRes>() {
+            @Override
+            public boolean areItemsTheSame(@NonNull VideoRes oldItem,
+                                           @NonNull VideoRes newItem) {
+                return key(oldItem).equals(key(newItem));
+            }
 
+            @Override
+            public boolean areContentsTheSame(@NonNull VideoRes oldItem,
+                                              @NonNull VideoRes newItem) {
+                return Objects.equals(oldItem.getTitle(), newItem.getTitle())
+                        && Objects.equals(oldItem.getImg(), newItem.getImg())
+                        && oldItem.getLocalWatchedEpisode() == newItem.getLocalWatchedEpisode()
+                        && oldItem.getLocalProgressMs() == newItem.getLocalProgressMs()
+                        && oldItem.getLocalDurationMs() == newItem.getLocalDurationMs();
+            }
+        });
+    }
 
-    public VideoListAdapter(Context context, int layoutId, List<VideoRes> datas) {
-        super(context, layoutId, datas);
+    private static String key(VideoRes video) {
+        if (video.getId() != null && !video.getId().trim().isEmpty()) {
+            return "id:" + video.getId().trim();
+        }
+        return "url:" + Objects.toString(video.video, "");
+    }
+
+    @NonNull
+    @Override
+    public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new Holder(ItemRelatedBinding.inflate(
+                android.view.LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
-    protected void convert(ViewHolder holder, VideoRes videoType, int position) {
-        holder.setText(R.id.tv_title, videoType.getTitle());
-        TextView progress = holder.getView(R.id.tv_progress);
-        if (videoType.getLocalProgressMs() > 0) {
-            int percent = videoType.getLocalDurationMs() > 0
-                    ? (int) Math.min(100, videoType.getLocalProgressMs() * 100
-                    / videoType.getLocalDurationMs()) : 0;
-            String marker = videoType.getLocalWatchedEpisode() > 0
-                    ? mContext.getString(R.string.video_progress_episode,
-                    videoType.getLocalWatchedEpisode(), percent)
-                    : mContext.getString(R.string.video_progress_percent, percent);
-            progress.setText(marker);
-            progress.setVisibility(android.view.View.VISIBLE);
+    public void onBindViewHolder(@NonNull Holder holder, int position) {
+        VideoRes video = getItem(position);
+        holder.title.setText(video.getTitle());
+        if (video.getLocalProgressMs() > 0) {
+            int percent = video.getLocalDurationMs() > 0
+                    ? (int) Math.min(100, video.getLocalProgressMs() * 100
+                    / video.getLocalDurationMs()) : 0;
+            holder.progress.setText(video.getLocalWatchedEpisode() > 0
+                    ? holder.itemView.getContext().getString(R.string.video_progress_episode,
+                    video.getLocalWatchedEpisode(), percent)
+                    : holder.itemView.getContext().getString(
+                    R.string.video_progress_percent, percent));
+            holder.progress.setVisibility(View.VISIBLE);
         } else {
-            progress.setVisibility(android.view.View.GONE);
+            holder.progress.setVisibility(View.GONE);
         }
-        ImageView iv = holder.getView(R.id.img_video);
-        iv.setScaleType(ImageView.ScaleType.FIT_XY);
-        ViewGroup.LayoutParams params = iv.getLayoutParams();
-        DisplayMetrics dm = mContext.getResources().getDisplayMetrics();
-        int width = dm.widthPixels / 3;//宽度为屏幕宽度1/3
-//        int height = data.getHeight()*width/data.getWidth();//计算View的高度
-        params.height = (int) (width / 1.1);
-        iv.setLayoutParams(params);
-        ImageLoader.load(mContext, videoType.getImg(), iv);
+        DisplayMetrics metrics = holder.itemView.getResources().getDisplayMetrics();
+        ViewGroup.LayoutParams params = holder.cover.getLayoutParams();
+        params.height = (int) ((metrics.widthPixels / 3f) / 1.1f);
+        holder.cover.setLayoutParams(params);
+        ImageLoader.load(holder.itemView.getContext(), video.getImg(), holder.cover);
+    }
+
+    @Override
+    public VideoRes getItem(int position) {
+        return super.getItem(position);
+    }
+
+    public void setData(List<VideoRes> videos) {
+        submitList(videos == null ? Collections.emptyList() : new ArrayList<>(videos));
+    }
+
+    public void addAll(List<VideoRes> videos) {
+        if (videos == null || videos.isEmpty()) {
+            return;
+        }
+        List<VideoRes> combined = new ArrayList<>(getCurrentList());
+        combined.addAll(videos);
+        submitList(combined);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
+    final class Holder extends RecyclerView.ViewHolder {
+        final TextView title;
+        final TextView progress;
+        final ImageView cover;
+
+        Holder(ItemRelatedBinding binding) {
+            super(binding.getRoot());
+            title = binding.tvTitle;
+            progress = binding.tvProgress;
+            cover = binding.imgVideo;
+            cover.setScaleType(ImageView.ScaleType.FIT_XY);
+            itemView.setOnClickListener(view -> {
+                int position = getBindingAdapterPosition();
+                if (listener != null && position != RecyclerView.NO_POSITION) {
+                    listener.onItemClick(position, getItem(position));
+                }
+            });
+            itemView.setOnLongClickListener(view -> {
+                int position = getBindingAdapterPosition();
+                return listener != null && position != RecyclerView.NO_POSITION
+                        && listener.onItemLongClick(position, getItem(position));
+            });
+        }
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(int position, VideoRes video);
+
+        boolean onItemLongClick(int position, VideoRes video);
     }
 }

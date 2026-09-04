@@ -165,10 +165,7 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
 
     @Override
     public void showContent(List<VideoRes> list) {
-        adapter.clear();
-        if (list != null) {
-            adapter.addAll(list);
-        }
+        adapter.setData(list);
         endlessScrollListener.finish(list != null && !list.isEmpty());
         showListState(list == null || list.isEmpty());
         close();

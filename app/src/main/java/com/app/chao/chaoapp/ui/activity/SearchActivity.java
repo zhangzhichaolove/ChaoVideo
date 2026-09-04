@@ -18,7 +18,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.VideoListAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
-import com.app.chao.chaoapp.baseadapter.recyclerview.MultiItemTypeAdapter;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.data.VideoLibraryRepository;
 import com.app.chao.chaoapp.contract.ActivityVideoListContract;
@@ -105,15 +104,15 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         recyclerView.setLayoutManager(gridLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(ScreenUtil.dip2px(this, 8)));
-        recyclerView.setAdapter(adapter = new VideoListAdapter(this, R.layout.item_related, null));
-        adapter.setOnItemClickListener(new MultiItemTypeAdapter.OnItemClickListener() {
+        recyclerView.setAdapter(adapter = new VideoListAdapter());
+        adapter.setOnItemClickListener(new VideoListAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(View view, RecyclerView.ViewHolder holder, int position) {
-                JumpUtil.goGSYYVideoActivity(SearchActivity.this, adapter.getItem(position));
+            public void onItemClick(int position, VideoRes video) {
+                JumpUtil.goGSYYVideoActivity(SearchActivity.this, video);
             }
 
             @Override
-            public boolean onItemLongClick(View view, RecyclerView.ViewHolder holder, int position) {
+            public boolean onItemLongClick(int position, VideoRes video) {
                 return false;
             }
         });

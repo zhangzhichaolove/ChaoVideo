@@ -1,69 +1,85 @@
 package com.app.chao.chaoapp.adapter;
 
-import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 
 import com.app.chao.chaoapp.adapter.holder.FragmentOneViewHolder;
 import com.app.chao.chaoapp.bean.VideoRes;
-import com.app.chao.chaoapp.R;
+import com.app.chao.chaoapp.databinding.ItemVideoBinding;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
-public final class FragmentOneAdapter extends RecyclerView.Adapter<FragmentOneViewHolder> {
-    private final List<VideoRes> items = new ArrayList<>();
+public final class FragmentOneAdapter extends ListAdapter<VideoRes, FragmentOneViewHolder> {
     private OnItemClickListener listener;
 
     public FragmentOneAdapter(android.content.Context ignored) {
+        super(new DiffUtil.ItemCallback<VideoRes>() {
+            @Override
+            public boolean areItemsTheSame(@NonNull VideoRes oldItem,
+                                           @NonNull VideoRes newItem) {
+                return key(oldItem).equals(key(newItem));
+            }
+
+            @Override
+            public boolean areContentsTheSame(@NonNull VideoRes oldItem,
+                                              @NonNull VideoRes newItem) {
+                return Objects.equals(oldItem.getTitle(), newItem.getTitle())
+                        && Objects.equals(oldItem.getImg(), newItem.getImg());
+            }
+        });
+    }
+
+    private static String key(VideoRes video) {
+        return video.getId() != null && !video.getId().trim().isEmpty()
+                ? "id:" + video.getId().trim()
+                : "url:" + Objects.toString(video.video, "");
     }
 
     @NonNull
     @Override
     public FragmentOneViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new FragmentOneViewHolder(LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_video, parent, false));
+        return new FragmentOneViewHolder(ItemVideoBinding.inflate(
+                android.view.LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override
     public void onBindViewHolder(@NonNull FragmentOneViewHolder holder, int position) {
-        holder.bind(items.get(position));
+        holder.bind(getItem(position));
         holder.itemView.setOnClickListener(view -> {
             int adapterPosition = holder.getBindingAdapterPosition();
-            if (listener != null && adapterPosition != RecyclerView.NO_POSITION) {
+            if (listener != null
+                    && adapterPosition != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
                 listener.onItemClick(adapterPosition);
             }
         });
     }
 
-    @Override
-    public int getItemCount() {
-        return items.size();
-    }
-
     public int getCount() {
-        return items.size();
+        return getItemCount();
     }
 
+    @Override
     public VideoRes getItem(int position) {
-        return items.get(position);
+        return super.getItem(position);
     }
 
-    public void clear() {
-        int count = items.size();
-        items.clear();
-        notifyItemRangeRemoved(0, count);
+    public void setData(List<VideoRes> videos) {
+        submitList(videos == null ? Collections.emptyList() : new ArrayList<>(videos));
     }
 
     public void addAll(List<VideoRes> videos) {
         if (videos == null || videos.isEmpty()) {
             return;
         }
-        int start = items.size();
-        items.addAll(videos);
-        notifyItemRangeInserted(start, videos.size());
+        List<VideoRes> combined = new ArrayList<>(getCurrentList());
+        combined.addAll(videos);
+        submitList(combined);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {

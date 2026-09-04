@@ -1,23 +1,22 @@
 package com.app.chao.chaoapp.adapter.holder;
 
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.databinding.ItemVideoBinding;
 import com.app.chao.chaoapp.utils.ImageLoader;
 
 public final class FragmentOneViewHolder extends RecyclerView.ViewHolder {
     private final ImageView imgPicture;
     private final TextView title;
 
-    public FragmentOneViewHolder(View itemView) {
-        super(itemView);
-        imgPicture = itemView.findViewById(R.id.img_video);
-        title = itemView.findViewById(R.id.tv_title);
+    public FragmentOneViewHolder(ItemVideoBinding binding) {
+        super(binding.getRoot());
+        imgPicture = binding.imgVideo;
+        title = binding.tvTitle;
         imgPicture.setScaleType(ImageView.ScaleType.CENTER_CROP);
     }
 

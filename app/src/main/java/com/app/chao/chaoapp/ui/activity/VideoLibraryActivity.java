@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.VideoListAdapter;
-import com.app.chao.chaoapp.baseadapter.recyclerview.MultiItemTypeAdapter;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.data.VideoLibraryRepository;
 import com.app.chao.chaoapp.utils.GridSpacingItemDecoration;
@@ -62,17 +61,17 @@ public class VideoLibraryActivity extends BaseActivity {
         GridLayoutManager manager = new GridLayoutManager(this, 3);
         list.setLayoutManager(manager);
         list.addItemDecoration(new GridSpacingItemDecoration(ScreenUtil.dip2px(this, 8)));
-        adapter = new VideoListAdapter(this, R.layout.item_related, null);
+        adapter = new VideoListAdapter();
         list.setAdapter(adapter);
-        adapter.setOnItemClickListener(new MultiItemTypeAdapter.OnItemClickListener() {
+        adapter.setOnItemClickListener(new VideoListAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(View view, RecyclerView.ViewHolder holder, int position) {
-                JumpUtil.goGSYYVideoActivity(VideoLibraryActivity.this, adapter.getItem(position));
+            public void onItemClick(int position, VideoRes video) {
+                JumpUtil.goGSYYVideoActivity(VideoLibraryActivity.this, video);
             }
 
             @Override
-            public boolean onItemLongClick(View view, RecyclerView.ViewHolder holder, int position) {
-                showItemActions(adapter.getItem(position));
+            public boolean onItemLongClick(int position, VideoRes video) {
+                showItemActions(video);
                 return true;
             }
         });

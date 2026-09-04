@@ -42,6 +42,7 @@ public final class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         //加载图片
         ImageLoader.load(ctx, list.get(position).getImg(), holder.image);
+        holder.image.setContentDescription(list.get(position).getTitle());
         //点击事件
         holder.image.setOnClickListener(new View.OnClickListener() {
             @Override

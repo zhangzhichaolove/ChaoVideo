@@ -158,11 +158,12 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
             return;
         }
         if (page <= 1) {
-            adapter.clear();
+            adapter.setData(videoRes);
+        } else {
+            adapter.addAll(videoRes);
         }
-        adapter.addAll(videoRes);
         endlessScrollListener.finish(!videoRes.isEmpty());
-        showListState(adapter.getCount() == 0);
+        showListState(page <= 1 && videoRes.isEmpty());
         materialRefreshLayout.setRefreshing(false);
     }
 
