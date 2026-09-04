@@ -44,6 +44,8 @@ import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 
 public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract.View,
         EpisodeSelectionFragment.OnEpisodeSelectedListener {
+    private static final int MAX_PLAY_RETRIES = 2;
+    private static final long MIN_RESUME_POSITION_MS = 10_000L;
     VideoInfoContract.Presenter mPresenter;
 
     //推荐使用StandardGSYVideoPlayer，功能一致
@@ -68,6 +70,10 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
     private DlnaCastManager castManager;
     private DlnaCastManager.Device castDevice;
     private MenuItem castMenuItem;
+    private EpisodeSelectionFragment episodeSelectionFragment;
+    private PlaybackProgressStore playbackProgressStore;
+    private int currentEpisode;
+    private int playRetryCount;
 
     private OrientationUtils orientationUtils;
 
@@ -84,6 +90,7 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         viewpagertab = findViewById(R.id.viewpagertab);
         viewpager = findViewById(R.id.viewpager);
         castManager = new DlnaCastManager(this);
+        playbackProgressStore = new PlaybackProgressStore(this);
         // 必须在 setUp/startPlayLogic 之前选择播放器内核；完整 IJK 包已不再引入。
         PlayerFactory.setPlayManager(Exo2PlayerManager.class);
         CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
@@ -169,6 +176,16 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
                 //开始播放了才能旋转和全屏
                 orientationUtils.setEnable(true);
                 isPlay = true;
+                playRetryCount = 0;
+            }
+
+            @Override
+            public void onAutoComplete(String url, Object... objects) {
+                playbackProgressStore.clear(currentVideoUrl);
+                if (videoInfo != null && currentEpisode > 0
+                        && currentEpisode < videoInfo.getEpisodes()) {
+                    playEpisode(currentEpisode + 1, false);
+                }
             }
 
             @Override
@@ -181,7 +198,13 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
             @Override
             public void onPlayError(String url, Object... objects) {
                 if (!isCasting && !castRequestPending) {
-                    videoPlayer.startPlayLogic();//第三方播放器Bug，在某些情况下，第一次播放总会失败，设置播放错误的监听，重新播放。
+                    if (playRetryCount < MAX_PLAY_RETRIES) {
+                        long delayMs = 500L * (1L << playRetryCount);
+                        playRetryCount++;
+                        videoPlayer.postDelayed(videoPlayer::startPlayLogic, delayMs);
+                    } else {
+                        showToast(getString(R.string.video_play_failed));
+                    }
                 }
             }
 
@@ -206,7 +229,9 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         fragments.add(videoIntroFragment);
         titles.add("简介");
         if (videoInfo.getEpisodes() > 0) {
-            fragments.add(EpisodeSelectionFragment.newInstance(videoInfo));
+            currentEpisode = 1;
+            episodeSelectionFragment = EpisodeSelectionFragment.newInstance(videoInfo);
+            fragments.add(episodeSelectionFragment);
             titles.add("选集");
         }
         fragments.add(videoCommentFragment);
@@ -240,6 +265,18 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
     @Override
     public void onEpisodeSelected(int episode) {
+        playEpisode(episode, true);
+    }
+
+    private void playEpisode(int episode, boolean savePrevious) {
+        if (savePrevious && !isCasting && !TextUtils.isEmpty(currentVideoUrl)) {
+            playbackProgressStore.save(currentVideoUrl,
+                    videoPlayer.getCurrentPositionWhenPlaying());
+        }
+        currentEpisode = episode;
+        if (episodeSelectionFragment != null) {
+            episodeSelectionFragment.setSelectedEpisode(episode);
+        }
         String title = videoInfo.getTitle() + " 第" + episode + "集";
         playVideo(videoInfo.getEpisodeVideo(episode), title, true);
         toolbar.setTitle(title);
@@ -251,19 +288,49 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
         }
         currentVideoUrl = url;
         currentVideoTitle = title;
-        if (isCasting && castDevice != null) {
-            castCurrentVideo(castDevice, 0);
+        playRetryCount = 0;
+        long savedPosition = playbackProgressStore.getPosition(url);
+        if (savedPosition >= MIN_RESUME_POSITION_MS) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.resume_playback_title)
+                    .setMessage(getString(R.string.resume_playback_message,
+                            formatPlaybackPosition(savedPosition)))
+                    .setNegativeButton(R.string.play_from_start,
+                            (dialog, which) -> startVideo(url, title, releaseCurrent, 0))
+                    .setPositiveButton(R.string.continue_playing,
+                            (dialog, which) -> startVideo(url, title, releaseCurrent,
+                                    savedPosition))
+                    .show();
             return;
         }
-        playLocalVideo(url, title, releaseCurrent);
+        startVideo(url, title, releaseCurrent, 0);
+    }
+
+    private void startVideo(String url, String title, boolean releaseCurrent, long positionMs) {
+        if (isCasting && castDevice != null) {
+            castCurrentVideo(castDevice, positionMs);
+            return;
+        }
+        playLocalVideo(url, title, releaseCurrent, positionMs);
     }
 
     private void playLocalVideo(String url, String title, boolean releaseCurrent) {
+        playLocalVideo(url, title, releaseCurrent, 0);
+    }
+
+    private void playLocalVideo(String url, String title, boolean releaseCurrent, long positionMs) {
         if (releaseCurrent) {
             GSYVideoManager.releaseAllVideos();
         }
+        videoPlayer.setSeekOnStart(positionMs);
         videoPlayer.setUp(url, true, null, title);
         videoPlayer.startPlayLogic();
+    }
+
+    private String formatPlaybackPosition(long positionMs) {
+        long totalSeconds = positionMs / 1000;
+        return String.format(java.util.Locale.getDefault(), "%02d:%02d:%02d",
+                totalSeconds / 3600, (totalSeconds % 3600) / 60, totalSeconds % 60);
     }
 
     @Override
@@ -424,6 +491,10 @@ public class GSYVVideoActivity extends BaseActivity implements VideoInfoContract
 
     @Override
     protected void onPause() {
+        if (!isCasting && !TextUtils.isEmpty(currentVideoUrl)) {
+            playbackProgressStore.save(currentVideoUrl,
+                    videoPlayer.getCurrentPositionWhenPlaying());
+        }
         super.onPause();
         GSYVideoManager.onPause();
         isPause = true;

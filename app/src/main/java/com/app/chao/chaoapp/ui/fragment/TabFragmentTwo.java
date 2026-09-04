@@ -2,7 +2,11 @@ package com.app.chao.chaoapp.ui.fragment;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -29,13 +33,16 @@ import rx.Subscription;
  * Created by Chao on 2017/3/20.
  */
 
-public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.View {
+public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> implements FragmentTwoContract.View {
     MaterialRefreshLayout materialRefreshLayout;
     RecyclerView recyclerView;
     //SpecialAdapter adapter;
     FragmentOneAdapter adapter;
     Subscription mRxSub;
-    FragmentTwoPresenter presenter;
+    View listState;
+    ProgressBar listStateProgress;
+    TextView listStateMessage;
+    Button listStateRetry;
 
     public static TabFragmentTwo newInstance(String type) {
         //if (fragment == null)
@@ -56,6 +63,14 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
     protected void initView(View inflater) {
         materialRefreshLayout = inflater.findViewById(R.id.refresh);
         recyclerView = inflater.findViewById(R.id.recyclerView);
+        listState = inflater.findViewById(R.id.list_state);
+        listStateProgress = inflater.findViewById(R.id.list_state_progress);
+        listStateMessage = inflater.findViewById(R.id.list_state_message);
+        listStateRetry = inflater.findViewById(R.id.list_state_retry);
+        listStateRetry.setOnClickListener(view -> {
+            showLoading();
+            mPresenter.onRefresh();
+        });
         new FragmentTwoPresenter(this);
         //设置Item增加、移除动画
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
@@ -102,7 +117,7 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
             @Override
             public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
                 //RxBus.getDefault().postSticky("Refresh");
-                presenter.onRefresh();
+                mPresenter.onRefresh();
             }
 
             @Override
@@ -112,7 +127,7 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
 
             @Override
             public void onRefreshLoadMore(final MaterialRefreshLayout materialRefreshLayout) {
-                presenter.loadMore();
+                mPresenter.loadMore();
             }
         });
         materialRefreshLayout.autoRefresh();
@@ -147,6 +162,20 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
         materialRefreshLayout.finishRefreshLoadMore();
     }
 
+    private void showLoading() {
+        listState.setVisibility(View.VISIBLE);
+        listStateProgress.setVisibility(View.VISIBLE);
+        listStateRetry.setVisibility(View.GONE);
+        listStateMessage.setText(R.string.video_loading);
+    }
+
+    private void showListState(boolean empty) {
+        listState.setVisibility(empty ? View.VISIBLE : View.GONE);
+        listStateProgress.setVisibility(View.GONE);
+        listStateRetry.setVisibility(View.GONE);
+        listStateMessage.setText(R.string.video_empty);
+    }
+
 
     @Override
     public void onDestroy() {
@@ -156,7 +185,7 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
 
     @Override
     public void setPresenter(FragmentTwoContract.Presenter presenter) {
-        this.presenter = (FragmentTwoPresenter) presenter;
+        this.mPresenter = presenter;
     }
 
     @Override
@@ -167,20 +196,39 @@ public class TabFragmentTwo extends BaseFragment implements FragmentTwoContract.
     @Override
     public void showContent(List<VideoRes> list) {
         adapter.clear();
-        adapter.addAll(list);
+        if (list != null) {
+            adapter.addAll(list);
+        }
         if (list != null && list.size() > 0) {
             materialRefreshLayout.setLoadMore(true);
         }
+        showListState(list == null || list.isEmpty());
         close();
     }
 
     @Override
     public void showMoreContent(List<VideoRes> list) {
-        adapter.addAll(list);
+        if (list != null) {
+            adapter.addAll(list);
+        }
         if (list != null && list.size() <= 0) {
             materialRefreshLayout.setLoadMore(false);
         }
         close();
+    }
+
+    @Override
+    public void refreshFailed(String message) {
+        close();
+        if (adapter != null && adapter.getCount() > 0) {
+            listState.setVisibility(View.GONE);
+            return;
+        }
+        listState.setVisibility(View.VISIBLE);
+        listStateProgress.setVisibility(View.GONE);
+        listStateRetry.setVisibility(View.VISIBLE);
+        listStateMessage.setText(getString(R.string.video_load_failed,
+                TextUtils.isEmpty(message) ? getString(R.string.unknown_error) : message));
     }
 
 //    @Override

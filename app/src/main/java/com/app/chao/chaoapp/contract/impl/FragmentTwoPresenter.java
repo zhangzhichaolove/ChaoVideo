@@ -21,6 +21,7 @@ public class FragmentTwoPresenter extends RxPresenter implements FragmentTwoCont
 
     public FragmentTwoPresenter(FragmentTwoContract.View view) {
         this.view = view;
+        attachView(view);
         view.setPresenter(this);
     }
 
@@ -43,7 +44,10 @@ public class FragmentTwoPresenter extends RxPresenter implements FragmentTwoCont
                         if (page > 1) {
                             page--;
                         }
-                        //mView.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
+                        if (view != null) {
+                            view.refreshFailed(com.app.chao.chaoapp.utils.StringUtils
+                                    .getErrorMsg(throwable.getMessage()));
+                        }
                     }
                 });
         addSubscribe(rxSubscription);
@@ -70,5 +74,11 @@ public class FragmentTwoPresenter extends RxPresenter implements FragmentTwoCont
     public void loadMore() {
         page++;
         start();
+    }
+
+    @Override
+    public void detachView() {
+        super.detachView();
+        view = null;
     }
 }

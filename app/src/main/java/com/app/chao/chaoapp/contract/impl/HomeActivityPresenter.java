@@ -27,6 +27,7 @@ public class HomeActivityPresenter extends RxPresenter implements HomeActivityCo
 
     public HomeActivityPresenter(HomeActivityContract.View view) {
         this.view = Preconditions.checkNotNull(view);
+        attachView(view);
         view.setPresenter(this);
         refresh = RxBus.getDefault().toObservable(String.class).subscribe(new Action1<String>() {
             @Override
@@ -90,5 +91,6 @@ public class HomeActivityPresenter extends RxPresenter implements HomeActivityCo
         super.detachView();
         if (refresh != null)
             refresh.unsubscribe();
+        view = null;
     }
 }

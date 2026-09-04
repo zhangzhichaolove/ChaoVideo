@@ -29,6 +29,7 @@ public class VideoInfoPresenter extends RxPresenter implements VideoInfoContract
 
     public VideoInfoPresenter(@NonNull VideoInfoContract.View mView, VideoInfo videoInfo) {
         this.mView = mView;
+        attachView(mView);
         mView.setPresenter(this);
         this.dataId = videoInfo.dataId;
         this.pic = videoInfo.pic;
@@ -92,6 +93,12 @@ public class VideoInfoPresenter extends RxPresenter implements VideoInfoContract
     @Override
     public void start() {
 
+    }
+
+    @Override
+    public void detachView() {
+        super.detachView();
+        mView = null;
     }
 
 

@@ -19,6 +19,8 @@ public interface FragmentTwoContract {
         void showContent(List<VideoRes> list);
 
         void showMoreContent(List<VideoRes> list);
+
+        void refreshFailed(String message);
     }
 
     interface Presenter extends BasePresenter {

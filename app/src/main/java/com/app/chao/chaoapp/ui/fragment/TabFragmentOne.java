@@ -1,11 +1,14 @@
 package com.app.chao.chaoapp.ui.fragment;
 
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -36,7 +39,7 @@ import rx.Subscription;
  * Created by Chao on 2017/3/13.
  */
 
-public class TabFragmentOne extends BaseFragment implements FragmentOneContract.View {
+public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> implements FragmentOneContract.View {
     MaterialRefreshLayout materialRefreshLayout;
     RecyclerView recyclerView;
     RollPagerView banner;
@@ -47,7 +50,10 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
     FragmentOneAdapter adapter;
     Subscription mRxSub;
     int page = 1;
-    FragmentOneContract.Presenter mPresenter;
+    View listState;
+    ProgressBar listStateProgress;
+    TextView listStateMessage;
+    Button listStateRetry;
 
     public static TabFragmentOne newInstance() {
         //if (fragment == null)
@@ -66,7 +72,11 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
     protected void initView(View inflater) {
         materialRefreshLayout = inflater.findViewById(R.id.refresh);
         recyclerView = inflater.findViewById(R.id.recyclerView);
-        new FragmentOnePresenter(this);
+        listState = inflater.findViewById(R.id.list_state);
+        listStateProgress = inflater.findViewById(R.id.list_state_progress);
+        listStateMessage = inflater.findViewById(R.id.list_state_message);
+        listStateRetry = inflater.findViewById(R.id.list_state_retry);
+        listStateRetry.setOnClickListener(view -> reload());
         headerView = LayoutInflater.from(mContext).inflate(R.layout.recommend_header, null);
         banner = headerView.findViewById(R.id.banner);
         rlGoSearch = headerView.findViewById(R.id.rlGoSearch);
@@ -95,6 +105,7 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
         });
         //recyclerView.setErrorView(R.layout.view_error);
         //webView.loadUrl("http://www.youku.com");
+        new FragmentOnePresenter(this);
         listener();
     }
 
@@ -133,6 +144,26 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
         materialRefreshLayout.finishRefresh();
     }
 
+    private void reload() {
+        showLoading();
+        mPresenter.showBanner();
+        mPresenter.showContent(1);
+    }
+
+    private void showLoading() {
+        listState.setVisibility(View.VISIBLE);
+        listStateProgress.setVisibility(View.VISIBLE);
+        listStateRetry.setVisibility(View.GONE);
+        listStateMessage.setText(R.string.video_loading);
+    }
+
+    private void showListState(boolean empty) {
+        listState.setVisibility(empty ? View.VISIBLE : View.GONE);
+        listStateProgress.setVisibility(View.GONE);
+        listStateRetry.setVisibility(View.GONE);
+        listStateMessage.setText(R.string.video_empty);
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -153,6 +184,10 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
 
     @Override
     public void showContent(int page, List<VideoRes> videoRes) {
+        if (videoRes == null) {
+            refreshFaild(getString(R.string.unknown_error));
+            return;
+        }
         if (page <= 1) {
             adapter.clear();
         }
@@ -162,13 +197,23 @@ public class TabFragmentOne extends BaseFragment implements FragmentOneContract.
             materialRefreshLayout.setLoadMore(true);
         }
         adapter.addAll(videoRes);
+        showListState(adapter.getCount() == 0);
         materialRefreshLayout.finishRefresh();
         materialRefreshLayout.finishRefreshLoadMore();
     }
 
     @Override
     public void refreshFaild(String msg) {
-
+        close();
+        if (adapter != null && adapter.getCount() > 0) {
+            listState.setVisibility(View.GONE);
+            return;
+        }
+        listState.setVisibility(View.VISIBLE);
+        listStateProgress.setVisibility(View.GONE);
+        listStateRetry.setVisibility(View.VISIBLE);
+        listStateMessage.setText(getString(R.string.video_load_failed,
+                TextUtils.isEmpty(msg) ? getString(R.string.unknown_error) : msg));
     }
 
     @Override

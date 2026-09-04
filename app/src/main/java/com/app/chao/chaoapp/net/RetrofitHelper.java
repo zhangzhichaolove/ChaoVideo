@@ -26,6 +26,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Retrofit帮助类
  */
 public class RetrofitHelper {
+    private static final int MAX_RETRIES = 2;
 
     private static OkHttpClient okHttpClient = null;
     private static VideoApis videoApi;
@@ -83,30 +84,28 @@ public class RetrofitHelper {
                                 .cacheControl(CacheControl.FORCE_CACHE)
                                 .build();
                     }
-                    int tryCount = 0;
                     Response response = chain.proceed(request);
-                    while (!response.isSuccessful() && tryCount < 3) {
-
-                        Log.e(RetrofitHelper.class.getName(), "interceptRequest is not successful - :{}" + tryCount);
-
+                    int tryCount = 0;
+                    while (canRetry(request, response, tryCount)) {
+                        response.close();
                         tryCount++;
-
-                        // retry the request
+                        Log.w(RetrofitHelper.class.getSimpleName(),
+                                "Retrying request (" + tryCount + "/" + MAX_RETRIES + "): "
+                                        + request.url());
                         response = chain.proceed(request);
                     }
-
 
                     if (SystemUtils.isNetworkConnected()) {
                         int maxAge = 0;
                         // 有网络时, 不缓存, 最大保存时长为0
-                        response.newBuilder()
+                        response = response.newBuilder()
                                 .header("Cache-Control", "public, max-age=" + maxAge)
                                 .removeHeader("Pragma")
                                 .build();
                     } else {
                         // 无网络时，设置超时为4周
                         int maxStale = 60 * 60 * 24 * 28;
-                        response.newBuilder()
+                        response = response.newBuilder()
                                 .header("Cache-Control", "public, only-if-cached, max-stale=" + maxStale)
                                 .removeHeader("Pragma")
                                 .build();
@@ -115,7 +114,6 @@ public class RetrofitHelper {
                 }
             };
             //设置缓存
-            builder.addNetworkInterceptor(cacheInterceptor);
             builder.addInterceptor(cacheInterceptor);
             builder.cache(cache);
             //设置超时
@@ -126,5 +124,14 @@ public class RetrofitHelper {
             builder.retryOnConnectionFailure(true);
             okHttpClient = builder.build();
         }
+    }
+
+    private static boolean canRetry(Request request, Response response, int tryCount) {
+        if (tryCount >= MAX_RETRIES
+                || !("GET".equals(request.method()) || "HEAD".equals(request.method()))) {
+            return false;
+        }
+        int code = response.code();
+        return code == 408 || code == 500 || code == 502 || code == 503 || code == 504;
     }
 }

@@ -29,8 +29,19 @@ public abstract class BaseFragment<T extends BasePresenter> extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        if (mPresenter != null) {
+            mPresenter.detachView();
+        }
+        mPresenter = null;
+        rootView = null;
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onDetach() {
+        mContext = null;
+        super.onDetach();
     }
 
     protected abstract int getLayout();

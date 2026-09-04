@@ -18,13 +18,14 @@ import rx.functions.Action1;
 
 public class CommentPresenter extends RxPresenter implements CommentContract.Presenter {
     @NonNull
-    final CommentContract.View mView;
+    CommentContract.View mView;
     int page = 1;
     String mediaId = "";
 
 
     public CommentPresenter(@NonNull CommentContract.View addTaskView) {
         mView = Preconditions.checkNotNull(addTaskView);
+        attachView(mView);
         mView.setPresenter(this);
         onRefresh();
     }
@@ -80,5 +81,11 @@ public class CommentPresenter extends RxPresenter implements CommentContract.Pre
     @Override
     public void start() {
 
+    }
+
+    @Override
+    public void detachView() {
+        super.detachView();
+        mView = null;
     }
 }

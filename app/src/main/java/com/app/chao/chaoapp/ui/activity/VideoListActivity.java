@@ -1,6 +1,10 @@
 package com.app.chao.chaoapp.ui.activity;
 
 import android.view.View;
+import android.text.TextUtils;
+import android.widget.Button;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
@@ -32,6 +36,10 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     RecyclerView recyclerView;
     Toolbar toolbar;
     VideoListAdapter adapter;
+    View listState;
+    ProgressBar listStateProgress;
+    TextView listStateMessage;
+    Button listStateRetry;
 
 
     @Override
@@ -44,8 +52,15 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
         materialRefreshLayout = findViewById(R.id.refresh);
         recyclerView = findViewById(R.id.recyclerView);
         toolbar = findViewById(R.id.toolbar);
+        listState = findViewById(R.id.list_state);
+        listStateProgress = findViewById(R.id.list_state_progress);
+        listStateMessage = findViewById(R.id.list_state_message);
+        listStateRetry = findViewById(R.id.list_state_retry);
+        listStateRetry.setOnClickListener(view -> {
+            showLoading();
+            mPresenter.onRefresh();
+        });
         new ActivityVideoListPresenter(this);
-        mPresenter.getVideoHomeData();
         toolbar.setTitle(getIntent().getStringExtra("title"));
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -121,13 +136,44 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     @Override
     public void showContent(List<VideoRes> list) {
         adapter.setData(list);
+        showListState(list == null || list.isEmpty());
         close();
     }
 
     @Override
     public void showMoreContent(List<VideoRes> list) {
-        adapter.addAll(list);
+        if (list != null) {
+            adapter.addAll(list);
+        }
         close();
+    }
+
+    @Override
+    public void refreshFailed(String message) {
+        close();
+        if (adapter != null && adapter.getItemCount() > 0) {
+            listState.setVisibility(View.GONE);
+            return;
+        }
+        listState.setVisibility(View.VISIBLE);
+        listStateProgress.setVisibility(View.GONE);
+        listStateRetry.setVisibility(View.VISIBLE);
+        listStateMessage.setText(getString(R.string.video_load_failed,
+                TextUtils.isEmpty(message) ? getString(R.string.unknown_error) : message));
+    }
+
+    private void showLoading() {
+        listState.setVisibility(View.VISIBLE);
+        listStateProgress.setVisibility(View.VISIBLE);
+        listStateRetry.setVisibility(View.GONE);
+        listStateMessage.setText(R.string.video_loading);
+    }
+
+    private void showListState(boolean empty) {
+        listState.setVisibility(empty ? View.VISIBLE : View.GONE);
+        listStateProgress.setVisibility(View.GONE);
+        listStateRetry.setVisibility(View.GONE);
+        listStateMessage.setText(R.string.video_empty);
     }
 
     private void close() {

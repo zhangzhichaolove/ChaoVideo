@@ -20,6 +20,7 @@ public interface ActivityVideoListContract {
 
         void showMoreContent(List<VideoRes> list);
 
+        void refreshFailed(String message);
 
     }
 

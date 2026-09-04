@@ -290,17 +290,24 @@ public class HomeActivity extends BaseActivity<HomeActivityPresenter> implements
                 .setTitle(R.string.api_address_title)
                 .setView(input)
                 .setNegativeButton(R.string.cancel, null)
+                .setNeutralButton(R.string.restore_default, null)
                 .setPositiveButton(R.string.save, null)
                 .create();
-        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setOnClickListener(view -> {
+        dialog.setOnShowListener(ignored -> {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
                     if (!ApiAddressManager.saveBaseUrl(input.getText().toString())) {
                         input.setError(getString(R.string.api_address_invalid));
                         return;
                     }
                     dialog.dismiss();
                     showToast(getString(R.string.api_address_saved));
-                }));
+                    mPresenter.start();
+                });
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(view -> {
+                input.setText(com.app.chao.chaoapp.net.VideoApis.HOST);
+                input.setSelection(input.length());
+            });
+        });
         dialog.show();
     }
 

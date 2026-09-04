@@ -22,6 +22,7 @@ public class ActivityVideoSearchPresenter extends RxPresenter implements Activit
 
     public ActivityVideoSearchPresenter(ActivityVideoListContract.View view) {
         this.mView = view;
+        attachView(view);
         mView.setPresenter(this);
     }
 
@@ -44,7 +45,10 @@ public class ActivityVideoSearchPresenter extends RxPresenter implements Activit
                         if (page > 1) {
                             page--;
                         }
-                        //mView.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
+                        if (mView != null) {
+                            mView.refreshFailed(com.app.chao.chaoapp.utils.StringUtils
+                                    .getErrorMsg(throwable.getMessage()));
+                        }
                     }
                 });
         addSubscribe(rxSubscription);
@@ -71,8 +75,10 @@ public class ActivityVideoSearchPresenter extends RxPresenter implements Activit
                 }, new Action1<Throwable>() {
                     @Override
                     public void call(Throwable throwable) {
-                        System.out.println(throwable);
-                        //view.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
+                        if (mView != null) {
+                            mView.refreshFailed(com.app.chao.chaoapp.utils.StringUtils
+                                    .getErrorMsg(throwable.getMessage()));
+                        }
                     }
                 });
         addSubscribe(rxSubscription);
@@ -88,5 +94,11 @@ public class ActivityVideoSearchPresenter extends RxPresenter implements Activit
     public void loadMore() {
         page++;
         start();
+    }
+
+    @Override
+    public void detachView() {
+        super.detachView();
+        mView = null;
     }
 }

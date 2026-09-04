@@ -1,10 +1,13 @@
 package com.app.chao.chaoapp.ui.activity;
 
 import android.util.Log;
+import android.text.TextUtils;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ProgressBar;
 
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DefaultItemAnimator;
@@ -48,6 +51,10 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     LinearLayout rl_history;
     ImageView img_search_clear;
     VideoListAdapter adapter;
+    View listState;
+    ProgressBar listStateProgress;
+    TextView listStateMessage;
+    Button listStateRetry;
     boolean isOpen = false;
 
     @Override
@@ -64,6 +71,11 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         wvSearchHistory = findViewById(R.id.wv_search_history);
         rl_history = findViewById(R.id.rl_history);
         img_search_clear = findViewById(R.id.img_search_clear);
+        listState = findViewById(R.id.search_list_state);
+        listStateProgress = findViewById(R.id.list_state_progress);
+        listStateMessage = findViewById(R.id.list_state_message);
+        listStateRetry = findViewById(R.id.list_state_retry);
+        listStateRetry.setOnClickListener(view -> requestSearch());
         StatusBarUtils.setTranslucent(this);
 
         CollapsingToolbarLayout.LayoutParams lp = (CollapsingToolbarLayout.LayoutParams) toolbar.getLayoutParams();
@@ -82,7 +94,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         toolbar.setRightButtonOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mPresenter.onRefresh();
+                requestSearch();
                 if (adapter.getItemCount() == 0 && !getCatalogId().isEmpty()) {
 //                    SearchKey search = new SearchKey(getCatalogId(), System.currentTimeMillis());
 //                    RealmHelper.getInstance().insertSearchHistory(search);
@@ -242,16 +254,48 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
             materialRefreshLayout.setLoadMore(true);
             rl_history.setVisibility(View.GONE);
         }
+        showListState(list == null || list.isEmpty());
         close();
     }
 
     @Override
     public void showMoreContent(List<VideoRes> list) {
-        adapter.addAll(list);
+        if (list != null) {
+            adapter.addAll(list);
+        }
         if (list != null && list.size() <= 0) {
             materialRefreshLayout.setLoadMore(false);
         }
         close();
+    }
+
+    @Override
+    public void refreshFailed(String message) {
+        close();
+        listState.setVisibility(View.VISIBLE);
+        listStateProgress.setVisibility(View.GONE);
+        listStateRetry.setVisibility(View.VISIBLE);
+        listStateMessage.setText(getString(R.string.video_load_failed,
+                TextUtils.isEmpty(message) ? getString(R.string.unknown_error) : message));
+    }
+
+    private void requestSearch() {
+        if (TextUtils.isEmpty(getCatalogId())) {
+            return;
+        }
+        listState.setVisibility(View.VISIBLE);
+        listStateProgress.setVisibility(View.VISIBLE);
+        listStateRetry.setVisibility(View.GONE);
+        listStateMessage.setText(R.string.video_loading);
+        rl_history.setVisibility(View.GONE);
+        mPresenter.onRefresh();
+    }
+
+    private void showListState(boolean empty) {
+        listState.setVisibility(empty ? View.VISIBLE : View.GONE);
+        listStateProgress.setVisibility(View.GONE);
+        listStateRetry.setVisibility(View.GONE);
+        listStateMessage.setText(R.string.video_empty);
     }
 
     private void close() {

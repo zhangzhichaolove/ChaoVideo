@@ -24,6 +24,7 @@ public class FragmentOnePresenter extends RxPresenter implements FragmentOneCont
 
     public FragmentOnePresenter(FragmentOneContract.View view) {
         this.view = Preconditions.checkNotNull(view);
+        attachView(view);
         view.setPresenter(this);
     }
 
@@ -73,5 +74,11 @@ public class FragmentOnePresenter extends RxPresenter implements FragmentOneCont
                     }
                 });
         addSubscribe(rxSubscription);
+    }
+
+    @Override
+    public void detachView() {
+        super.detachView();
+        view = null;
     }
 }

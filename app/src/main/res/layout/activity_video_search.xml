@@ -64,6 +64,12 @@
             android:layout_height="match_parent" />
     </com.cjj.MaterialRefreshLayout>
 
+    <include
+        android:id="@+id/search_list_state"
+        layout="@layout/view_list_state"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
     <LinearLayout
         android:id="@+id/rl_history"
         android:layout_width="wrap_content"

@@ -87,6 +87,11 @@ public class EpisodeSelectionFragment extends BaseFragment {
         }
     }
 
+    public void setSelectedEpisode(int episode) {
+        selectedEpisode = episode;
+        updateSelection();
+    }
+
     @Override
     public void onDetach() {
         listener = null;
