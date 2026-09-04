@@ -14,26 +14,24 @@ import io.reactivex.rxjava3.functions.Consumer;
 
 public class FragmentTwoPresenter extends RxPresenter<FragmentTwoContract.View>
         implements FragmentTwoContract.Presenter {
-    FragmentTwoContract.View view;
     int page = 1;
 
     public FragmentTwoPresenter(FragmentTwoContract.View view) {
-        this.view = view;
         attachView(view);
-        view.setPresenter(this);
+        mView.setPresenter(this);
     }
 
     @Override
     public void start() {
-        Disposable rxSubscription = RetrofitHelper.getVideoApi().getTypeVideoList(page, view.getType())
+        Disposable rxSubscription = RetrofitHelper.getVideoApi().getTypeVideoList(page, mView.getType())
                 .compose(RxUtil.rxSchedulerHelper())
                 .compose(RxUtil.handleResult())
                 .subscribe(res -> {
                     if (res != null) {
                         if (page == 1) {
-                            view.showContent(res.getRecords());
+                            mView.showContent(res.getRecords());
                         } else {
-                            view.showMoreContent(res.getRecords());
+                            mView.showMoreContent(res.getRecords());
                         }
                     }
                 }, new Consumer<Throwable>() {
@@ -42,8 +40,8 @@ public class FragmentTwoPresenter extends RxPresenter<FragmentTwoContract.View>
                         if (page > 1) {
                             page--;
                         }
-                        if (view != null) {
-                            view.refreshFailed(com.app.chao.chaoapp.utils.StringUtils
+                        if (mView != null) {
+                            mView.refreshFailed(com.app.chao.chaoapp.utils.StringUtils
                                     .getErrorMsg(throwable.getMessage()));
                         }
                     }
@@ -62,11 +60,5 @@ public class FragmentTwoPresenter extends RxPresenter<FragmentTwoContract.View>
     public void loadMore() {
         page++;
         start();
-    }
-
-    @Override
-    public void detachView() {
-        super.detachView();
-        view = null;
     }
 }

@@ -72,7 +72,7 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new GridSpacingItemDecoration(
                 ScreenUtil.dip2px(getContext(), 8)));
-        recyclerView.setAdapter(adapter = new FragmentOneAdapter(getContext()));
+        recyclerView.setAdapter(adapter = new FragmentOneAdapter());
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
         recyclerView.setLayoutManager(gridLayoutManager);
         endlessScrollListener = new EndlessScrollListener(gridLayoutManager,

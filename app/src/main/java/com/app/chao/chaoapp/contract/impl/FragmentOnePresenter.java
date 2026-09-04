@@ -21,12 +21,9 @@ import io.reactivex.rxjava3.functions.Consumer;
 
 public class FragmentOnePresenter extends RxPresenter<FragmentOneContract.View>
         implements FragmentOneContract.Presenter {
-    FragmentOneContract.View view;
-
     public FragmentOnePresenter(FragmentOneContract.View view) {
-        this.view = Preconditions.checkNotNull(view);
-        attachView(view);
-        view.setPresenter(this);
+        attachView(Preconditions.checkNotNull(view));
+        mView.setPresenter(this);
     }
 
 
@@ -44,13 +41,13 @@ public class FragmentOnePresenter extends RxPresenter<FragmentOneContract.View>
                     @Override
                     public void accept(final PageInfo<List<VideoRes>> res) {
                         if (res != null) {
-                            view.showContent(page, res.getRecords());
+                            mView.showContent(page, res.getRecords());
                         }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) {
-                        view.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
+                        mView.refreshFailed(StringUtils.getErrorMsg(throwable.getMessage()));
                     }
                 });
         addSubscribe(rxSubscription);
@@ -65,21 +62,15 @@ public class FragmentOnePresenter extends RxPresenter<FragmentOneContract.View>
                     @Override
                     public void accept(final List<VideoRes> res) {
                         if (res != null) {
-                            view.showBanner(res);
+                            mView.showBanner(res);
                         }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) {
-                        view.refreshFaild(StringUtils.getErrorMsg(throwable.getMessage()));
+                        mView.refreshFailed(StringUtils.getErrorMsg(throwable.getMessage()));
                     }
                 });
         addSubscribe(rxSubscription);
-    }
-
-    @Override
-    public void detachView() {
-        super.detachView();
-        view = null;
     }
 }

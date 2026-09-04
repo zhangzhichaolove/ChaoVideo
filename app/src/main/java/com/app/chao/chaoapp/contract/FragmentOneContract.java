@@ -16,7 +16,7 @@ public interface FragmentOneContract {
 
         void showContent(int page, List<VideoRes> videoRes);
 
-        void refreshFaild(String msg);
+        void refreshFailed(String msg);
 
         void showBanner(List<VideoRes> videoRes);
     }

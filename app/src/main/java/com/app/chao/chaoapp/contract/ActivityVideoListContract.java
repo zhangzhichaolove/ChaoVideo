@@ -25,9 +25,6 @@ public interface ActivityVideoListContract {
     }
 
     interface Presenter extends BasePresenter<View> {
-
-        void getVideoHomeData();
-
         void onRefresh();
 
         void loadMore();

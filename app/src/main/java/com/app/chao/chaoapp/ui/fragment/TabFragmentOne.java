@@ -80,7 +80,7 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
         banner = inflater.findViewById(R.id.banner);
         rlGoSearch = inflater.findViewById(R.id.rlGoSearch);
         etSearchKey = inflater.findViewById(R.id.etSearchKey);
-        recyclerView.setAdapter(adapter = new FragmentOneAdapter(getContext()));
+        recyclerView.setAdapter(adapter = new FragmentOneAdapter());
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
         recyclerView.setLayoutManager(gridLayoutManager);
         endlessScrollListener = new EndlessScrollListener(gridLayoutManager, () -> {
@@ -154,7 +154,7 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
     @Override
     public void showContent(int page, List<VideoRes> videoRes) {
         if (videoRes == null) {
-            refreshFaild(getString(R.string.unknown_error));
+            refreshFailed(getString(R.string.unknown_error));
             return;
         }
         if (page <= 1) {
@@ -168,7 +168,7 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
     }
 
     @Override
-    public void refreshFaild(String msg) {
+    public void refreshFailed(String msg) {
         close();
         if (page > 1) {
             page--;

@@ -18,7 +18,7 @@ import java.util.Objects;
 public final class FragmentOneAdapter extends ListAdapter<VideoRes, FragmentOneViewHolder> {
     private OnItemClickListener listener;
 
-    public FragmentOneAdapter(android.content.Context ignored) {
+    public FragmentOneAdapter() {
         super(new DiffUtil.ItemCallback<VideoRes>() {
             @Override
             public boolean areItemsTheSame(@NonNull VideoRes oldItem,
