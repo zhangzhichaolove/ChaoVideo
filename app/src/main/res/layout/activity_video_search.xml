@@ -44,25 +44,17 @@
     </com.google.android.material.appbar.AppBarLayout>
 
 
-    <com.cjj.MaterialRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:isLoadMore="true"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:overlay="true"
-        app:progress_colors="@array/material_colors"
-        app:progress_size_type="normal"
-        app:wave_color="#90ffffff"
-        app:wave_height_type="normal"
-        app:wave_show="true">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-    </com.cjj.MaterialRefreshLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <include
         android:id="@+id/search_list_state"

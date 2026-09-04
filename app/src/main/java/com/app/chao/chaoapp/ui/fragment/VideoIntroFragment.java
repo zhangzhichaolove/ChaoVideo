@@ -1,30 +1,17 @@
 package com.app.chao.chaoapp.ui.fragment;
 
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.chao.chaoapp.R;
-import com.app.chao.chaoapp.adapter.RelatedAdapter;
 import com.app.chao.chaoapp.bean.VideoRes;
-import com.app.chao.chaoapp.utils.ScreenUtil;
 import com.app.chao.chaoapp.utils.StringUtils;
 import com.app.chao.chaoapp.view.TextViewExpandableAnimation;
-import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
-import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 
 public class VideoIntroFragment extends BaseFragment {
 
-    RecyclerView recyclerView;
     TextViewExpandableAnimation tvExpand;
-    View headerView;
-
-    RelatedAdapter adapter;
 
     @Override
     protected int getLayout() {
@@ -42,36 +29,7 @@ public class VideoIntroFragment extends BaseFragment {
 
     @Override
     protected void initView(View inflater) {
-        recyclerView = inflater.findViewById(R.id.recyclerView);
-        headerView = LayoutInflater.from(mContext).inflate(R.layout.intro_header, null);
-        tvExpand = headerView.findViewById(R.id.tv_expand);
-        recyclerView.setAdapter(adapter = new RelatedAdapter(getContext()));
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(mContext, 3);
-        gridLayoutManager.setSpanSizeLookup(adapter.obtainGridSpanSizeLookUp(3));
-        recyclerView.setLayoutManager(gridLayoutManager);
-        SpaceDecoration itemDecoration = new SpaceDecoration(ScreenUtil.dip2px(getContext(), 8));
-        itemDecoration.setPaddingEdgeSide(true);
-        itemDecoration.setPaddingStart(true);
-        itemDecoration.setPaddingHeaderFooter(false);
-        recyclerView.addItemDecoration(itemDecoration);
-        adapter.setOnItemClickListener(new RecyclerArrayAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position) {
-                //JumpUtil.goGSYYVideoActivity(getContext(), adapter.getItem(position));
-                getActivity().finish();
-            }
-        });
-        adapter.addHeader(new RecyclerArrayAdapter.ItemView() {
-            @Override
-            public View onCreateView(ViewGroup parent) {
-                return headerView;
-            }
-
-            @Override
-            public void onBindView(View headerView) {
-
-            }
-        });
+        tvExpand = inflater.findViewById(R.id.tv_expand);
         VideoRes video = (VideoRes) getArguments().getSerializable("video");
         setData(video);
     }

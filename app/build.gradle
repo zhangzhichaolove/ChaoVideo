@@ -43,7 +43,6 @@ dependencies {
 //    })
     //compile 'com.android.support:support-v4:+'
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'com.cjj.materialrefeshlayout:library:1.3.0'
     //compile 'com.android.support.constraint:constraint-layout:1.0.2'
     //testCompile 'junit:junit:4.12'
     implementation 'io.reactivex.rxjava3:rxjava:3.1.12'
@@ -55,10 +54,8 @@ dependencies {
     implementation 'com.google.android.material:material:1.13.0'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'androidx.viewpager2:viewpager2:1.1.0'
-    implementation 'com.flaviofaria:kenburnsview:1.0.7'
-    implementation 'com.jude:easyrecyclerview:4.0.6'
+    implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.2.0'
     implementation 'com.github.bumptech.glide:glide:5.0.5'
-    implementation 'com.jude:rollviewpager:1.4.5'
     //compile 'fm.jiecao:jiecaovideoplayer:4.7.1_preview'
 
     //compile 'fm.jiecao:jiecaovideoplayer:4.8.3'

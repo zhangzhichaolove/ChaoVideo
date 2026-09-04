@@ -1,11 +1,7 @@
 package com.app.chao.chaoapp.ui.fragment;
 
-import android.graphics.Color;
 import android.text.TextUtils;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -13,22 +9,20 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.BannerAdapter;
 import com.app.chao.chaoapp.adapter.FragmentOneAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
-import com.app.chao.chaoapp.bean.VideoInfo;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.FragmentOneContract;
 import com.app.chao.chaoapp.contract.impl.FragmentOnePresenter;
 import com.app.chao.chaoapp.utils.JumpUtil;
-import com.app.chao.chaoapp.utils.ScreenUtil;
-import com.cjj.MaterialRefreshLayout;
-import com.cjj.MaterialRefreshListener;
-import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
-import com.jude.rollviewpager.RollPagerView;
-import com.jude.rollviewpager.hintview.IconHintView;
+import com.app.chao.chaoapp.utils.EndlessScrollListener;
+import android.os.Handler;
+import android.os.Looper;
 
 import java.util.List;
 
@@ -37,19 +31,29 @@ import java.util.List;
  */
 
 public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> implements FragmentOneContract.View {
-    MaterialRefreshLayout materialRefreshLayout;
+    SwipeRefreshLayout materialRefreshLayout;
     RecyclerView recyclerView;
-    RollPagerView banner;
+    ViewPager2 banner;
     TextView etSearchKey;
     RelativeLayout rlGoSearch;
-    List<VideoInfo> recommend;
-    View headerView;
+    BannerAdapter bannerAdapter;
     FragmentOneAdapter adapter;
     int page = 1;
     View listState;
     ProgressBar listStateProgress;
     TextView listStateMessage;
     Button listStateRetry;
+    EndlessScrollListener endlessScrollListener;
+    private final Handler bannerHandler = new Handler(Looper.getMainLooper());
+    private final Runnable bannerAdvance = new Runnable() {
+        @Override
+        public void run() {
+            if (bannerAdapter != null && bannerAdapter.getItemCount() > 1) {
+                banner.setCurrentItem((banner.getCurrentItem() + 1) % bannerAdapter.getItemCount(), true);
+                bannerHandler.postDelayed(this, 3000);
+            }
+        }
+    };
 
     public static TabFragmentOne newInstance() {
         //if (fragment == null)
@@ -73,26 +77,19 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
         listStateMessage = inflater.findViewById(R.id.list_state_message);
         listStateRetry = inflater.findViewById(R.id.list_state_retry);
         listStateRetry.setOnClickListener(view -> reload());
-        headerView = LayoutInflater.from(mContext).inflate(R.layout.recommend_header, null);
-        banner = headerView.findViewById(R.id.banner);
-        rlGoSearch = headerView.findViewById(R.id.rlGoSearch);
-        etSearchKey = headerView.findViewById(R.id.etSearchKey);
-        banner.setPlayDelay(2000);
+        banner = inflater.findViewById(R.id.banner);
+        rlGoSearch = inflater.findViewById(R.id.rlGoSearch);
+        etSearchKey = inflater.findViewById(R.id.etSearchKey);
         recyclerView.setAdapter(adapter = new FragmentOneAdapter(getContext()));
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
-        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-            @Override
-            public int getSpanSize(int position) {
-                return position == 0 ? 2 : 1;
-            }
-        });
         recyclerView.setLayoutManager(gridLayoutManager);
-        adapter.setOnItemClickListener(new RecyclerArrayAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position) {
-                JumpUtil.goGSYYVideoActivity(mContext, adapter.getItem(position));
-            }
+        endlessScrollListener = new EndlessScrollListener(gridLayoutManager, () -> {
+            page++;
+            mPresenter.showContent(page);
         });
+        recyclerView.addOnScrollListener(endlessScrollListener);
+        adapter.setOnItemClickListener(position ->
+                JumpUtil.goGSYYVideoActivity(mContext, adapter.getItem(position)));
         rlGoSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -106,42 +103,22 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
     }
 
     private void listener() {
-        materialRefreshLayout.setShowArrow(true);//显示箭头
-        materialRefreshLayout.setWaveColor(Color.parseColor("#50FF1493"));//波纹颜色
-        materialRefreshLayout.setIsOverLay(true);//是否覆盖
-        materialRefreshLayout.setWaveShow(true);//显示波纹
-        materialRefreshLayout.setShowProgressBg(true);//显示进度背景
-        materialRefreshLayout.setLoadMore(true);//加载更多
-        //materialRefreshLayout.setSunStyle(true);
-        materialRefreshLayout.setProgressColors(getResources().getIntArray(com.cjj.R.array.material_colors));//设置进度颜色
-        materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
-            @Override
-            public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
-                //RxBus.getDefault().postSticky("Refresh");
-                page = 1;
-                mPresenter.showContent(page++);
-            }
-
-            @Override
-            public void onfinish() {
-                //Toast.makeText(VideoListActivity.this, "finish", Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onRefreshLoadMore(final MaterialRefreshLayout materialRefreshLayout) {
-                page++;
-                mPresenter.showContent(page);
-            }
+        materialRefreshLayout.setColorSchemeResources(R.color.DeepPink, R.color.colorPrimary);
+        materialRefreshLayout.setOnRefreshListener(() -> {
+            page = 1;
+            mPresenter.showBanner();
+            mPresenter.showContent(page);
         });
-        //materialRefreshLayout.autoRefresh();
     }
 
     private void close() {
-        materialRefreshLayout.finishRefresh();
+        materialRefreshLayout.setRefreshing(false);
     }
 
     private void reload() {
         showLoading();
+        materialRefreshLayout.setRefreshing(true);
+        page = 1;
         mPresenter.showBanner();
         mPresenter.showContent(1);
     }
@@ -163,13 +140,13 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
     @Override
     public void onResume() {
         super.onResume();
-        banner.resume();
+        bannerHandler.postDelayed(bannerAdvance, 3000);
     }
 
     @Override
     public void onPause() {
+        bannerHandler.removeCallbacks(bannerAdvance);
         super.onPause();
-        banner.pause();
     }
 
     @Override
@@ -181,20 +158,21 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
         if (page <= 1) {
             adapter.clear();
         }
-        if (videoRes.size() <= 0) {
-            materialRefreshLayout.setLoadMore(false);
-        } else {
-            materialRefreshLayout.setLoadMore(true);
-        }
         adapter.addAll(videoRes);
+        endlessScrollListener.finish(!videoRes.isEmpty());
         showListState(adapter.getCount() == 0);
-        materialRefreshLayout.finishRefresh();
-        materialRefreshLayout.finishRefreshLoadMore();
+        materialRefreshLayout.setRefreshing(false);
     }
 
     @Override
     public void refreshFaild(String msg) {
         close();
+        if (page > 1) {
+            page--;
+        }
+        if (endlessScrollListener != null) {
+            endlessScrollListener.finish(true);
+        }
         if (adapter != null && adapter.getCount() > 0) {
             listState.setVisibility(View.GONE);
             return;
@@ -208,22 +186,10 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
 
     @Override
     public void showBanner(final List<VideoRes> videoRes) {
-        if (adapter.getHeaderCount() == 0) {
-            adapter.addHeader(new RecyclerArrayAdapter.ItemView() {//Banner图
-                @Override
-                public View onCreateView(ViewGroup parent) {
-                    banner.setHintView(new IconHintView(getContext(), R.mipmap.ic_page_indicator_focused, R.mipmap.ic_page_indicator, ScreenUtil.dip2px(getContext(), 10)));
-                    banner.setHintPadding(0, 0, 0, ScreenUtil.dip2px(getContext(), 8));
-                    banner.setAdapter(new BannerAdapter(getContext(), videoRes));
-                    return headerView;
-                }
-
-                @Override
-                public void onBindView(View headerView) {
-
-                }
-            });
-        }
+        bannerAdapter = new BannerAdapter(requireContext(), videoRes);
+        banner.setAdapter(bannerAdapter);
+        bannerHandler.removeCallbacks(bannerAdvance);
+        bannerHandler.postDelayed(bannerAdvance, 3000);
         close();
     }
 

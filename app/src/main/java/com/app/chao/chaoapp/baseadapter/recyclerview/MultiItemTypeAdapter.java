@@ -11,6 +11,7 @@ import com.app.chao.chaoapp.baseadapter.recyclerview.base.ItemViewDelegateManage
 import com.app.chao.chaoapp.baseadapter.recyclerview.base.ViewHolder;
 
 import java.util.List;
+import java.util.ArrayList;
 
 public class MultiItemTypeAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
     protected Context mContext;
@@ -22,7 +23,7 @@ public class MultiItemTypeAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
 
     public MultiItemTypeAdapter(Context context, List<T> datas) {
         mContext = context;
-        mDatas = datas;
+        mDatas = datas == null ? new ArrayList<>() : new ArrayList<>(datas);
         mItemViewDelegateManager = new ItemViewDelegateManager();
     }
 
@@ -63,7 +64,9 @@ public class MultiItemTypeAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
             public void onClick(View v) {
                 if (mOnItemClickListener != null) {
                     int position = viewHolder.getAdapterPosition();
-                    mOnItemClickListener.onItemClick(v, viewHolder, position);
+                    if (position != RecyclerView.NO_POSITION) {
+                        mOnItemClickListener.onItemClick(v, viewHolder, position);
+                    }
                 }
             }
         });
@@ -73,7 +76,8 @@ public class MultiItemTypeAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
             public boolean onLongClick(View v) {
                 if (mOnItemClickListener != null) {
                     int position = viewHolder.getAdapterPosition();
-                    return mOnItemClickListener.onItemLongClick(v, viewHolder, position);
+                    return position != RecyclerView.NO_POSITION
+                            && mOnItemClickListener.onItemLongClick(v, viewHolder, position);
                 }
                 return false;
             }
@@ -115,8 +119,10 @@ public class MultiItemTypeAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
     }
 
     public void setData(List<T> mDatas) {
-        if (mDatas != null)
-            this.mDatas = mDatas;
+        this.mDatas.clear();
+        if (mDatas != null) {
+            this.mDatas.addAll(mDatas);
+        }
         notifyDataSetChanged();
     }
 
@@ -128,8 +134,9 @@ public class MultiItemTypeAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
 
     public void addAll(List<T> datas) {
         if (datas != null) {
+            int start = mDatas.size();
             mDatas.addAll(datas);
-            notifyItemRangeInserted(mDatas != null ? mDatas.size() : 0, datas.size());
+            notifyItemRangeInserted(start, datas.size());
         }
     }
 

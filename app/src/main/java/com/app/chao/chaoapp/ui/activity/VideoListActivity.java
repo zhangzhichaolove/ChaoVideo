@@ -7,10 +7,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.VideoListAdapter;
@@ -20,10 +20,9 @@ import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.ActivityVideoListContract;
 import com.app.chao.chaoapp.contract.impl.ActivityVideoListPresenter;
 import com.app.chao.chaoapp.utils.JumpUtil;
+import com.app.chao.chaoapp.utils.EndlessScrollListener;
+import com.app.chao.chaoapp.utils.GridSpacingItemDecoration;
 import com.app.chao.chaoapp.utils.ScreenUtil;
-import com.cjj.MaterialRefreshLayout;
-import com.cjj.MaterialRefreshListener;
-import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 import java.util.List;
 
@@ -32,7 +31,7 @@ import java.util.List;
  */
 
 public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Presenter> implements ActivityVideoListContract.View {
-    MaterialRefreshLayout materialRefreshLayout;
+    SwipeRefreshLayout materialRefreshLayout;
     RecyclerView recyclerView;
     Toolbar toolbar;
     VideoListAdapter adapter;
@@ -40,6 +39,7 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     ProgressBar listStateProgress;
     TextView listStateMessage;
     Button listStateRetry;
+    EndlessScrollListener endlessScrollListener;
 
 
     @Override
@@ -73,12 +73,8 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
         recyclerView.setLayoutManager(gridLayoutManager);
-        SpaceDecoration itemDecoration = new SpaceDecoration(ScreenUtil.dip2px(this, 8));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        itemDecoration.setPaddingEdgeSide(true);
-        itemDecoration.setPaddingStart(true);
-        itemDecoration.setPaddingHeaderFooter(false);
-        recyclerView.addItemDecoration(itemDecoration);
+        recyclerView.addItemDecoration(new GridSpacingItemDecoration(ScreenUtil.dip2px(this, 8)));
         recyclerView.setAdapter(adapter = new VideoListAdapter(this, R.layout.item_related, null));
         adapter.setOnItemClickListener(new MultiItemTypeAdapter.OnItemClickListener() {
             @Override
@@ -95,30 +91,13 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     }
 
     private void listener() {
-        materialRefreshLayout.setShowArrow(true);//显示箭头
-        materialRefreshLayout.setWaveColor(ContextCompat.getColor(this, R.color.DeepPink));//波纹颜色
-        materialRefreshLayout.setIsOverLay(false);//是否覆盖
-        materialRefreshLayout.setWaveShow(true);//显示波纹
-        materialRefreshLayout.setShowProgressBg(true);//显示进度背景
-        materialRefreshLayout.setLoadMore(true);//加载更多
-        materialRefreshLayout.setProgressColors(getResources().getIntArray(com.cjj.R.array.material_colors));//设置进度颜色
-        materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
-            @Override
-            public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
-                mPresenter.onRefresh();
-            }
-
-            @Override
-            public void onfinish() {
-                //Toast.makeText(VideoListActivity.this, "finish", Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onRefreshLoadMore(final MaterialRefreshLayout materialRefreshLayout) {
-                mPresenter.loadMore();
-            }
-        });
-        materialRefreshLayout.autoRefresh();
+        materialRefreshLayout.setColorSchemeResources(R.color.DeepPink, R.color.colorPrimary);
+        materialRefreshLayout.setOnRefreshListener(() -> mPresenter.onRefresh());
+        endlessScrollListener = new EndlessScrollListener(
+                (GridLayoutManager) recyclerView.getLayoutManager(), () -> mPresenter.loadMore());
+        recyclerView.addOnScrollListener(endlessScrollListener);
+        materialRefreshLayout.setRefreshing(true);
+        mPresenter.onRefresh();
     }
 
 
@@ -136,6 +115,7 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     @Override
     public void showContent(List<VideoRes> list) {
         adapter.setData(list);
+        endlessScrollListener.finish(list != null && !list.isEmpty());
         showListState(list == null || list.isEmpty());
         close();
     }
@@ -145,7 +125,11 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
         if (list != null) {
             adapter.addAll(list);
         }
+        endlessScrollListener.finish(list != null && !list.isEmpty());
         close();
+        if (endlessScrollListener != null) {
+            endlessScrollListener.finish(true);
+        }
     }
 
     @Override
@@ -177,8 +161,7 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
     }
 
     private void close() {
-        materialRefreshLayout.finishRefresh();
-        materialRefreshLayout.finishRefreshLoadMore();
+        materialRefreshLayout.setRefreshing(false);
     }
 
 }

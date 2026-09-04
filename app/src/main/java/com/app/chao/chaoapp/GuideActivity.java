@@ -9,10 +9,8 @@ import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.flaviofaria.kenburnsview.KenBurnsView;
-
 public class GuideActivity extends AppCompatActivity {
-    KenBurnsView mBgImg;
+    android.widget.ImageView mBgImg;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Runnable openHome = () -> {
         startActivity(new Intent(GuideActivity.this, HomeActivity.class));
@@ -33,18 +31,6 @@ public class GuideActivity extends AppCompatActivity {
         //Glide.with(this).load(R.drawable.pic_cinema).into(mBgImg);
         mBgImg.setImageResource(R.mipmap.bilibili_start);
         handler.postDelayed(openHome, 3000);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mBgImg.pause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mBgImg.resume();
     }
 
     @Override

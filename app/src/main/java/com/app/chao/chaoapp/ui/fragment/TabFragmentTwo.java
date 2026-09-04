@@ -1,6 +1,5 @@
 package com.app.chao.chaoapp.ui.fragment;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -11,6 +10,7 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.FragmentOneAdapter;
@@ -18,11 +18,9 @@ import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.FragmentTwoContract;
 import com.app.chao.chaoapp.contract.impl.FragmentTwoPresenter;
 import com.app.chao.chaoapp.utils.JumpUtil;
+import com.app.chao.chaoapp.utils.EndlessScrollListener;
+import com.app.chao.chaoapp.utils.GridSpacingItemDecoration;
 import com.app.chao.chaoapp.utils.ScreenUtil;
-import com.cjj.MaterialRefreshLayout;
-import com.cjj.MaterialRefreshListener;
-import com.jude.easyrecyclerview.adapter.RecyclerArrayAdapter;
-import com.jude.easyrecyclerview.decoration.SpaceDecoration;
 
 import java.util.List;
 
@@ -31,7 +29,7 @@ import java.util.List;
  */
 
 public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> implements FragmentTwoContract.View {
-    MaterialRefreshLayout materialRefreshLayout;
+    SwipeRefreshLayout materialRefreshLayout;
     RecyclerView recyclerView;
     //SpecialAdapter adapter;
     FragmentOneAdapter adapter;
@@ -39,6 +37,7 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
     ProgressBar listStateProgress;
     TextView listStateMessage;
     Button listStateRetry;
+    EndlessScrollListener endlessScrollListener;
 
     public static TabFragmentTwo newInstance(String type) {
         //if (fragment == null)
@@ -70,12 +69,9 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         new FragmentTwoPresenter(this);
         //设置Item增加、移除动画
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 2));
-        SpaceDecoration itemDecoration = new SpaceDecoration(ScreenUtil.dip2px(getContext(), 8));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
-        itemDecoration.setPaddingEdgeSide(true);
-        itemDecoration.setPaddingStart(true);
-        itemDecoration.setPaddingHeaderFooter(false);
-        recyclerView.addItemDecoration(itemDecoration);
+        recyclerView.addItemDecoration(new GridSpacingItemDecoration(
+                ScreenUtil.dip2px(getContext(), 8)));
 //        recyclerView.setAdapter(adapter = new SpecialAdapter(getActivity(), R.layout.item_found, null));
 //        adapter.setOnItemClickListener(new MultiItemTypeAdapter.OnItemClickListener() {
 //            @Override
@@ -91,42 +87,20 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         recyclerView.setAdapter(adapter = new FragmentOneAdapter(getContext()));
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
         recyclerView.setLayoutManager(gridLayoutManager);
-        adapter.setOnItemClickListener(new RecyclerArrayAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(int position) {
-                JumpUtil.goGSYYVideoActivity(mContext, adapter.getItem(position));
-            }
-        });
+        endlessScrollListener = new EndlessScrollListener(gridLayoutManager,
+                () -> mPresenter.loadMore());
+        recyclerView.addOnScrollListener(endlessScrollListener);
+        adapter.setOnItemClickListener(position ->
+                JumpUtil.goGSYYVideoActivity(mContext, adapter.getItem(position)));
         //getEvent();
         listener();
     }
 
     private void listener() {
-        materialRefreshLayout.setShowArrow(true);//显示箭头
-        materialRefreshLayout.setWaveColor(Color.parseColor("#50FF1493"));//波纹颜色
-        materialRefreshLayout.setIsOverLay(false);//是否覆盖
-        materialRefreshLayout.setWaveShow(true);//显示波纹
-        materialRefreshLayout.setShowProgressBg(true);//显示进度背景
-        materialRefreshLayout.setLoadMore(true);//加载更多
-        materialRefreshLayout.setProgressColors(getResources().getIntArray(com.cjj.R.array.material_colors));//设置进度颜色
-        materialRefreshLayout.setMaterialRefreshListener(new MaterialRefreshListener() {
-            @Override
-            public void onRefresh(final MaterialRefreshLayout materialRefreshLayout) {
-                //RxBus.getDefault().postSticky("Refresh");
-                mPresenter.onRefresh();
-            }
-
-            @Override
-            public void onfinish() {
-                //Toast.makeText(VideoListActivity.this, "finish", Toast.LENGTH_LONG).show();
-            }
-
-            @Override
-            public void onRefreshLoadMore(final MaterialRefreshLayout materialRefreshLayout) {
-                mPresenter.loadMore();
-            }
-        });
-        materialRefreshLayout.autoRefresh();
+        materialRefreshLayout.setColorSchemeResources(R.color.DeepPink, R.color.colorPrimary);
+        materialRefreshLayout.setOnRefreshListener(() -> mPresenter.onRefresh());
+        materialRefreshLayout.setRefreshing(true);
+        mPresenter.onRefresh();
     }
 
     private void getEvent() {
@@ -154,8 +128,7 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
     }
 
     private void close() {
-        materialRefreshLayout.finishRefresh();
-        materialRefreshLayout.finishRefreshLoadMore();
+        materialRefreshLayout.setRefreshing(false);
     }
 
     private void showLoading() {
@@ -189,9 +162,7 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         if (list != null) {
             adapter.addAll(list);
         }
-        if (list != null && list.size() > 0) {
-            materialRefreshLayout.setLoadMore(true);
-        }
+        endlessScrollListener.finish(list != null && !list.isEmpty());
         showListState(list == null || list.isEmpty());
         close();
     }
@@ -201,10 +172,11 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         if (list != null) {
             adapter.addAll(list);
         }
-        if (list != null && list.size() <= 0) {
-            materialRefreshLayout.setLoadMore(false);
-        }
+        endlessScrollListener.finish(list != null && !list.isEmpty());
         close();
+        if (endlessScrollListener != null) {
+            endlessScrollListener.finish(true);
+        }
     }
 
     @Override

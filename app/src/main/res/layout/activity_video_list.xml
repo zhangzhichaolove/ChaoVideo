@@ -11,23 +11,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.cjj.MaterialRefreshLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:isLoadMore="true"
-            app:overlay="true"
-            app:progress_colors="@array/material_colors"
-            app:progress_size_type="normal"
-            app:wave_color="#90ffffff"
-            app:wave_height_type="normal"
-            app:wave_show="true">
+            android:layout_height="match_parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
-        </com.cjj.MaterialRefreshLayout>
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
         <include layout="@layout/view_list_state" />
     </FrameLayout>
