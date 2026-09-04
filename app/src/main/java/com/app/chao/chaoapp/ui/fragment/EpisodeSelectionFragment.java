@@ -6,6 +6,8 @@ import android.view.View;
 import android.widget.GridLayout;
 import android.widget.TextView;
 
+import androidx.core.os.BundleCompat;
+
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.utils.ScreenUtil;
@@ -43,7 +45,8 @@ public class EpisodeSelectionFragment extends BaseFragment {
     @Override
     protected void initView(View rootView) {
         GridLayout episodeGrid = rootView.findViewById(R.id.episode_grid);
-        VideoRes video = getArguments().getParcelable("video");
+        VideoRes video = BundleCompat.getParcelable(
+                requireArguments(), "video", VideoRes.class);
         int episodeCount = video == null ? 0 : video.getEpisodes();
         for (int episode = 1; episode <= episodeCount; episode++) {
             episodeGrid.addView(createEpisodeButton(episodeGrid, episode));

@@ -19,7 +19,8 @@ import io.reactivex.rxjava3.functions.Consumer;
  * Created by Chao on 2017/3/14.
  */
 
-public class FragmentOnePresenter extends RxPresenter implements FragmentOneContract.Presenter {
+public class FragmentOnePresenter extends RxPresenter<FragmentOneContract.View>
+        implements FragmentOneContract.Presenter {
     FragmentOneContract.View view;
 
     public FragmentOnePresenter(FragmentOneContract.View view) {

@@ -3,6 +3,8 @@ package com.app.chao.chaoapp.ui.fragment;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.core.os.BundleCompat;
+
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.utils.StringUtils;
@@ -30,7 +32,8 @@ public class VideoIntroFragment extends BaseFragment {
     @Override
     protected void initView(View inflater) {
         tvExpand = inflater.findViewById(R.id.tv_expand);
-        VideoRes video = getArguments().getParcelable("video");
+        VideoRes video = BundleCompat.getParcelable(
+                requireArguments(), "video", VideoRes.class);
         setData(video);
     }
 
@@ -39,9 +42,5 @@ public class VideoIntroFragment extends BaseFragment {
         String act = "主演：" + StringUtils.removeOtherCode(videoInfo.getPerformer());
         String des = dir + "\n" + act + "\n" + "简介：" + StringUtils.removeOtherCode(videoInfo.getVideoDescribe());
         tvExpand.setText(des);
-//        if (videoInfo.list.size() > 1)
-//            adapter.addAll(videoInfo.list.get(1).childList);
-//        else
-//            adapter.addAll(videoInfo.list.get(0).childList);
     }
 }

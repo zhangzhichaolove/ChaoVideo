@@ -12,7 +12,8 @@ import io.reactivex.rxjava3.functions.Consumer;
  * Created by Chao on 2017/3/20.
  */
 
-public class FragmentTwoPresenter extends RxPresenter implements FragmentTwoContract.Presenter {
+public class FragmentTwoPresenter extends RxPresenter<FragmentTwoContract.View>
+        implements FragmentTwoContract.Presenter {
     FragmentTwoContract.View view;
     int page = 1;
 

@@ -4,10 +4,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.Window;
-import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 public class GuideActivity extends AppCompatActivity {
     android.widget.ImageView mBgImg;
@@ -20,15 +21,13 @@ public class GuideActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //去除title
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        //去掉Activity上面的状态栏
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        //getSupportActionBar().hide();
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(
+                getWindow(), getWindow().getDecorView());
+        controller.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        controller.hide(WindowInsetsCompat.Type.systemBars());
         setContentView(R.layout.activity_guide);
         mBgImg = findViewById(R.id.splash_bg_img);
-        //绑定activity
-        //Glide.with(this).load(R.drawable.pic_cinema).into(mBgImg);
         mBgImg.setImageResource(R.mipmap.bilibili_start);
         handler.postDelayed(openHome, 3000);
     }

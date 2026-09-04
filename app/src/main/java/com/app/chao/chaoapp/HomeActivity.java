@@ -155,7 +155,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
         };
 
         mDrawerToggle.syncState();
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
 
         home_fab2.setTag(true);
     }

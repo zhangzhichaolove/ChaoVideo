@@ -24,7 +24,7 @@ public interface ActivityVideoListContract {
 
     }
 
-    interface Presenter extends BasePresenter {
+    interface Presenter extends BasePresenter<View> {
 
         void getVideoHomeData();
 

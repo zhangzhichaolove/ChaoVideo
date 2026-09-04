@@ -2,6 +2,7 @@ package com.app.chao.chaoapp.utils;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -16,6 +17,13 @@ public final class StatusBarUtils {
 
     public static void setTranslucent(Activity activity) {
         WindowCompat.setDecorFitsSystemWindows(activity.getWindow(), false);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            setLegacyTransparentStatusBar(activity);
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void setLegacyTransparentStatusBar(Activity activity) {
         activity.getWindow().setStatusBarColor(Color.TRANSPARENT);
     }
 

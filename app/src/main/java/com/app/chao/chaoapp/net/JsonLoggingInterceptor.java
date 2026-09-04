@@ -43,7 +43,7 @@ final class JsonLoggingInterceptor implements Interceptor {
     static void log(long requestId, String url, String body) {
         String formattedBody = body;
         try {
-            formattedBody = PRETTY_GSON.toJson(new JsonParser().parse(body));
+            formattedBody = PRETTY_GSON.toJson(JsonParser.parseString(body));
         } catch (RuntimeException ignored) {
             // 非 JSON 响应仍按原文完整打印，便于定位服务端错误。
         }

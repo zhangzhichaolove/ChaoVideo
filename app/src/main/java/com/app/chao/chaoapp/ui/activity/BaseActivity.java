@@ -12,7 +12,7 @@ import com.app.chao.chaoapp.base.BasePresenter;
  * Created by Chao on 2017/3/14.
  */
 
-public abstract class BaseActivity<T extends BasePresenter> extends AppCompatActivity {
+public abstract class BaseActivity<T extends BasePresenter<?>> extends AppCompatActivity {
     protected T mPresenter;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

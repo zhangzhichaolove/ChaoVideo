@@ -16,7 +16,8 @@ import io.reactivex.rxjava3.functions.Consumer;
  * Created by Chao on 2017/3/22.
  */
 
-public class ActivityVideoSearchPresenter extends RxPresenter implements ActivityVideoListContract.Presenter {
+public class ActivityVideoSearchPresenter extends RxPresenter<ActivityVideoListContract.View>
+        implements ActivityVideoListContract.Presenter {
     ActivityVideoListContract.View mView;
     int page = 1;
 

@@ -15,7 +15,7 @@ import com.app.chao.chaoapp.base.BasePresenter;
  * Created by Chao on 2017/3/14.
  */
 
-public abstract class BaseFragment<T extends BasePresenter> extends Fragment {
+public abstract class BaseFragment<T extends BasePresenter<?>> extends Fragment {
     protected T mPresenter;
     protected Context mContext;
     View rootView;

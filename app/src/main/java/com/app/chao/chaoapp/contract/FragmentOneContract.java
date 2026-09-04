@@ -21,7 +21,7 @@ public interface FragmentOneContract {
         void showBanner(List<VideoRes> videoRes);
     }
 
-    interface Presenter extends BasePresenter {
+    interface Presenter extends BasePresenter<View> {
         void showContent(int page);
 
         void showBanner();

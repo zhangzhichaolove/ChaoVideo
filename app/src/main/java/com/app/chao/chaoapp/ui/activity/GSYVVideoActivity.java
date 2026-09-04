@@ -30,6 +30,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.IntentCompat;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -310,12 +311,7 @@ public class GSYVVideoActivity extends BaseActivity implements
     }
 
     private void getIntentData() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            videoInfo = getIntent().getParcelableExtra("videoInfo", VideoRes.class);
-        } else {
-            //noinspection deprecation
-            videoInfo = getIntent().getParcelableExtra("videoInfo");
-        }
+        videoInfo = IntentCompat.getParcelableExtra(getIntent(), "videoInfo", VideoRes.class);
         if (videoInfo == null) {
             showToast(getString(R.string.video_missing));
             finish();

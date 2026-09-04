@@ -23,7 +23,7 @@ public interface FragmentTwoContract {
         void refreshFailed(String message);
     }
 
-    interface Presenter extends BasePresenter {
+    interface Presenter extends BasePresenter<View> {
         void onRefresh();
 
         void loadMore();
