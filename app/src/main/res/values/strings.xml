@@ -46,4 +46,16 @@
     <string name="api_log_read_failed">读取失败：%1$s</string>
     <string name="copied">已复制</string>
     <string name="api_logs_hint">长按修改 API 地址按钮可查看完整响应日志</string>
+    <string name="playback_speed">播放速度</string>
+    <string name="picture_in_picture">画中画</string>
+    <string name="picture_in_picture_unavailable">当前系统不支持画中画</string>
+    <string name="episode_picker">选集</string>
+    <string name="speed_value">%1$s 倍</string>
+    <string name="cast_pause">暂停投屏</string>
+    <string name="cast_resume">继续投屏</string>
+    <string name="cast_rewind">后退 30 秒</string>
+    <string name="cast_forward">前进 30 秒</string>
+    <string name="cast_volume">投屏音量</string>
+    <string name="cast_status">%1$s / %2$s</string>
+    <string name="cast_control_failed">投屏控制失败：%1$s</string>
 </resources>

@@ -42,6 +42,8 @@ public final class DlnaCastManager {
     private static final String DEVICE_LOCATION = "device_location";
     private static final String DEVICE_CONTROL_URL = "device_control_url";
     private static final String DEVICE_SERVICE_TYPE = "device_service_type";
+    private static final String DEVICE_RENDERING_CONTROL_URL = "device_rendering_control_url";
+    private static final String DEVICE_RENDERING_SERVICE_TYPE = "device_rendering_service_type";
     // All pages share one queue so a new cast always replaces the preceding cast in order.
     private static final ExecutorService COMMAND_EXECUTOR = Executors.newSingleThreadExecutor();
 
@@ -107,6 +109,83 @@ public final class DlnaCastManager {
                 postSuccess(callback);
             } catch (Exception error) {
                 forgetDevice(device);
+                postError(callback, readableError(error));
+            }
+        });
+    }
+
+    public void play(Device device, CommandCallback callback) {
+        runCommand(device, "Play", "<InstanceID>0</InstanceID><Speed>1</Speed>", callback);
+    }
+
+    public void pause(Device device, CommandCallback callback) {
+        runCommand(device, "Pause", "<InstanceID>0</InstanceID>", callback);
+    }
+
+    public void seek(Device device, long positionMs, CommandCallback callback) {
+        runCommand(device, "Seek", "<InstanceID>0</InstanceID><Unit>REL_TIME</Unit><Target>"
+                + formatPosition(Math.max(0, positionMs)) + "</Target>", callback);
+    }
+
+    public void setVolume(Device device, int volume, CommandCallback callback) {
+        if (device.renderingControlUrl == null || device.renderingServiceType == null) {
+            postError(callback, "设备不支持音量控制");
+            return;
+        }
+        COMMAND_EXECUTOR.execute(() -> {
+            try {
+                executeAction(device.renderingControlUrl, device.renderingServiceType, "SetVolume",
+                        "<InstanceID>0</InstanceID><Channel>Master</Channel><DesiredVolume>"
+                                + Math.max(0, Math.min(volume, 100)) + "</DesiredVolume>");
+                postSuccess(callback);
+            } catch (Exception error) {
+                postError(callback, readableError(error));
+            }
+        });
+    }
+
+    public void getPlaybackStatus(Device device, PlaybackStatusCallback callback) {
+        COMMAND_EXECUTOR.execute(() -> {
+            try {
+                String positionResponse = executeAction(device, "GetPositionInfo",
+                        "<InstanceID>0</InstanceID>");
+                String transportResponse = executeAction(device, "GetTransportInfo",
+                        "<InstanceID>0</InstanceID>");
+                postPlaybackStatus(callback, new PlaybackStatus(
+                        parsePosition(findXmlValue(positionResponse, "RelTime")),
+                        parsePosition(findXmlValue(positionResponse, "TrackDuration")),
+                        "PLAYING".equalsIgnoreCase(
+                                findXmlValue(transportResponse, "CurrentTransportState"))));
+            } catch (Exception error) {
+                postPlaybackError(callback, readableError(error));
+            }
+        });
+    }
+
+    public void getVolume(Device device, VolumeCallback callback) {
+        if (device.renderingControlUrl == null || device.renderingServiceType == null) {
+            postVolumeError(callback, "设备不支持音量控制");
+            return;
+        }
+        COMMAND_EXECUTOR.execute(() -> {
+            try {
+                String response = executeAction(device.renderingControlUrl,
+                        device.renderingServiceType, "GetVolume",
+                        "<InstanceID>0</InstanceID><Channel>Master</Channel>");
+                postVolume(callback, Integer.parseInt(findXmlValue(response, "CurrentVolume")));
+            } catch (Exception error) {
+                postVolumeError(callback, readableError(error));
+            }
+        });
+    }
+
+    private void runCommand(Device device, String action, String arguments,
+                            CommandCallback callback) {
+        COMMAND_EXECUTOR.execute(() -> {
+            try {
+                executeAction(device, action, arguments);
+                postSuccess(callback);
+            } catch (Exception error) {
                 postError(callback, readableError(error));
             }
         });
@@ -219,12 +298,16 @@ public final class DlnaCastManager {
             String name = directChildText(renderer, "friendlyName");
             String serviceType = null;
             String controlUrl = null;
+            String renderingServiceType = null;
+            String renderingControlUrl = null;
             for (Element service : descendants(renderer, "service")) {
                 String type = directChildText(service, "serviceType");
                 if (type != null && type.contains(":service:AVTransport:")) {
                     serviceType = type;
                     controlUrl = directChildText(service, "controlURL");
-                    break;
+                } else if (type != null && type.contains(":service:RenderingControl:")) {
+                    renderingServiceType = type;
+                    renderingControlUrl = directChildText(service, "controlURL");
                 }
             }
             if (serviceType == null || controlUrl == null) {
@@ -234,25 +317,33 @@ public final class DlnaCastManager {
             URL base = new URL(urlBase == null || urlBase.trim().isEmpty()
                     ? location : urlBase.trim());
             return new Device(name == null || name.trim().isEmpty() ? base.getHost() : name.trim(),
-                    location, new URL(base, controlUrl.trim()).toString(), serviceType.trim());
+                    location, new URL(base, controlUrl.trim()).toString(), serviceType.trim(),
+                    renderingControlUrl == null ? null
+                            : new URL(base, renderingControlUrl.trim()).toString(),
+                    renderingServiceType == null ? null : renderingServiceType.trim());
         } finally {
             connection.disconnect();
         }
     }
 
-    private void executeAction(Device device, String action, String arguments) throws IOException {
+    private String executeAction(Device device, String action, String arguments) throws IOException {
+        return executeAction(device.controlUrl, device.serviceType, action, arguments);
+    }
+
+    private String executeAction(String controlUrl, String serviceType, String action,
+                                 String arguments) throws IOException {
         String envelope = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
                 + "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" "
                 + "s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-                + "<s:Body><u:" + action + " xmlns:u=\"" + device.serviceType + "\">"
+                + "<s:Body><u:" + action + " xmlns:u=\"" + serviceType + "\">"
                 + arguments + "</u:" + action + "></s:Body></s:Envelope>";
         byte[] body = envelope.getBytes(StandardCharsets.UTF_8);
-        HttpURLConnection connection = openConnection(new URL(device.controlUrl));
+        HttpURLConnection connection = openConnection(new URL(controlUrl));
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
         connection.setRequestProperty("Content-Type", "text/xml; charset=\"utf-8\"");
         connection.setRequestProperty("SOAPAction",
-                "\"" + device.serviceType + "#" + action + "\"");
+                "\"" + serviceType + "#" + action + "\"");
         connection.setFixedLengthStreamingMode(body.length);
         try {
             connection.getOutputStream().write(body);
@@ -262,12 +353,7 @@ public final class DlnaCastManager {
                 throw new IOException("设备返回 " + responseCode
                         + (detail.isEmpty() ? "" : ": " + detail));
             }
-            try (InputStream input = connection.getInputStream()) {
-                byte[] buffer = new byte[1024];
-                while (input.read(buffer) != -1) {
-                    // Drain the response so the HTTP connection can close cleanly.
-                }
-            }
+            return readText(connection.getInputStream(), 16 * 1024);
         } finally {
             connection.disconnect();
         }
@@ -383,6 +469,10 @@ public final class DlnaCastManager {
     }
 
     private static String readText(InputStream input) throws IOException {
+        return readText(input, 500);
+    }
+
+    private static String readText(InputStream input, int limit) throws IOException {
         if (input == null) {
             return "";
         }
@@ -390,7 +480,7 @@ public final class DlnaCastManager {
                 new InputStreamReader(input, StandardCharsets.UTF_8))) {
             StringBuilder text = new StringBuilder();
             String line;
-            while ((line = reader.readLine()) != null && text.length() < 500) {
+            while ((line = reader.readLine()) != null && text.length() < limit) {
                 text.append(line);
             }
             return text.toString();
@@ -401,6 +491,33 @@ public final class DlnaCastManager {
         String message = error.getMessage();
         return message == null || message.trim().isEmpty()
                 ? error.getClass().getSimpleName() : message;
+    }
+
+    private static String findXmlValue(String xml, String name) throws IOException {
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(
+                "<(?:[A-Za-z0-9_-]+:)?" + name + ">([^<]*)</(?:[A-Za-z0-9_-]+:)?" + name + ">")
+                .matcher(xml);
+        if (!matcher.find()) {
+            throw new IOException("设备响应缺少 " + name);
+        }
+        return matcher.group(1).trim();
+    }
+
+    static long parsePosition(String value) {
+        if (value == null || value.isEmpty() || "NOT_IMPLEMENTED".equals(value)) {
+            return 0;
+        }
+        String[] parts = value.split(":");
+        if (parts.length != 3) {
+            return 0;
+        }
+        try {
+            double seconds = Double.parseDouble(parts[2]);
+            return (long) ((Long.parseLong(parts[0]) * 3600
+                    + Long.parseLong(parts[1]) * 60 + seconds) * 1000);
+        } catch (NumberFormatException ignored) {
+            return 0;
+        }
     }
 
     private boolean isCurrentSearch(int generation) {
@@ -417,7 +534,9 @@ public final class DlnaCastManager {
             return null;
         }
         return new Device(preferences.getString(DEVICE_NAME, location), location,
-                controlUrl, serviceType);
+                controlUrl, serviceType,
+                preferences.getString(DEVICE_RENDERING_CONTROL_URL, null),
+                preferences.getString(DEVICE_RENDERING_SERVICE_TYPE, null));
     }
 
     private void rememberDevice(Device device) {
@@ -427,6 +546,8 @@ public final class DlnaCastManager {
                 .putString(DEVICE_LOCATION, device.location)
                 .putString(DEVICE_CONTROL_URL, device.controlUrl)
                 .putString(DEVICE_SERVICE_TYPE, device.serviceType)
+                .putString(DEVICE_RENDERING_CONTROL_URL, device.renderingControlUrl)
+                .putString(DEVICE_RENDERING_SERVICE_TYPE, device.renderingServiceType)
                 .apply();
     }
 
@@ -486,6 +607,38 @@ public final class DlnaCastManager {
         });
     }
 
+    private void postPlaybackStatus(PlaybackStatusCallback callback, PlaybackStatus status) {
+        mainHandler.post(() -> {
+            if (!released) {
+                callback.onStatus(status);
+            }
+        });
+    }
+
+    private void postPlaybackError(PlaybackStatusCallback callback, String error) {
+        mainHandler.post(() -> {
+            if (!released) {
+                callback.onError(error);
+            }
+        });
+    }
+
+    private void postVolume(VolumeCallback callback, int volume) {
+        mainHandler.post(() -> {
+            if (!released) {
+                callback.onVolume(volume);
+            }
+        });
+    }
+
+    private void postVolumeError(VolumeCallback callback, String error) {
+        mainHandler.post(() -> {
+            if (!released) {
+                callback.onError(error);
+            }
+        });
+    }
+
     public interface DiscoveryCallback {
         void onDeviceFound(Device device);
 
@@ -500,17 +653,58 @@ public final class DlnaCastManager {
         void onError(String error);
     }
 
+    public interface PlaybackStatusCallback {
+        void onStatus(PlaybackStatus status);
+
+        void onError(String error);
+    }
+
+    public interface VolumeCallback {
+        void onVolume(int volume);
+
+        void onError(String error);
+    }
+
+    public static final class PlaybackStatus {
+        private final long positionMs;
+        private final long durationMs;
+        private final boolean playing;
+
+        PlaybackStatus(long positionMs, long durationMs, boolean playing) {
+            this.positionMs = positionMs;
+            this.durationMs = durationMs;
+            this.playing = playing;
+        }
+
+        public long getPositionMs() {
+            return positionMs;
+        }
+
+        public long getDurationMs() {
+            return durationMs;
+        }
+
+        public boolean isPlaying() {
+            return playing;
+        }
+    }
+
     public static final class Device {
         private final String name;
         private final String location;
         private final String controlUrl;
         private final String serviceType;
+        private final String renderingControlUrl;
+        private final String renderingServiceType;
 
-        Device(String name, String location, String controlUrl, String serviceType) {
+        Device(String name, String location, String controlUrl, String serviceType,
+               String renderingControlUrl, String renderingServiceType) {
             this.name = name;
             this.location = location;
             this.controlUrl = controlUrl;
             this.serviceType = serviceType;
+            this.renderingControlUrl = renderingControlUrl;
+            this.renderingServiceType = renderingServiceType;
         }
 
         public String getName() {
