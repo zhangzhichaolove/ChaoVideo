@@ -36,7 +36,7 @@ public final class VideoLibraryRepository {
         databaseExecutor.execute(() -> {
             VideoRecordEntity record = mergedRecord(video);
             record.lastWatchedAt = System.currentTimeMillis();
-            record.lastEpisode = Math.max(episode, record.lastEpisode);
+            record.lastEpisode = Math.max(0, episode);
             record.watchCount++;
             dao.save(record);
         });

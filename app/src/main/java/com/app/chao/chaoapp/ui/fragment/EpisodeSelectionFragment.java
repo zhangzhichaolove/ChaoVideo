@@ -21,7 +21,7 @@ public class EpisodeSelectionFragment extends BaseFragment {
 
     public static EpisodeSelectionFragment newInstance(VideoRes video) {
         Bundle args = new Bundle();
-        args.putSerializable("video", video);
+        args.putParcelable("video", video);
         EpisodeSelectionFragment fragment = new EpisodeSelectionFragment();
         fragment.setArguments(args);
         return fragment;
@@ -43,7 +43,7 @@ public class EpisodeSelectionFragment extends BaseFragment {
     @Override
     protected void initView(View rootView) {
         GridLayout episodeGrid = rootView.findViewById(R.id.episode_grid);
-        VideoRes video = (VideoRes) getArguments().getSerializable("video");
+        VideoRes video = getArguments().getParcelable("video");
         int episodeCount = video == null ? 0 : video.getEpisodes();
         for (int episode = 1; episode <= episodeCount; episode++) {
             episodeGrid.addView(createEpisodeButton(episodeGrid, episode));

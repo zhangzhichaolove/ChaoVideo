@@ -19,4 +19,8 @@
         android:id="@+id/action_picture_in_picture"
         android:title="@string/picture_in_picture"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_download_video"
+        android:title="@string/download_video"
+        app:showAsAction="never" />
 </menu>

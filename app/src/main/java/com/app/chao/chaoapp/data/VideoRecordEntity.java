@@ -99,7 +99,7 @@ public class VideoRecordEntity {
         if (video != null && video.getId() != null && !video.getId().trim().isEmpty()) {
             return "id:" + video.getId().trim();
         }
-        String url = video == null ? null : video.getVideo();
+        String url = video == null ? null : video.video;
         return "url:" + (url == null ? "" : url);
     }
 }

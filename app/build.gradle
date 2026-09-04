@@ -16,13 +16,12 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled = false
+            minifyEnabled = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     lint {
-        checkReleaseBuilds = false
-        abortOnError = false
         disable += 'NotificationPermission'
     }
     buildFeatures {

@@ -106,6 +106,7 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
         materialRefreshLayout.setColorSchemeResources(R.color.DeepPink, R.color.colorPrimary);
         materialRefreshLayout.setOnRefreshListener(() -> {
             page = 1;
+            endlessScrollListener.reset();
             mPresenter.showBanner();
             mPresenter.showContent(page);
         });
@@ -119,6 +120,7 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
         showLoading();
         materialRefreshLayout.setRefreshing(true);
         page = 1;
+        endlessScrollListener.reset();
         mPresenter.showBanner();
         mPresenter.showContent(1);
     }

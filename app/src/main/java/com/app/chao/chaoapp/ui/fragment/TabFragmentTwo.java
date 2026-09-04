@@ -65,6 +65,9 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         listStateRetry = inflater.findViewById(R.id.list_state_retry);
         listStateRetry.setOnClickListener(view -> {
             showLoading();
+            if (endlessScrollListener != null) {
+                endlessScrollListener.reset();
+            }
             mPresenter.onRefresh();
         });
         new FragmentTwoPresenter(this);
@@ -99,7 +102,10 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
 
     private void listener() {
         materialRefreshLayout.setColorSchemeResources(R.color.DeepPink, R.color.colorPrimary);
-        materialRefreshLayout.setOnRefreshListener(() -> mPresenter.onRefresh());
+        materialRefreshLayout.setOnRefreshListener(() -> {
+            endlessScrollListener.reset();
+            mPresenter.onRefresh();
+        });
         materialRefreshLayout.setRefreshing(true);
         mPresenter.onRefresh();
     }
@@ -175,14 +181,14 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         }
         endlessScrollListener.finish(list != null && !list.isEmpty());
         close();
-        if (endlessScrollListener != null) {
-            endlessScrollListener.finish(true);
-        }
     }
 
     @Override
     public void refreshFailed(String message) {
         close();
+        if (endlessScrollListener != null) {
+            endlessScrollListener.finish(true);
+        }
         if (adapter != null && adapter.getCount() > 0) {
             listState.setVisibility(View.GONE);
             return;

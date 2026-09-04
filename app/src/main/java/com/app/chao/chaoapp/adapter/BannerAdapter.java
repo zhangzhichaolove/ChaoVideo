@@ -46,7 +46,10 @@ public final class BannerAdapter extends RecyclerView.Adapter<BannerAdapter.View
         holder.image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                JumpUtil.goGSYYVideoActivity(ctx, list.get(position));
+                int adapterPosition = holder.getBindingAdapterPosition();
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    JumpUtil.goGSYYVideoActivity(ctx, list.get(adapterPosition));
+                }
             }
         });
     }

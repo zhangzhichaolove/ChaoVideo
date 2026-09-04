@@ -245,9 +245,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         }
         endlessScrollListener.finish(list != null && !list.isEmpty());
         close();
-        if (endlessScrollListener != null) {
-            endlessScrollListener.finish(true);
-        }
     }
 
     @Override
@@ -265,6 +262,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
             return;
         }
         libraryRepository.addSearch(getCatalogId());
+        endlessScrollListener.reset();
         listState.setVisibility(View.VISIBLE);
         listStateProgress.setVisibility(View.VISIBLE);
         listStateRetry.setVisibility(View.GONE);

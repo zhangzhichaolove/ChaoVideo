@@ -9,6 +9,10 @@
 
 # Add any project specific keep options here:
 
+# Gson reads API models reflectively.
+-keepclassmembers class com.app.chao.chaoapp.bean.** { <fields>; }
+-keepattributes Signature,*Annotation*
+
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:

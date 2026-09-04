@@ -36,6 +36,20 @@ final class PlaybackProgressStore {
         }
     }
 
+    int getLastEpisode(String videoUrl, int episodeCount) {
+        if (videoUrl == null || episodeCount <= 0) {
+            return 0;
+        }
+        int saved = preferences.getInt("episode_" + key(videoUrl), 1);
+        return Math.max(1, Math.min(saved, episodeCount));
+    }
+
+    void saveLastEpisode(String videoUrl, int episode) {
+        if (videoUrl != null && episode > 0) {
+            preferences.edit().putInt("episode_" + key(videoUrl), episode).apply();
+        }
+    }
+
     private static String key(String videoUrl) {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")

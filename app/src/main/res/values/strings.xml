@@ -16,6 +16,11 @@
     <string name="cancel">取消</string>
     <string name="save">保存</string>
     <string name="restore_default">恢复默认</string>
+    <string name="test_connection">测试连接</string>
+    <string name="testing_connection">测试中…</string>
+    <string name="connection_success">连接成功：%1$s</string>
+    <string name="connection_failed">连接失败：%1$s</string>
+    <string name="cleartext_api_warning">当前地址使用明文 HTTP，请仅在可信网络中使用</string>
     <string name="api_address_title">修改 API 地址</string>
     <string name="api_address_invalid">请输入以 http:// 或 https:// 开头的有效地址</string>
     <string name="api_address_saved">API 地址已保存，后续请求将使用新地址</string>
@@ -73,4 +78,9 @@
     <string name="search_history">搜索历史</string>
     <string name="clear_search_history">清空搜索历史</string>
     <string name="video_missing">视频信息不完整</string>
+    <string name="download_video">下载当前视频</string>
+    <string name="download_started">已开始下载</string>
+    <string name="download_failed">下载失败，请检查地址和网络</string>
+    <string name="cast_recent_device">常用：%1$s</string>
+    <string name="cast_device_unreachable">投屏设备暂时不可达，请检查电视或网络</string>
 </resources>

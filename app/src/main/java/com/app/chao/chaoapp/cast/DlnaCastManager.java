@@ -9,6 +9,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,6 +26,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,6 +48,7 @@ public final class DlnaCastManager {
     private static final String DEVICE_SERVICE_TYPE = "device_service_type";
     private static final String DEVICE_RENDERING_CONTROL_URL = "device_rendering_control_url";
     private static final String DEVICE_RENDERING_SERVICE_TYPE = "device_rendering_service_type";
+    private static final String RECENT_DEVICES = "recent_devices";
     // All pages share one queue so a new cast always replaces the preceding cast in order.
     private static final ExecutorService COMMAND_EXECUTOR = Executors.newSingleThreadExecutor();
 
@@ -524,7 +529,7 @@ public final class DlnaCastManager {
         return !released && generation == discoveryGeneration.get();
     }
 
-    private Device getRememberedDevice() {
+    public Device getRememberedDevice() {
         android.content.SharedPreferences preferences = context.getSharedPreferences(
                 CAST_SESSION, Context.MODE_PRIVATE);
         String location = preferences.getString(DEVICE_LOCATION, null);
@@ -549,6 +554,56 @@ public final class DlnaCastManager {
                 .putString(DEVICE_RENDERING_CONTROL_URL, device.renderingControlUrl)
                 .putString(DEVICE_RENDERING_SERVICE_TYPE, device.renderingServiceType)
                 .apply();
+        rememberRecentDevice(device);
+    }
+
+    public List<Device> getRecentDevices() {
+        List<Device> devices = new ArrayList<>();
+        String saved = context.getSharedPreferences(CAST_SESSION, Context.MODE_PRIVATE)
+                .getString(RECENT_DEVICES, null);
+        if (saved == null) {
+            return devices;
+        }
+        try {
+            JSONArray array = new JSONArray(saved);
+            for (int i = 0; i < array.length(); i++) {
+                JSONObject item = array.getJSONObject(i);
+                devices.add(new Device(item.optString("name"), item.optString("location"),
+                        item.optString("control"), item.optString("service"),
+                        nullable(item.optString("renderingControl")),
+                        nullable(item.optString("renderingService"))));
+            }
+        } catch (Exception ignored) {
+            context.getSharedPreferences(CAST_SESSION, Context.MODE_PRIVATE)
+                    .edit().remove(RECENT_DEVICES).apply();
+        }
+        return devices;
+    }
+
+    private void rememberRecentDevice(Device device) {
+        List<Device> devices = getRecentDevices();
+        devices.remove(device);
+        devices.add(0, device);
+        JSONArray array = new JSONArray();
+        for (int i = 0; i < Math.min(devices.size(), 5); i++) {
+            Device item = devices.get(i);
+            try {
+                array.put(new JSONObject()
+                        .put("name", item.name)
+                        .put("location", item.location)
+                        .put("control", item.controlUrl)
+                        .put("service", item.serviceType)
+                        .put("renderingControl", item.renderingControlUrl)
+                        .put("renderingService", item.renderingServiceType));
+            } catch (Exception ignored) {
+            }
+        }
+        context.getSharedPreferences(CAST_SESSION, Context.MODE_PRIVATE)
+                .edit().putString(RECENT_DEVICES, array.toString()).apply();
+    }
+
+    private static String nullable(String value) {
+        return value == null || value.isEmpty() || "null".equals(value) ? null : value;
     }
 
     private void forgetDevice(Device device) {
@@ -556,7 +611,12 @@ public final class DlnaCastManager {
         if (rememberedDevice != null && rememberedDevice.equals(device)) {
             context.getSharedPreferences(CAST_SESSION, Context.MODE_PRIVATE)
                     .edit()
-                    .clear()
+                    .remove(DEVICE_NAME)
+                    .remove(DEVICE_LOCATION)
+                    .remove(DEVICE_CONTROL_URL)
+                    .remove(DEVICE_SERVICE_TYPE)
+                    .remove(DEVICE_RENDERING_CONTROL_URL)
+                    .remove(DEVICE_RENDERING_SERVICE_TYPE)
                     .apply();
         }
     }

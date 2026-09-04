@@ -58,6 +58,9 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
         listStateRetry = findViewById(R.id.list_state_retry);
         listStateRetry.setOnClickListener(view -> {
             showLoading();
+            if (endlessScrollListener != null) {
+                endlessScrollListener.reset();
+            }
             mPresenter.onRefresh();
         });
         new ActivityVideoListPresenter(this);
@@ -92,7 +95,10 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
 
     private void listener() {
         materialRefreshLayout.setColorSchemeResources(R.color.DeepPink, R.color.colorPrimary);
-        materialRefreshLayout.setOnRefreshListener(() -> mPresenter.onRefresh());
+        materialRefreshLayout.setOnRefreshListener(() -> {
+            endlessScrollListener.reset();
+            mPresenter.onRefresh();
+        });
         endlessScrollListener = new EndlessScrollListener(
                 (GridLayoutManager) recyclerView.getLayoutManager(), () -> mPresenter.loadMore());
         recyclerView.addOnScrollListener(endlessScrollListener);
@@ -127,14 +133,14 @@ public class VideoListActivity extends BaseActivity<ActivityVideoListContract.Pr
         }
         endlessScrollListener.finish(list != null && !list.isEmpty());
         close();
-        if (endlessScrollListener != null) {
-            endlessScrollListener.finish(true);
-        }
     }
 
     @Override
     public void refreshFailed(String message) {
         close();
+        if (endlessScrollListener != null) {
+            endlessScrollListener.finish(true);
+        }
         if (adapter != null && adapter.getItemCount() > 0) {
             listState.setVisibility(View.GONE);
             return;

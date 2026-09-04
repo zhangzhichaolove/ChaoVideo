@@ -7,6 +7,8 @@ import android.text.InputType;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.Button;
+import android.widget.LinearLayout;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
@@ -269,11 +271,27 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
         input.setText(ApiAddressManager.getBaseUrl());
         input.setSelection(input.length());
 
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (20 * getResources().getDisplayMetrics().density);
+        content.setPadding(padding, 0, padding, 0);
+        content.addView(input, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        LinearLayout actions = new LinearLayout(this);
+        Button restore = new Button(this);
+        restore.setText(R.string.restore_default);
+        Button test = new Button(this);
+        test.setText(R.string.test_connection);
+        actions.addView(restore, new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+        actions.addView(test, new LinearLayout.LayoutParams(0,
+                LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+        content.addView(actions);
+
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(R.string.api_address_title)
-                .setView(input)
+                .setView(content)
                 .setNegativeButton(R.string.cancel, null)
-                .setNeutralButton(R.string.restore_default, null)
                 .setPositiveButton(R.string.save, null)
                 .create();
         dialog.setOnShowListener(ignored -> {
@@ -284,11 +302,25 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
                     }
                     dialog.dismiss();
                     showToast(getString(R.string.api_address_saved));
+                    if (ApiAddressManager.getBaseUrl().startsWith("http://")) {
+                        showToast(getString(R.string.cleartext_api_warning));
+                    }
                     attachPages();
                 });
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(view -> {
+            restore.setOnClickListener(view -> {
                 input.setText(com.app.chao.chaoapp.net.VideoApis.HOST);
                 input.setSelection(input.length());
+            });
+            test.setOnClickListener(view -> {
+                test.setEnabled(false);
+                test.setText(R.string.testing_connection);
+                ApiAddressManager.testConnection(input.getText().toString(), (reachable, detail) -> {
+                    test.setEnabled(true);
+                    test.setText(R.string.test_connection);
+                    showToast(getString(reachable
+                                    ? R.string.connection_success : R.string.connection_failed,
+                            detail == null ? getString(R.string.unknown_error) : detail));
+                });
             });
         });
         dialog.show();

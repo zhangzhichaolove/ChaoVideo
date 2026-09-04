@@ -8,8 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 public final class EndlessScrollListener extends RecyclerView.OnScrollListener {
     private final GridLayoutManager layoutManager;
     private final Runnable loadMore;
-    private boolean enabled = true;
-    private boolean loading;
+    private final PagingState pagingState = new PagingState();
 
     public EndlessScrollListener(GridLayoutManager layoutManager, Runnable loadMore) {
         this.layoutManager = layoutManager;
@@ -18,15 +17,17 @@ public final class EndlessScrollListener extends RecyclerView.OnScrollListener {
 
     @Override
     public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-        if (enabled && !loading && dy > 0 && layoutManager.getItemCount() > 0
-                && layoutManager.findLastVisibleItemPosition() >= layoutManager.getItemCount() - 4) {
-            loading = true;
+        if (pagingState.shouldLoad(dy, layoutManager.getItemCount(),
+                layoutManager.findLastVisibleItemPosition())) {
             loadMore.run();
         }
     }
 
     public void finish(boolean hasMore) {
-        loading = false;
-        enabled = hasMore;
+        pagingState.finish(hasMore);
+    }
+
+    public void reset() {
+        pagingState.reset();
     }
 }

@@ -2,8 +2,9 @@ package com.app.chao.chaoapp.bean;
 
 import com.app.chao.chaoapp.net.ApiAddressManager;
 import com.google.gson.annotations.SerializedName;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-import java.io.Serializable;
 
 import okhttp3.HttpUrl;
 
@@ -24,7 +25,7 @@ import okhttp3.HttpUrl;
  * "videoTime": "144"
  * },
  */
-public class VideoRes implements Serializable {
+public class VideoRes implements Parcelable {
     @SerializedName("id")
     public String id;
     public String title;
@@ -220,4 +221,67 @@ public class VideoRes implements Serializable {
         HttpUrl resolvedUrl = baseUrl == null || value == null ? null : baseUrl.resolve(value);
         return resolvedUrl == null ? value : resolvedUrl.toString();
     }
+
+    public VideoRes() {
+    }
+
+    private VideoRes(Parcel in) {
+        id = in.readString();
+        title = in.readString();
+        star = in.readString();
+        publicTime = in.readString();
+        type = in.readString();
+        toStar = in.readString();
+        performer = in.readString();
+        actors = in.readString();
+        country = in.readString();
+        alias = in.readString();
+        videoDescribe = in.readString();
+        img = in.readString();
+        video = in.readString();
+        videoTime = in.readString();
+        episodes = in.readInt();
+        localWatchedEpisode = in.readInt();
+        localProgressMs = in.readLong();
+        localDurationMs = in.readLong();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(title);
+        dest.writeString(star);
+        dest.writeString(publicTime);
+        dest.writeString(type);
+        dest.writeString(toStar);
+        dest.writeString(performer);
+        dest.writeString(actors);
+        dest.writeString(country);
+        dest.writeString(alias);
+        dest.writeString(videoDescribe);
+        dest.writeString(img);
+        dest.writeString(video);
+        dest.writeString(videoTime);
+        dest.writeInt(episodes);
+        dest.writeInt(localWatchedEpisode);
+        dest.writeLong(localProgressMs);
+        dest.writeLong(localDurationMs);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<VideoRes> CREATOR = new Creator<VideoRes>() {
+        @Override
+        public VideoRes createFromParcel(Parcel in) {
+            return new VideoRes(in);
+        }
+
+        @Override
+        public VideoRes[] newArray(int size) {
+            return new VideoRes[size];
+        }
+    };
 }

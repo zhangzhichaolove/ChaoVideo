@@ -17,6 +17,10 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.ImageView;
+import android.app.DownloadManager;
+import android.content.Context;
+import android.net.Uri;
+import android.os.Environment;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
@@ -90,9 +94,11 @@ public class GSYVVideoActivity extends BaseActivity implements
     private float playbackSpeed = 1f;
     private TabLayoutMediator tabMediator;
     private FrameLayout playerContainer;
+    private View playbackError;
     private long castPositionMs;
     private long castDurationMs;
     private boolean castPlaying = true;
+    private int castStatusFailures;
     private final Handler castStatusHandler = new Handler(Looper.getMainLooper());
     private final Runnable castStatusPoller = new Runnable() {
         @Override
@@ -103,6 +109,7 @@ public class GSYVVideoActivity extends BaseActivity implements
             castManager.getPlaybackStatus(castDevice, new DlnaCastManager.PlaybackStatusCallback() {
                 @Override
                 public void onStatus(DlnaCastManager.PlaybackStatus status) {
+                    castStatusFailures = 0;
                     castPositionMs = status.getPositionMs();
                     castDurationMs = status.getDurationMs();
                     castPlaying = status.isPlaying();
@@ -111,6 +118,10 @@ public class GSYVVideoActivity extends BaseActivity implements
 
                 @Override
                 public void onError(String error) {
+                    castStatusFailures++;
+                    if (castStatusFailures == 3) {
+                        showToast(getString(R.string.cast_device_unreachable));
+                    }
                     castStatusHandler.postDelayed(castStatusPoller, 5000);
                 }
             });
@@ -129,6 +140,12 @@ public class GSYVVideoActivity extends BaseActivity implements
     protected void init() {
         videoPlayer = findViewById(R.id.detail_player);
         playerContainer = findViewById(R.id.player_container);
+        playbackError = findViewById(R.id.playback_error);
+        findViewById(R.id.playback_retry).setOnClickListener(view -> {
+            playbackError.setVisibility(View.GONE);
+            startVideo(currentVideoUrl, currentVideoTitle, true,
+                    playbackProgressStore.getPosition(currentVideoUrl));
+        });
         toolbar = findViewById(R.id.toolbar);
         viewpagertab = findViewById(R.id.viewpagertab);
         viewpager = findViewById(R.id.viewpager);
@@ -219,14 +236,23 @@ public class GSYVVideoActivity extends BaseActivity implements
 
             @Override
             public void onPrepared(String url, Object... objects) {
+                if (isCasting) {
+                    // A restored DLNA session owns playback. Preparation is asynchronous, so
+                    // pause again here to prevent the local player from starting behind the TV.
+                    GSYVideoManager.onPause();
+                    return;
+                }
                 //开始播放了才能旋转和全屏
                 orientationUtils.setEnable(true);
                 isPlay = true;
                 playRetryCount = 0;
+                playbackError.setVisibility(View.GONE);
             }
 
             @Override
             public void onAutoComplete(String url, Object... objects) {
+                long duration = videoPlayer.getDuration();
+                libraryRepository.updateProgress(videoInfo, currentEpisode, duration, duration);
                 playbackProgressStore.clear(currentVideoUrl);
                 if (videoInfo != null && currentEpisode > 0
                         && currentEpisode < videoInfo.getEpisodes()) {
@@ -250,6 +276,7 @@ public class GSYVVideoActivity extends BaseActivity implements
                         videoPlayer.postDelayed(videoPlayer::startPlayLogic, delayMs);
                     } else {
                         showToast(getString(R.string.video_play_failed));
+                        playbackError.setVisibility(View.VISIBLE);
                     }
                 }
             }
@@ -268,7 +295,12 @@ public class GSYVVideoActivity extends BaseActivity implements
     }
 
     private void getIntentData() {
-        videoInfo = (VideoRes) getIntent().getSerializableExtra("videoInfo");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            videoInfo = getIntent().getParcelableExtra("videoInfo", VideoRes.class);
+        } else {
+            //noinspection deprecation
+            videoInfo = getIntent().getParcelableExtra("videoInfo");
+        }
         if (videoInfo == null) {
             showToast(getString(R.string.video_missing));
             finish();
@@ -280,8 +312,11 @@ public class GSYVVideoActivity extends BaseActivity implements
         fragments.add(videoIntroFragment);
         titles.add("简介");
         if (videoInfo.getEpisodes() > 0) {
-            currentEpisode = Math.max(1, Math.min(videoInfo.getEpisodes(),
-                    getIntent().getIntExtra(EXTRA_EPISODE, 1)));
+            int requestedEpisode = getIntent().getIntExtra(EXTRA_EPISODE, 0);
+            currentEpisode = requestedEpisode > 0
+                    ? Math.max(1, Math.min(videoInfo.getEpisodes(), requestedEpisode))
+                    : playbackProgressStore.getLastEpisode(videoInfo.getVideo(),
+                    videoInfo.getEpisodes());
             episodeSelectionFragment = EpisodeSelectionFragment.newInstance(videoInfo);
             fragments.add(episodeSelectionFragment);
             titles.add("选集");
@@ -316,6 +351,7 @@ public class GSYVVideoActivity extends BaseActivity implements
             }
         }
         libraryRepository.recordOpened(videoInfo, currentEpisode);
+        restoreRememberedCast();
 
     }
 
@@ -330,6 +366,7 @@ public class GSYVVideoActivity extends BaseActivity implements
                     videoPlayer.getCurrentPositionWhenPlaying());
         }
         currentEpisode = episode;
+        playbackProgressStore.saveLastEpisode(videoInfo.getVideo(), episode);
         if (episodeSelectionFragment != null) {
             episodeSelectionFragment.setSelectedEpisode(episode);
         }
@@ -428,6 +465,10 @@ public class GSYVVideoActivity extends BaseActivity implements
             enterPictureInPicture();
             return true;
         }
+        if (item.getItemId() == R.id.action_download_video) {
+            downloadCurrentVideo();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -520,7 +561,13 @@ public class GSYVVideoActivity extends BaseActivity implements
     private void showCastDevicePicker() {
         List<DlnaCastManager.Device> devices = new ArrayList<>();
         List<String> deviceNames = new ArrayList<>();
-        deviceNames.add(getString(R.string.cast_searching));
+        for (DlnaCastManager.Device recent : castManager.getRecentDevices()) {
+            devices.add(recent);
+            deviceNames.add(getString(R.string.cast_recent_device, recent.getName()));
+        }
+        if (devices.isEmpty()) {
+            deviceNames.add(getString(R.string.cast_searching));
+        }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, deviceNames);
         AlertDialog dialog = new AlertDialog.Builder(this)
@@ -565,6 +612,19 @@ public class GSYVVideoActivity extends BaseActivity implements
                 adapter.notifyDataSetChanged();
             }
         });
+    }
+
+    private void restoreRememberedCast() {
+        DlnaCastManager.Device remembered = castManager.getRememberedDevice();
+        if (remembered == null) {
+            return;
+        }
+        castDevice = remembered;
+        isCasting = true;
+        GSYVideoManager.onPause();
+        videoPlayer.post(GSYVideoManager::onPause);
+        updateCastMenu();
+        startCastStatusPolling();
     }
 
     private void castToDevice(DlnaCastManager.Device targetDevice) {
@@ -736,6 +796,27 @@ public class GSYVVideoActivity extends BaseActivity implements
                     ? R.string.remove_favorite : R.string.add_favorite);
             favoriteMenuItem.setIcon(favorite
                     ? android.R.drawable.btn_star_big_on : android.R.drawable.btn_star_big_off);
+        }
+    }
+
+    private void downloadCurrentVideo() {
+        if (TextUtils.isEmpty(currentVideoUrl)) {
+            showToast(getString(R.string.video_missing));
+            return;
+        }
+        try {
+            String name = currentVideoTitle == null ? "video" : currentVideoTitle;
+            name = name.replaceAll("[\\\\/:*?\"<>|]", "_") + ".mp4";
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(currentVideoUrl))
+                    .setTitle(currentVideoTitle)
+                    .setNotificationVisibility(
+                            DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                    .setDestinationInExternalPublicDir(Environment.DIRECTORY_MOVIES, name);
+            DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            manager.enqueue(request);
+            showToast(getString(R.string.download_started));
+        } catch (RuntimeException error) {
+            showToast(getString(R.string.download_failed));
         }
     }
 

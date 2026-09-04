@@ -21,7 +21,7 @@ public class VideoIntroFragment extends BaseFragment {
 
     public static VideoIntroFragment newInstance(VideoRes videoInfo) {
         Bundle args = new Bundle();
-        args.putSerializable("video", videoInfo);
+        args.putParcelable("video", videoInfo);
         VideoIntroFragment fragment = new VideoIntroFragment();
         fragment.setArguments(args);
         return fragment;
@@ -30,7 +30,7 @@ public class VideoIntroFragment extends BaseFragment {
     @Override
     protected void initView(View inflater) {
         tvExpand = inflater.findViewById(R.id.tv_expand);
-        VideoRes video = (VideoRes) getArguments().getSerializable("video");
+        VideoRes video = getArguments().getParcelable("video");
         setData(video);
     }
 
