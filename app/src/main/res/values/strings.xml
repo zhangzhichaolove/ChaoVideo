@@ -59,6 +59,8 @@
     <string name="playback_speed">播放速度</string>
     <string name="picture_in_picture">画中画</string>
     <string name="picture_in_picture_unavailable">当前系统不支持画中画</string>
+    <string name="pip_play">播放</string>
+    <string name="pip_pause">暂停</string>
     <string name="episode_picker">选集</string>
     <string name="speed_value">%1$s 倍</string>
     <string name="cast_pause">暂停投屏</string>

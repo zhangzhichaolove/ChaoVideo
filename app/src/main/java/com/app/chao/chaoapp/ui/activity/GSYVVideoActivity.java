@@ -2,8 +2,14 @@ package com.app.chao.chaoapp.ui.activity;
 
 import android.Manifest;
 import android.content.res.Configuration;
+import android.app.PendingIntent;
 import android.app.PictureInPictureParams;
+import android.app.RemoteAction;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Rect;
+import android.graphics.drawable.Icon;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -30,6 +36,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.IntentCompat;
 import androidx.fragment.app.Fragment;
 import androidx.annotation.NonNull;
@@ -58,6 +65,7 @@ import com.shuyu.gsyvideoplayer.video.NormalGSYVideoPlayer;
 import com.shuyu.gsyvideoplayer.video.base.GSYVideoView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
@@ -66,6 +74,8 @@ import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 public class GSYVVideoActivity extends BaseActivity implements
         EpisodeSelectionFragment.OnEpisodeSelectedListener {
     public static final String EXTRA_EPISODE = "episode";
+    private static final String ACTION_PIP_PLAY_PAUSE =
+            "com.app.chao.chaoapp.action.PIP_PLAY_PAUSE";
     private static final int MAX_PLAY_RETRIES = 2;
     private static final long MIN_RESUME_POSITION_MS = 10_000L;
 
@@ -106,6 +116,15 @@ public class GSYVVideoActivity extends BaseActivity implements
     private long castDurationMs;
     private boolean castPlaying = true;
     private int castStatusFailures;
+    private boolean pictureInPictureReceiverRegistered;
+    private final BroadcastReceiver pictureInPictureReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (ACTION_PIP_PLAY_PAUSE.equals(intent.getAction())) {
+                togglePictureInPicturePlayback();
+            }
+        }
+    };
     private final ActivityResultLauncher<String> storagePermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
                 if (granted) {
@@ -154,6 +173,10 @@ public class GSYVVideoActivity extends BaseActivity implements
     @Override
     protected void init() {
         videoPlayer = findViewById(R.id.detail_player);
+        ContextCompat.registerReceiver(this, pictureInPictureReceiver,
+                new IntentFilter(ACTION_PIP_PLAY_PAUSE),
+                ContextCompat.RECEIVER_EXPORTED);
+        pictureInPictureReceiverRegistered = true;
         videoPlayer.post(this::updatePictureInPictureParams);
         playerContainer = findViewById(R.id.player_container);
         playbackError = findViewById(R.id.playback_error);
@@ -298,6 +321,7 @@ public class GSYVVideoActivity extends BaseActivity implements
             }
 
         });
+        videoPlayer.setGSYStateUiListener(state -> updatePictureInPictureParams());
 
         videoPlayer.setLockClickListener(new LockClickListener() {
             @Override
@@ -509,7 +533,7 @@ public class GSYVVideoActivity extends BaseActivity implements
     }
 
     private void updatePictureInPictureParams() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && videoPlayer != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && videoPlayer != null) {
             setPictureInPictureParams(createPictureInPictureParams(!isCasting));
         }
     }
@@ -518,6 +542,19 @@ public class GSYVVideoActivity extends BaseActivity implements
     private PictureInPictureParams createPictureInPictureParams(boolean autoEnter) {
         PictureInPictureParams.Builder builder = new PictureInPictureParams.Builder()
                 .setAspectRatio(new Rational(16, 9));
+        if (!isCasting) {
+            boolean playing = isPictureInPicturePlaybackActive();
+            String label = getString(playing ? R.string.pip_pause : R.string.pip_play);
+            Intent intent = new Intent(ACTION_PIP_PLAY_PAUSE).setPackage(getPackageName());
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            RemoteAction action = new RemoteAction(
+                    Icon.createWithResource(this, playing
+                            ? android.R.drawable.ic_media_pause
+                            : android.R.drawable.ic_media_play),
+                    label, label, pendingIntent);
+            builder.setActions(Collections.singletonList(action));
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Rect sourceRect = new Rect();
             videoPlayer.getGlobalVisibleRect(sourceRect);
@@ -525,6 +562,31 @@ public class GSYVVideoActivity extends BaseActivity implements
                     .setSourceRectHint(sourceRect);
         }
         return builder.build();
+    }
+
+    private boolean isPictureInPicturePlaybackActive() {
+        if (videoPlayer == null) {
+            return false;
+        }
+        int state = videoPlayer.getCurrentPlayer().getCurrentState();
+        return state == GSYVideoView.CURRENT_STATE_PREPAREING
+                || state == GSYVideoView.CURRENT_STATE_PLAYING
+                || state == GSYVideoView.CURRENT_STATE_PLAYING_BUFFERING_START;
+    }
+
+    private void togglePictureInPicturePlayback() {
+        if (videoPlayer == null || isCasting) {
+            return;
+        }
+        if (isPictureInPicturePlaybackActive()) {
+            videoPlayer.getCurrentPlayer().onVideoPause();
+        } else if (videoPlayer.getCurrentPlayer().getCurrentState()
+                == GSYVideoView.CURRENT_STATE_PAUSE) {
+            videoPlayer.getCurrentPlayer().onVideoResume();
+        } else {
+            videoPlayer.getCurrentPlayer().startPlayLogic();
+        }
+        updatePictureInPictureParams();
     }
 
     private void addFullscreenEpisodeButton(NormalGSYVideoPlayer player) {
@@ -871,8 +933,12 @@ public class GSYVVideoActivity extends BaseActivity implements
                     castPositionMs, castDurationMs);
         }
         super.onPause();
-        GSYVideoManager.onPause();
-        isPause = true;
+        boolean inPictureInPicture = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                && isInPictureInPictureMode();
+        if (!inPictureInPicture) {
+            GSYVideoManager.onPause();
+        }
+        isPause = !inPictureInPicture;
     }
 
     @Override
@@ -897,6 +963,10 @@ public class GSYVVideoActivity extends BaseActivity implements
             orientationUtils.releaseListener();
         if (tabMediator != null) {
             tabMediator.detach();
+        }
+        if (pictureInPictureReceiverRegistered) {
+            unregisterReceiver(pictureInPictureReceiver);
+            pictureInPictureReceiverRegistered = false;
         }
         super.onDestroy();
     }

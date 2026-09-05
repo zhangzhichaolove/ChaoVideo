@@ -18,6 +18,7 @@ import com.app.chao.chaoapp.data.VideoLibraryRepository;
 import com.app.chao.chaoapp.utils.GridSpacingItemDecoration;
 import com.app.chao.chaoapp.utils.JumpUtil;
 import com.app.chao.chaoapp.utils.ScreenUtil;
+import com.app.chao.chaoapp.utils.StatusBarUtils;
 
 import java.util.List;
 
@@ -52,6 +53,8 @@ public class VideoLibraryActivity extends BaseActivity {
         repository = VideoLibraryRepository.get(this);
         Toolbar toolbar = findViewById(R.id.library_toolbar);
         toolbar.setTitle(historyMode ? R.string.watch_history : R.string.video_favorites);
+        StatusBarUtils.setTranslucent(this);
+        StatusBarUtils.applyTopInset(findViewById(android.R.id.content), toolbar);
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
         toolbar.setNavigationOnClickListener(view -> finish());
