@@ -8,8 +8,9 @@
         android:id="@+id/splash_bg_img"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#9D0016"
         android:contentDescription="@string/app_name"
-        android:scaleType="fitCenter"
+        android:scaleType="centerCrop"
         android:src="@mipmap/pic_cinema" />
 
 

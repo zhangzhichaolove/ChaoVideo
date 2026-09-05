@@ -9,4 +9,6 @@
     <color name="DeepPink">#FF1493</color>
     <color name="gray_light">#c4c3c9</color>
     <color name="white_translucent">#30FFFFFF</color>
+    <color name="navigation_drawer_background">#FFFFFF</color>
+    <color name="navigation_item_default">#DE000000</color>
 </resources>
