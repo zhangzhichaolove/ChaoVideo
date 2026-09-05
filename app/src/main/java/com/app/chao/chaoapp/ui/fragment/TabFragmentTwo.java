@@ -62,10 +62,7 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
         listStateRetry = inflater.findViewById(R.id.list_state_retry);
         listStateRetry.setOnClickListener(view -> {
             showLoading();
-            if (endlessScrollListener != null) {
-                endlessScrollListener.reset();
-            }
-            mPresenter.onRefresh();
+            mPresenter.loadMore();
         });
         new FragmentTwoPresenter(this);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -131,6 +128,7 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
 
     @Override
     public void showMoreContent(List<VideoRes> list) {
+        listState.setVisibility(View.GONE);
         if (list != null) {
             adapter.addAll(list);
         }
@@ -145,7 +143,10 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
             endlessScrollListener.finish(true);
         }
         if (adapter != null && adapter.getCount() > 0) {
-            listState.setVisibility(View.GONE);
+            com.google.android.material.snackbar.Snackbar.make(recyclerView,
+                    getString(R.string.video_load_failed, message),
+                    com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                    .setAction(R.string.retry, view -> mPresenter.loadMore()).show();
             return;
         }
         listState.setVisibility(View.VISIBLE);

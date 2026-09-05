@@ -188,7 +188,6 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
         headerAdapter.setVideos(videoRes);
         bannerHandler.removeCallbacks(bannerAdvance);
         bannerHandler.postDelayed(bannerAdvance, 3000);
-        close();
     }
 
     @Override

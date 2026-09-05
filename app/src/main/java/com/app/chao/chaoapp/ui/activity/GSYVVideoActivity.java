@@ -15,20 +15,24 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Rational;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.SeekBar;
 import android.widget.ImageView;
-import android.app.DownloadManager;
+import com.app.chao.chaoapp.playback.VideoPlaybackSettings;
+import com.app.chao.chaoapp.playback.GsyPlaybackControls;
+import com.shuyu.gsyvideoplayer.player.IPlayerManager;
+import tv.danmaku.ijk.media.exo2.IjkExo2MediaPlayer;
+import androidx.media3.exoplayer.offline.DownloadRequest;
+import androidx.media3.exoplayer.offline.DownloadService;
+import com.app.chao.chaoapp.download.VideoDownloadService;
+import com.app.chao.chaoapp.download.VideoDownloads;
 import android.content.Context;
 import android.net.Uri;
-import android.os.Environment;
 import android.content.pm.PackageManager;
 
 import androidx.activity.OnBackPressedCallback;
@@ -50,7 +54,6 @@ import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.cast.DlnaCastManager;
 import com.app.chao.chaoapp.data.VideoLibraryRepository;
 import com.app.chao.chaoapp.ui.fragment.EpisodeSelectionFragment;
-import com.app.chao.chaoapp.ui.fragment.VideoCommentFragment;
 import com.app.chao.chaoapp.ui.fragment.VideoIntroFragment;
 import com.app.chao.chaoapp.utils.ImageLoader;
 import com.google.android.material.tabs.TabLayout;
@@ -68,9 +71,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import tv.danmaku.ijk.media.exo2.Exo2PlayerManager;
+import com.app.chao.chaoapp.playback.SubtitlePlayerManager;
+import com.app.chao.chaoapp.playback.PlaybackVideoPlayer;
+import com.app.chao.chaoapp.playback.GsyCueOutput;
 import tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager;
 
+@androidx.annotation.OptIn(markerClass = androidx.media3.common.util.UnstableApi.class)
 public class GSYVVideoActivity extends BaseActivity implements
         EpisodeSelectionFragment.OnEpisodeSelectedListener {
     public static final String EXTRA_EPISODE = "episode";
@@ -102,13 +108,28 @@ public class GSYVVideoActivity extends BaseActivity implements
     private DlnaCastManager.Device castDevice;
     private MenuItem castMenuItem;
     private EpisodeSelectionFragment episodeSelectionFragment;
-    private PlaybackProgressStore playbackProgressStore;
+    private long playbackGeneration;
+    private int castStatusGeneration;
+    private boolean playbackStarted;
+    private boolean playbackCompleted;
+    private boolean resumeLocalOnResume;
+    private Runnable deferredPlayback;
+    private AlertDialog resumeDialog;
+    private final Handler playbackHandler = new Handler(Looper.getMainLooper());
+    private Runnable pendingRetry;
+    private final Runnable progressSaver = new Runnable() {
+        @Override public void run() {
+            saveCurrentProgress();
+            playbackHandler.postDelayed(this, 5000);
+        }
+    };
     private VideoLibraryRepository libraryRepository;
     private MenuItem favoriteMenuItem;
     private boolean favorite;
     private int currentEpisode;
     private int playRetryCount;
-    private float playbackSpeed = 1f;
+    private VideoPlaybackSettings playbackSettings;
+    private GsyPlaybackControls playbackControls;
     private TabLayoutMediator tabMediator;
     private FrameLayout playerContainer;
     private View playbackError;
@@ -125,14 +146,10 @@ public class GSYVVideoActivity extends BaseActivity implements
             }
         }
     };
-    private final ActivityResultLauncher<String> storagePermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
-                if (granted) {
-                    enqueueCurrentVideoDownload();
-                } else {
-                    showToast(getString(R.string.download_permission_denied));
-                }
-            });
+    private VideoDownloads.Preparation downloadProbe;
+    private DownloadRequest pendingDownload;
+    private final ActivityResultLauncher<String> downloadNotificationPermission =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> enqueuePendingDownload());
     private final Handler castStatusHandler = new Handler(Looper.getMainLooper());
     private final Runnable castStatusPoller = new Runnable() {
         @Override
@@ -140,9 +157,25 @@ public class GSYVVideoActivity extends BaseActivity implements
             if (!isCasting || castDevice == null) {
                 return;
             }
-            castManager.getPlaybackStatus(castDevice, new DlnaCastManager.PlaybackStatusCallback() {
+            int generation = castStatusGeneration;
+            String mediaUrl = currentVideoUrl;
+            DlnaCastManager.Device device = castDevice;
+            castManager.getPlaybackStatus(device, new DlnaCastManager.PlaybackStatusCallback() {
                 @Override
                 public void onStatus(DlnaCastManager.PlaybackStatus status) {
+                    if (!isCasting || generation != castStatusGeneration
+                            || !TextUtils.equals(mediaUrl, currentVideoUrl)) return;
+                    if (!status.hasMedia()) {
+                        castStatusFailures++;
+                        if (castStatusFailures == 3) showToast(getString(R.string.cast_media_unverified));
+                        castStatusHandler.postDelayed(castStatusPoller, 5000);
+                        return;
+                    }
+                    if (!status.ownsMedia(mediaUrl)) {
+                        detachCastSession();
+                        showToast(getString(R.string.cast_media_changed));
+                        return;
+                    }
                     castStatusFailures = 0;
                     castPositionMs = status.getPositionMs();
                     castDurationMs = status.getDurationMs();
@@ -152,6 +185,7 @@ public class GSYVVideoActivity extends BaseActivity implements
 
                 @Override
                 public void onError(String error) {
+                    if (!isCasting || generation != castStatusGeneration) return;
                     castStatusFailures++;
                     if (castStatusFailures == 3) {
                         showToast(getString(R.string.cast_device_unreachable));
@@ -172,27 +206,28 @@ public class GSYVVideoActivity extends BaseActivity implements
 
     @Override
     protected void init() {
+        playbackSettings = new VideoPlaybackSettings(this);
         videoPlayer = findViewById(R.id.detail_player);
+        playbackControls = new GsyPlaybackControls(this, videoPlayer,
+                playbackSettings, () -> !isCasting && !castRequestPending, this::currentExoPlayer, this::currentSubtitleOutput);
         ContextCompat.registerReceiver(this, pictureInPictureReceiver,
                 new IntentFilter(ACTION_PIP_PLAY_PAUSE),
-                ContextCompat.RECEIVER_EXPORTED);
+                ContextCompat.RECEIVER_NOT_EXPORTED);
         pictureInPictureReceiverRegistered = true;
         videoPlayer.post(this::updatePictureInPictureParams);
         playerContainer = findViewById(R.id.player_container);
         playbackError = findViewById(R.id.playback_error);
         findViewById(R.id.playback_retry).setOnClickListener(view -> {
             playbackError.setVisibility(View.GONE);
-            startVideo(currentVideoUrl, currentVideoTitle,
-                    playbackProgressStore.getPosition(currentVideoUrl));
+            playVideo(currentVideoUrl, currentVideoTitle);
         });
         toolbar = findViewById(R.id.toolbar);
         viewpagertab = findViewById(R.id.viewpagertab);
         viewpager = findViewById(R.id.viewpager);
         castManager = new DlnaCastManager(this);
-        playbackProgressStore = new PlaybackProgressStore(this);
         libraryRepository = VideoLibraryRepository.get(this);
         // 必须在 setUp/startPlayLogic 之前选择播放器内核；完整 IJK 包已不再引入。
-        PlayerFactory.setPlayManager(Exo2PlayerManager.class);
+        PlayerFactory.setPlayManager(SubtitlePlayerManager.class);
         CacheFactory.setCacheManager(ExoPlayerCacheManager.class);
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
@@ -207,6 +242,7 @@ public class GSYVVideoActivity extends BaseActivity implements
             }
         });
         getIntentData();
+        if (isFinishing()) return;
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -231,18 +267,12 @@ public class GSYVVideoActivity extends BaseActivity implements
         //exo缓存模式，支持m3u8，只支持exo
         //代理缓存模式，支持所有模式，不支持m3u8等，默认
         //CacheFactory.setCacheManager(ProxyCacheManager.class);
-        GSYVideoType.setShowType(GSYVideoType.SCREEN_MATCH_FULL);
+        playbackControls.applyAspect();
 
         //切换绘制模式
         //GSYVideoType.setRenderType(GSYVideoType.SUFRACE);
         //GSYVideoType.setRenderType(GSYVideoType.GLSURFACE);
         GSYVideoType.setRenderType(GSYVideoType.TEXTURE);
-
-        //增加封面
-        ImageView imageView = new ImageView(this);
-        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        imageView.setImageResource(R.mipmap.xxx1);
-        videoPlayer.setThumbImageView(imageView);
 
         //增加title
         resolveNormalVideoUI();
@@ -267,7 +297,7 @@ public class GSYVVideoActivity extends BaseActivity implements
                 //第一个true是否需要隐藏actionbar，第二个true是否需要隐藏statusbar
                 NormalGSYVideoPlayer fullscreenPlayer = (NormalGSYVideoPlayer)
                         videoPlayer.startWindowFullscreen(GSYVVideoActivity.this, true, true);
-                addFullscreenEpisodeButton(fullscreenPlayer);
+                addFullscreenControls(fullscreenPlayer);
             }
         });
 
@@ -275,7 +305,8 @@ public class GSYVVideoActivity extends BaseActivity implements
 
             @Override
             public void onPrepared(String url, Object... objects) {
-                if (isCasting) {
+                if (!TextUtils.equals(url, currentVideoUrl)) return;
+                if (isCasting || castRequestPending) {
                     // A restored DLNA session owns playback. Preparation is asynchronous, so
                     // pause again here to prevent the local player from starting behind the TV.
                     GSYVideoManager.onPause();
@@ -284,15 +315,22 @@ public class GSYVVideoActivity extends BaseActivity implements
                 //开始播放了才能旋转和全屏
                 orientationUtils.setEnable(true);
                 isPlay = true;
+                playbackStarted = true;
+                playbackCompleted = false;
                 playRetryCount = 0;
                 playbackError.setVisibility(View.GONE);
+                playbackControls.applyAspect();
+                playbackControls.bindSubtitles();
+                invalidateOptionsMenu();
             }
 
             @Override
             public void onAutoComplete(String url, Object... objects) {
-                long duration = videoPlayer.getDuration();
-                libraryRepository.updateProgress(videoInfo, currentEpisode, duration, duration);
-                playbackProgressStore.clear(currentVideoUrl);
+                if (!TextUtils.equals(url, currentVideoUrl)) return;
+                playbackControls.clearSubtitles();
+                playbackCompleted = true;
+                long duration = videoPlayer.getCurrentPlayer().getDuration();
+                libraryRepository.updateProgress(videoInfo, currentEpisode, 0, duration);
                 if (videoInfo != null && currentEpisode > 0
                         && currentEpisode < videoInfo.getEpisodes()) {
                     playEpisode(currentEpisode + 1, false);
@@ -300,7 +338,17 @@ public class GSYVVideoActivity extends BaseActivity implements
             }
 
             @Override
+            public void onEnterFullscreen(String url, Object... objects) {
+                playbackControls.refreshSubtitles();
+                addFullscreenControls((NormalGSYVideoPlayer) videoPlayer.getCurrentPlayer());
+                playbackControls.applyAspect();
+            }
+
+            @Override
             public void onQuitFullscreen(String url, Object... objects) {
+                playbackControls.refreshSubtitles();
+                playbackControls.applyAspect();
+                updatePictureInPictureParams();
                 if (orientationUtils != null) {
                     orientationUtils.backToProtVideo();
                 }
@@ -308,11 +356,21 @@ public class GSYVVideoActivity extends BaseActivity implements
 
             @Override
             public void onPlayError(String url, Object... objects) {
+                if (!TextUtils.equals(url, currentVideoUrl)) return;
+                playbackControls.clearSubtitles();
                 if (!isCasting && !castRequestPending) {
                     if (playRetryCount < MAX_PLAY_RETRIES) {
                         long delayMs = 500L * (1L << playRetryCount);
                         playRetryCount++;
-                        videoPlayer.postDelayed(videoPlayer::startPlayLogic, delayMs);
+                        long generation = playbackGeneration;
+                        cancelPlaybackRetry();
+                        pendingRetry = () -> {
+                            if (generation == playbackGeneration && !isPause
+                                    && !isFinishing() && !isCasting && !castRequestPending) {
+                                videoPlayer.getCurrentPlayer().startPlayLogic();
+                            }
+                        };
+                        playbackHandler.postDelayed(pendingRetry, delayMs);
                     } else {
                         showToast(getString(R.string.video_play_failed));
                         playbackError.setVisibility(View.VISIBLE);
@@ -343,21 +401,18 @@ public class GSYVVideoActivity extends BaseActivity implements
         }
         fragments = new ArrayList<>();
         VideoIntroFragment videoIntroFragment = VideoIntroFragment.newInstance(videoInfo);
-        VideoCommentFragment videoCommentFragment = new VideoCommentFragment();
         fragments.add(videoIntroFragment);
         titles.add("简介");
         if (videoInfo.getEpisodes() > 0) {
             int requestedEpisode = getIntent().getIntExtra(EXTRA_EPISODE, 0);
             currentEpisode = requestedEpisode > 0
                     ? Math.max(1, Math.min(videoInfo.getEpisodes(), requestedEpisode))
-                    : playbackProgressStore.getLastEpisode(videoInfo.getVideo(),
-                    videoInfo.getEpisodes());
+                    : 1;
             episodeSelectionFragment = EpisodeSelectionFragment.newInstance(videoInfo);
             fragments.add(episodeSelectionFragment);
             titles.add("选集");
         }
-        fragments.add(videoCommentFragment);
-        titles.add("评论");
+        // No comment endpoint is configured; do not expose an empty, nonfunctional tab.
 
 
         MyAdapter adapter = new MyAdapter(this);
@@ -375,18 +430,19 @@ public class GSYVVideoActivity extends BaseActivity implements
             ImageLoader.load(this, videoInfo.getImg(), imageView);
             videoPlayer.setThumbImageView(imageView);
         }
-        if (!TextUtils.isEmpty(videoInfo.getVideo())) {
+        int requestedEpisode = getIntent().getIntExtra(EXTRA_EPISODE, 0);
+        libraryRepository.loadLastEpisode(videoInfo, savedEpisode -> {
+            if (isFinishing() || isDestroyed() || currentVideoUrl != null) return;
+            currentEpisode = videoInfo.getEpisodes() > 0
+                    ? Math.max(1, Math.min(videoInfo.getEpisodes(),
+                    requestedEpisode > 0 ? requestedEpisode : savedEpisode)) : 0;
             if (currentEpisode > 0) {
-                String title = videoInfo.getTitle() + " 第" + currentEpisode + "集";
-                toolbar.setTitle(title);
-                episodeSelectionFragment.setSelectedEpisode(currentEpisode);
-                playVideo(videoInfo.getEpisodeVideo(currentEpisode), title);
+                playEpisode(currentEpisode, false);
             } else {
                 playVideo(videoInfo.getVideo(), videoInfo.getTitle());
             }
-        }
-        libraryRepository.recordOpened(videoInfo, currentEpisode);
-        restoreRememberedCast();
+            libraryRepository.recordOpened(videoInfo, currentEpisode);
+        });
 
     }
 
@@ -396,12 +452,8 @@ public class GSYVVideoActivity extends BaseActivity implements
     }
 
     private void playEpisode(int episode, boolean savePrevious) {
-        if (savePrevious && !isCasting && !TextUtils.isEmpty(currentVideoUrl)) {
-            playbackProgressStore.save(currentVideoUrl,
-                    videoPlayer.getCurrentPositionWhenPlaying());
-        }
+        if (savePrevious) saveCurrentProgress();
         currentEpisode = episode;
-        playbackProgressStore.saveLastEpisode(videoInfo.getVideo(), episode);
         if (episodeSelectionFragment != null) {
             episodeSelectionFragment.setSelectedEpisode(episode);
         }
@@ -412,25 +464,79 @@ public class GSYVVideoActivity extends BaseActivity implements
 
     private void playVideo(String url, String title) {
         if (TextUtils.isEmpty(url)) {
+            playbackError.setVisibility(View.VISIBLE);
             return;
         }
+        playbackControls.dismiss();
+        playbackControls.clearSubtitles();
+        cancelPlaybackRetry();
+        if (resumeDialog != null) resumeDialog.dismiss();
+        long generation = ++playbackGeneration;
+        castStatusGeneration++;
+        castStatusHandler.removeCallbacks(castStatusPoller);
+        GSYVideoManager.onPause();
         currentVideoUrl = url;
         currentVideoTitle = title;
+        playbackStarted = false;
+        playbackCompleted = false;
+        castRequestPending = false;
         playRetryCount = 0;
-        long savedPosition = playbackProgressStore.getPosition(url);
-        if (savedPosition >= MIN_RESUME_POSITION_MS) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.resume_playback_title)
-                    .setMessage(getString(R.string.resume_playback_message,
-                            formatPlaybackPosition(savedPosition)))
-                    .setNegativeButton(R.string.play_from_start,
-                            (dialog, which) -> startVideo(url, title, 0))
-                    .setPositiveButton(R.string.continue_playing,
-                            (dialog, which) -> startVideo(url, title, savedPosition))
-                    .show();
-            return;
+        libraryRepository.loadProgress(videoInfo, currentEpisode, progress -> {
+            if (generation != playbackGeneration || isFinishing() || isDestroyed()) return;
+            Runnable localPlayback = () -> {
+                if (generation != playbackGeneration || isFinishing() || isDestroyed()) return;
+                if (progress.positionMs >= MIN_RESUME_POSITION_MS) {
+                    resumeDialog = new AlertDialog.Builder(this)
+                            .setTitle(R.string.resume_playback_title)
+                            .setMessage(getString(R.string.resume_playback_message,
+                                    formatPlaybackPosition(progress.positionMs)))
+                            .setNegativeButton(R.string.play_from_start, (dialog, which) -> {
+                                if (generation != playbackGeneration) return;
+                                libraryRepository.updateProgress(videoInfo, currentEpisode, 0, 0);
+                                startVideo(url, title, 0);
+                            })
+                            .setPositiveButton(R.string.continue_playing, (dialog, which) -> {
+                                if (generation == playbackGeneration) startVideo(url, title, progress.positionMs);
+                            })
+                            .show();
+                } else {
+                    startVideo(url, title, 0);
+                }
+            };
+            runWhenResumed(() -> {
+                if (generation != playbackGeneration) return;
+                if (isCasting && castDevice != null) {
+                    castCurrentVideo(castDevice, progress.positionMs);
+                } else {
+                    restoreRememberedCast(() -> runWhenResumed(localPlayback));
+                }
+            });
+        });
+    }
+
+    private void runWhenResumed(Runnable action) {
+        if (isFinishing() || isDestroyed()) return;
+        if (isPause) deferredPlayback = action;
+        else action.run();
+    }
+
+    private void cancelPlaybackRetry() {
+        if (pendingRetry != null) playbackHandler.removeCallbacks(pendingRetry);
+        pendingRetry = null;
+    }
+
+    private void saveCurrentProgress() {
+        if (videoInfo == null || TextUtils.isEmpty(currentVideoUrl)) return;
+        if (isCasting) {
+            if (TextUtils.equals(currentVideoUrl, castManager.getRememberedMediaUrl())
+                    && castStatusFailures == 0) {
+                libraryRepository.updateProgress(videoInfo, currentEpisode, castPositionMs, castDurationMs);
+            }
+        } else if (playbackStarted) {
+            libraryRepository.updateProgress(videoInfo, currentEpisode,
+                    playbackCompleted ? 0 : videoPlayer.getCurrentPlayer().getCurrentPositionWhenPlaying(),
+                    videoPlayer.getCurrentPlayer().getDuration());
         }
-        startVideo(url, title, 0);
     }
 
     private void startVideo(String url, String title, long positionMs) {
@@ -442,12 +548,14 @@ public class GSYVVideoActivity extends BaseActivity implements
     }
 
     private void playLocalVideo(String url, String title, long positionMs) {
+        playbackControls.clearSubtitles();
+        playbackCompleted = false;
         NormalGSYVideoPlayer target = (NormalGSYVideoPlayer) videoPlayer.getCurrentPlayer();
         target.setSeekOnStart(positionMs);
         target.setUp(url, true, null, title);
-        target.setSpeed(playbackSpeed, true);
+        target.setSpeed(playbackSettings.speed(), true);
         target.startPlayLogic();
-        addFullscreenEpisodeButton(target);
+        addFullscreenControls(target);
     }
 
     private String formatPlaybackPosition(long positionMs) {
@@ -470,6 +578,16 @@ public class GSYVVideoActivity extends BaseActivity implements
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        boolean local = !isCasting && !castRequestPending;
+        menu.findItem(R.id.action_speed).setVisible(local);
+        menu.findItem(R.id.action_video_aspect).setVisible(local);
+        menu.findItem(R.id.action_audio_track).setVisible(local && playbackControls.audioChoices().size() > 1);
+        menu.findItem(R.id.action_subtitles).setVisible(local && !playbackControls.subtitleChoices().isEmpty());
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_cast) {
             if (isCasting && castDevice != null) {
@@ -480,7 +598,19 @@ public class GSYVVideoActivity extends BaseActivity implements
             return true;
         }
         if (item.getItemId() == R.id.action_speed) {
-            showSpeedPicker();
+            playbackControls.showSpeedPicker();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_video_aspect) {
+            playbackControls.showAspectPicker();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_audio_track) {
+            playbackControls.showAudioPicker();
+            return true;
+        }
+        if (item.getItemId() == R.id.action_subtitles) {
+            playbackControls.showSubtitlePicker();
             return true;
         }
         if (item.getItemId() == R.id.action_favorite) {
@@ -502,34 +632,28 @@ public class GSYVVideoActivity extends BaseActivity implements
         return super.onOptionsItemSelected(item);
     }
 
-    private void showSpeedPicker() {
-        float[] values = {0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f};
-        String[] labels = new String[values.length];
-        int selected = 0;
-        for (int i = 0; i < values.length; i++) {
-            labels[i] = getString(R.string.speed_value,
-                    java.math.BigDecimal.valueOf(values[i]).stripTrailingZeros().toPlainString());
-            if (values[i] == playbackSpeed) {
-                selected = i;
-            }
-        }
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.playback_speed)
-                .setSingleChoiceItems(labels, selected, (dialog, which) -> {
-                    playbackSpeed = values[which];
-                    videoPlayer.getCurrentPlayer().setSpeedPlaying(playbackSpeed, true);
-                    dialog.dismiss();
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
+    private IjkExo2MediaPlayer currentExoPlayer() {
+        if (!playbackStarted || isCasting || castRequestPending) return null;
+        IPlayerManager manager = GSYVideoManager.instance().getCurPlayerManager();
+        if (manager == null || !(manager.getMediaPlayer() instanceof IjkExo2MediaPlayer)) return null;
+        return (IjkExo2MediaPlayer) manager.getMediaPlayer();
     }
+
+    private GsyCueOutput currentSubtitleOutput() {
+        if (currentExoPlayer() == null) return null;
+        IPlayerManager manager = GSYVideoManager.instance().getCurPlayerManager();
+        return manager instanceof SubtitlePlayerManager ? ((SubtitlePlayerManager) manager).subtitleOutput() : null;
+    }
+
+    private boolean pictureInPictureTransition;
 
     private void enterPictureInPicture() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             showToast(getString(R.string.picture_in_picture_unavailable));
             return;
         }
-        enterPictureInPictureMode(createPictureInPictureParams(false));
+        pictureInPictureTransition = true;
+        if (!enterPictureInPictureMode(createPictureInPictureParams(false))) pictureInPictureTransition = false;
     }
 
     private void updatePictureInPictureParams() {
@@ -558,7 +682,7 @@ public class GSYVVideoActivity extends BaseActivity implements
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Rect sourceRect = new Rect();
             videoPlayer.getGlobalVisibleRect(sourceRect);
-            builder.setAutoEnterEnabled(autoEnter)
+            builder.setAutoEnterEnabled(autoEnter && isPictureInPicturePlaybackActive())
                     .setSourceRectHint(sourceRect);
         }
         return builder.build();
@@ -589,21 +713,9 @@ public class GSYVVideoActivity extends BaseActivity implements
         updatePictureInPictureParams();
     }
 
-    private void addFullscreenEpisodeButton(NormalGSYVideoPlayer player) {
-        if (videoInfo == null || videoInfo.getEpisodes() <= 0 || player == videoPlayer
-                || player.findViewWithTag("episode_picker") != null) {
-            return;
-        }
-        Button button = new Button(this);
-        button.setTag("episode_picker");
-        button.setText(R.string.episode_picker);
-        button.setOnClickListener(view -> showFullscreenEpisodePicker());
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.TOP | Gravity.END);
-        int margin = (int) (12 * getResources().getDisplayMetrics().density);
-        params.setMargins(margin, margin, margin, margin);
-        player.addView(button, params);
+    private void addFullscreenControls(NormalGSYVideoPlayer player) {
+        playbackControls.addFullscreenControls(player,
+                videoInfo != null && videoInfo.getEpisodes() > 0, this::showFullscreenEpisodePicker);
     }
 
     private void showFullscreenEpisodePicker() {
@@ -626,6 +738,12 @@ public class GSYVVideoActivity extends BaseActivity implements
     public void onPictureInPictureModeChanged(boolean isInPictureInPictureMode,
                                                Configuration newConfig) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig);
+        pictureInPictureTransition = false;
+        playbackControls.dismiss();
+        ((PlaybackVideoPlayer) videoPlayer).setPictureInPictureUi(isInPictureInPictureMode);
+        if (videoPlayer.getCurrentPlayer() != videoPlayer) {
+            ((PlaybackVideoPlayer) videoPlayer.getCurrentPlayer()).setPictureInPictureUi(isInPictureInPictureMode);
+        }
         toolbar.setVisibility(isInPictureInPictureMode ? View.GONE : View.VISIBLE);
         viewpagertab.setVisibility(isInPictureInPictureMode ? View.GONE : View.VISIBLE);
         viewpager.setVisibility(isInPictureInPictureMode ? View.GONE : View.VISIBLE);
@@ -698,18 +816,44 @@ public class GSYVVideoActivity extends BaseActivity implements
         });
     }
 
-    private void restoreRememberedCast() {
+    private void restoreRememberedCast(Runnable localPlayback) {
         DlnaCastManager.Device remembered = castManager.getRememberedDevice();
-        if (remembered == null) {
+        String url = currentVideoUrl;
+        long generation = playbackGeneration;
+        if (remembered == null || !TextUtils.equals(url, castManager.getRememberedMediaUrl())) {
+            localPlayback.run();
             return;
         }
-        castDevice = remembered;
-        isCasting = true;
-        GSYVideoManager.onPause();
-        videoPlayer.post(GSYVideoManager::onPause);
-        updatePictureInPictureParams();
+        castManager.getPlaybackStatus(remembered, new DlnaCastManager.PlaybackStatusCallback() {
+            @Override public void onStatus(DlnaCastManager.PlaybackStatus status) {
+                if (generation != playbackGeneration || isFinishing() || isDestroyed()) return;
+                if (!status.ownsMedia(url) || !status.isActive()) {
+                    localPlayback.run();
+                    return;
+                }
+                castDevice = remembered;
+                isCasting = true;
+                castPositionMs = status.getPositionMs();
+                castDurationMs = status.getDurationMs();
+                castPlaying = status.isPlaying();
+                castStatusFailures = 0;
+                updatePictureInPictureParams();
+                updateCastMenu();
+                startCastStatusPolling();
+            }
+            @Override public void onError(String error) {
+                if (generation == playbackGeneration) localPlayback.run();
+            }
+        });
+    }
+
+    private void detachCastSession() {
+        isCasting = false;
+        castDevice = null;
+        castStatusGeneration++;
+        castStatusHandler.removeCallbacks(castStatusPoller);
         updateCastMenu();
-        startCastStatusPolling();
+        updatePictureInPictureParams();
     }
 
     private void castToDevice(DlnaCastManager.Device targetDevice) {
@@ -717,7 +861,10 @@ public class GSYVVideoActivity extends BaseActivity implements
             return;
         }
         long position = isCasting ? castPositionMs : videoPlayer.getCurrentPositionWhenPlaying();
+        boolean wasPlaying = isPictureInPicturePlaybackActive();
+        long generation = playbackGeneration;
         castRequestPending = true;
+        playbackControls.clearSubtitles();
         if (!isCasting) {
             GSYVideoManager.onPause();
         }
@@ -725,10 +872,13 @@ public class GSYVVideoActivity extends BaseActivity implements
                 new DlnaCastManager.CommandCallback() {
                     @Override
                     public void onSuccess() {
+                        if (generation != playbackGeneration) return;
                         castRequestPending = false;
                         isCasting = true;
                         castDevice = targetDevice;
                         castPositionMs = position;
+                        castDurationMs = 0;
+                        castStatusFailures = 0;
                         castPlaying = true;
                         startCastStatusPolling();
                         updateCastMenu();
@@ -738,8 +888,10 @@ public class GSYVVideoActivity extends BaseActivity implements
 
                     @Override
                     public void onError(String error) {
+                        if (generation != playbackGeneration) return;
                         castRequestPending = false;
-                        if (!isCasting) {
+                        playbackControls.bindSubtitles();
+                        if (!isCasting && wasPlaying && !isPause) {
                             GSYVideoManager.onResume();
                         }
                         showToast(getString(R.string.cast_failed, error));
@@ -748,13 +900,18 @@ public class GSYVVideoActivity extends BaseActivity implements
     }
 
     private void castCurrentVideo(DlnaCastManager.Device targetDevice, long position) {
+        long generation = playbackGeneration;
         castRequestPending = true;
+        playbackControls.clearSubtitles();
         castManager.cast(targetDevice, currentVideoUrl, position,
                 new DlnaCastManager.CommandCallback() {
                     @Override
                     public void onSuccess() {
+                        if (generation != playbackGeneration) return;
                         castRequestPending = false;
                         castPositionMs = position;
+                        castDurationMs = 0;
+                        castStatusFailures = 0;
                         castPlaying = true;
                         startCastStatusPolling();
                         showToast(getString(R.string.cast_connected, targetDevice.getName()));
@@ -762,6 +919,7 @@ public class GSYVVideoActivity extends BaseActivity implements
 
                     @Override
                     public void onError(String error) {
+                        if (generation != playbackGeneration) return;
                         castRequestPending = false;
                         showToast(getString(R.string.cast_failed, error));
                     }
@@ -851,6 +1009,7 @@ public class GSYVVideoActivity extends BaseActivity implements
     }
 
     private void startCastStatusPolling() {
+        castStatusGeneration++;
         castStatusHandler.removeCallbacks(castStatusPoller);
         castStatusHandler.post(castStatusPoller);
     }
@@ -860,11 +1019,8 @@ public class GSYVVideoActivity extends BaseActivity implements
         boolean sameMedia = TextUtils.equals(currentVideoUrl,
                 castManager.getRememberedMediaUrl());
         long resumePosition = sameMedia ? castPositionMs : 0;
-        isCasting = false;
-        castDevice = null;
-        updateCastMenu();
-        updatePictureInPictureParams();
-        castStatusHandler.removeCallbacks(castStatusPoller);
+        saveCurrentProgress();
+        detachCastSession();
         if (previousDevice != null) {
             castManager.stop(previousDevice, null);
         }
@@ -874,6 +1030,11 @@ public class GSYVVideoActivity extends BaseActivity implements
     }
 
     private void updateCastMenu() {
+        playbackControls.dismiss();
+        playbackControls.bindSubtitles();
+        if (toolbar.getMenu().findItem(R.id.action_speed) != null) {
+            onPrepareOptionsMenu(toolbar.getMenu());
+        }
         if (castMenuItem != null) {
             castMenuItem.setIcon(isCasting
                     ? R.drawable.ic_cast_connected : R.drawable.ic_cast);
@@ -890,51 +1051,87 @@ public class GSYVVideoActivity extends BaseActivity implements
     }
 
     private void downloadCurrentVideo() {
-        if (TextUtils.isEmpty(currentVideoUrl)) {
-            showToast(getString(R.string.video_missing));
-            return;
+        if (TextUtils.isEmpty(currentVideoUrl) || downloadProbe != null || pendingDownload != null) return;
+        showToast(getString(R.string.download_identifying));
+        try {
+            downloadProbe = VideoDownloads.get(this).prepare(currentVideoUrl, currentVideoTitle,
+                    new VideoDownloads.RequestCallback() {
+                        @Override public void onReady(DownloadRequest request) {
+                            downloadProbe = null;
+                            if (isFinishing() || isDestroyed()) return;
+                            pendingDownload = request;
+                            requestDownloadNotification();
+                        }
+                        @Override public void onError(String message) {
+                            downloadProbe = null;
+                            if (!isFinishing() && !isDestroyed()) showToast(message);
+                        }
+                    });
+        } catch (IllegalArgumentException error) {
+            showToast(getString(R.string.download_probe_failed));
         }
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P
-                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            return;
-        }
-        enqueueCurrentVideoDownload();
     }
 
-    private void enqueueCurrentVideoDownload() {
+    private void requestDownloadNotification() {
+        if (isPause || pendingDownload == null) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                && !getPreferences(MODE_PRIVATE).getBoolean("download_notification_asked", false)) {
+            getPreferences(MODE_PRIVATE).edit().putBoolean("download_notification_asked", true).apply();
+            downloadNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
+        } else enqueuePendingDownload();
+    }
+
+    private void enqueuePendingDownload() {
+        if (isPause || pendingDownload == null || isFinishing() || isDestroyed()) return;
         try {
-            String name = currentVideoTitle == null ? "video" : currentVideoTitle;
-            name = name.replaceAll("[\\\\/:*?\"<>|]", "_") + ".mp4";
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(currentVideoUrl))
-                    .setTitle(currentVideoTitle)
-                    .setNotificationVisibility(
-                            DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                    .setDestinationInExternalPublicDir(Environment.DIRECTORY_MOVIES, name);
-            DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-            manager.enqueue(request);
+            DownloadService.sendAddDownload(this, VideoDownloadService.class, pendingDownload, true);
             showToast(getString(R.string.download_started));
+            pendingDownload = null;
         } catch (RuntimeException error) {
+            pendingDownload = null;
             showToast(getString(R.string.download_failed));
         }
     }
 
     @Override
-    protected void onPause() {
-        castStatusHandler.removeCallbacks(castStatusPoller);
-        if (!isCasting && !TextUtils.isEmpty(currentVideoUrl)) {
-            long position = videoPlayer.getCurrentPositionWhenPlaying();
-            long duration = videoPlayer.getDuration();
-            playbackProgressStore.save(currentVideoUrl, position);
-            libraryRepository.updateProgress(videoInfo, currentEpisode, position, duration);
-        } else if (isCasting) {
-            libraryRepository.updateProgress(videoInfo, currentEpisode,
-                    castPositionMs, castDurationMs);
+    protected void onStart() {
+        super.onStart();
+        playbackHandler.postDelayed(progressSaver, 5000);
+    }
+
+    @Override
+    protected void onStop() {
+        playbackControls.dismiss();
+        if (!isPause) {
+            // PiP remains active through onPause, but its dismissal makes the Activity invisible.
+            resumeLocalOnResume = !isCasting && isPictureInPicturePlaybackActive();
+            GSYVideoManager.onPause();
+            isPause = true;
         }
+        saveCurrentProgress();
+        playbackHandler.removeCallbacks(progressSaver);
+        cancelPlaybackRetry();
+        super.onStop();
+    }
+
+    @Override protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !isCasting && isPictureInPicturePlaybackActive()) {
+            pictureInPictureTransition = true;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        castStatusGeneration++;
+        castStatusHandler.removeCallbacks(castStatusPoller);
+        cancelPlaybackRetry();
+        saveCurrentProgress();
         super.onPause();
         boolean inPictureInPicture = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 && isInPictureInPictureMode();
+        resumeLocalOnResume = !isCasting && isPictureInPicturePlaybackActive();
         if (!inPictureInPicture) {
             GSYVideoManager.onPause();
         }
@@ -944,16 +1141,33 @@ public class GSYVVideoActivity extends BaseActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        if (!isCasting) {
-            GSYVideoManager.onResume();
-        } else {
-            startCastStatusPolling();
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !isInPictureInPictureMode()) {
+            pictureInPictureTransition = false;
         }
         isPause = false;
+        requestDownloadNotification();
+        if (!isCasting && playbackStarted && !playbackCompleted && resumeLocalOnResume) {
+            GSYVideoManager.onResume();
+        } else if (isCasting) {
+            startCastStatusPolling();
+        }
+        resumeLocalOnResume = false;
+        if (deferredPlayback != null) {
+            Runnable action = deferredPlayback;
+            deferredPlayback = null;
+            action.run();
+        }
     }
 
     @Override
     protected void onDestroy() {
+        playbackControls.dismiss();
+        playbackControls.clearSubtitles();
+        playbackGeneration++;
+        deferredPlayback = null;
+        if (downloadProbe != null) downloadProbe.cancel();
+        playbackHandler.removeCallbacksAndMessages(null);
+        if (resumeDialog != null) resumeDialog.dismiss();
         // DLNA 播放由电视独立维持；离开页面时仅释放本页资源，不发送 Stop。
         castManager.release();
         castStatusHandler.removeCallbacksAndMessages(null);
@@ -975,7 +1189,9 @@ public class GSYVVideoActivity extends BaseActivity implements
     public void onConfigurationChanged(Configuration newConfig) {
         //如果旋转了就全屏
         boolean backUpIsPlay = isPlay;
-        if (!isPause && !isCasting && videoPlayer.getVisibility() == View.VISIBLE) {
+        boolean inPictureInPicture = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isInPictureInPictureMode();
+        if (!pictureInPictureTransition && !inPictureInPicture && !isPause && !isCasting
+                && videoPlayer.getVisibility() == View.VISIBLE) {
             if (isADStarted()) {
                 isPlay = false;
                 videoPlayer.getCurrentPlayer().onConfigurationChanged(this, newConfig, orientationUtils, true, true);

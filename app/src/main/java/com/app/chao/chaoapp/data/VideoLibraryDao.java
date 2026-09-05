@@ -15,6 +15,15 @@ public interface VideoLibraryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void save(VideoRecordEntity record);
 
+    @Query("SELECT * FROM video_progress WHERE videoKey = :key AND episode = :episode LIMIT 1")
+    VideoProgressEntity progress(String key, int episode);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void saveProgress(VideoProgressEntity progress);
+
+    @Query("DELETE FROM video_progress")
+    void clearProgress();
+
     @Query("SELECT * FROM video_records WHERE favorite = 1 ORDER BY favoriteAt DESC")
     List<VideoRecordEntity> favorites();
 

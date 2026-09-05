@@ -18,6 +18,7 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        com.app.chao.chaoapp.net.ApiResponseLogStore.initialize(this);
         instance = this;
     }
 

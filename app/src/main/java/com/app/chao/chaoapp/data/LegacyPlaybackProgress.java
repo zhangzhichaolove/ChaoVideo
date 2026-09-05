@@ -1,17 +1,18 @@
-package com.app.chao.chaoapp.ui.activity;
+package com.app.chao.chaoapp.data;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.annotation.SuppressLint;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-final class PlaybackProgressStore {
+final class LegacyPlaybackProgress {
     private static final String PREFERENCES = "video_playback_progress";
     private final SharedPreferences preferences;
 
-    PlaybackProgressStore(Context context) {
+    LegacyPlaybackProgress(Context context) {
         preferences = context.getApplicationContext()
                 .getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
     }
@@ -23,17 +24,10 @@ final class PlaybackProgressStore {
         return preferences.getLong(key(videoUrl), 0);
     }
 
-    void save(String videoUrl, long positionMs) {
-        if (videoUrl == null || positionMs <= 0) {
-            return;
-        }
-        preferences.edit().putLong(key(videoUrl), positionMs).apply();
-    }
-
-    void clear(String videoUrl) {
-        if (videoUrl != null) {
-            preferences.edit().remove(key(videoUrl)).apply();
-        }
+    @SuppressLint("ApplySharedPref") // This database-executor barrier must precede clearing Room history.
+    void clear() {
+        // Called on the database executor before clearing Room history.
+        preferences.edit().clear().commit();
     }
 
     int getLastEpisode(String videoUrl, int episodeCount) {
@@ -42,12 +36,6 @@ final class PlaybackProgressStore {
         }
         int saved = preferences.getInt("episode_" + key(videoUrl), 1);
         return Math.max(1, Math.min(saved, episodeCount));
-    }
-
-    void saveLastEpisode(String videoUrl, int episode) {
-        if (videoUrl != null && episode > 0) {
-            preferences.edit().putInt("episode_" + key(videoUrl), episode).apply();
-        }
     }
 
     private static String key(String videoUrl) {

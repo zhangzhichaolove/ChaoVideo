@@ -160,8 +160,8 @@ public final class DlnaCastManager {
                 postPlaybackStatus(callback, new PlaybackStatus(
                         parsePosition(findXmlValue(positionResponse, "RelTime")),
                         parsePosition(findXmlValue(positionResponse, "TrackDuration")),
-                        "PLAYING".equalsIgnoreCase(
-                                findXmlValue(transportResponse, "CurrentTransportState"))));
+                        findXmlValue(transportResponse, "CurrentTransportState"),
+                        findXmlValue(positionResponse, "TrackURI")));
             } catch (Exception error) {
                 postPlaybackError(callback, readableError(error));
             }
@@ -736,12 +736,14 @@ public final class DlnaCastManager {
     public static final class PlaybackStatus {
         private final long positionMs;
         private final long durationMs;
-        private final boolean playing;
+        private final String state;
+        private final String mediaUrl;
 
-        PlaybackStatus(long positionMs, long durationMs, boolean playing) {
+        PlaybackStatus(long positionMs, long durationMs, String state, String mediaUrl) {
             this.positionMs = positionMs;
             this.durationMs = durationMs;
-            this.playing = playing;
+            this.state = state;
+            this.mediaUrl = mediaUrl;
         }
 
         public long getPositionMs() {
@@ -753,7 +755,20 @@ public final class DlnaCastManager {
         }
 
         public boolean isPlaying() {
-            return playing;
+            return "PLAYING".equalsIgnoreCase(state);
+        }
+
+        public boolean ownsMedia(String url) {
+            return url != null && !url.isEmpty() && url.equals(mediaUrl);
+        }
+
+        public boolean hasMedia() {
+            return mediaUrl != null && !mediaUrl.isEmpty();
+        }
+
+        public boolean isActive() {
+            return isPlaying() || "PAUSED_PLAYBACK".equalsIgnoreCase(state)
+                    || "TRANSITIONING".equalsIgnoreCase(state);
         }
     }
 

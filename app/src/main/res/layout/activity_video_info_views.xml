@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
-        <com.shuyu.gsyvideoplayer.video.NormalGSYVideoPlayer
+        <com.app.chao.chaoapp.playback.PlaybackVideoPlayer
             android:id="@+id/detail_player"
             android:layout_width="match_parent"
             android:layout_height="200dp" />
@@ -37,7 +37,7 @@
                 android:textColor="@android:color/white" />
 
             <Button
-                android:id="@+id/playback_retry"
+                android:id="@+id/playback_retry" style="@style/Widget.AppButton.Primary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"

@@ -2,15 +2,21 @@ package com.app.chao.chaoapp.data;
 
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
+import androidx.room.ColumnInfo;
 import androidx.room.PrimaryKey;
 
 import com.app.chao.chaoapp.bean.VideoRes;
+import com.google.gson.Gson;
 
 @Entity(tableName = "video_records")
 public class VideoRecordEntity {
     @PrimaryKey
     @NonNull
     public String videoKey = "";
+    @NonNull
+    @ColumnInfo(defaultValue = "'legacy'")
+    public String sourceId = VideoSource.LEGACY;
+    public String sourceBaseUrl;
     public String videoId;
     public String title;
     public String star;
@@ -26,6 +32,7 @@ public class VideoRecordEntity {
     public String videoUrl;
     public String videoTime;
     public int episodes;
+    public String episodeUrlsJson;
     public boolean favorite;
     public long favoriteAt;
     public long lastWatchedAt;
@@ -37,6 +44,8 @@ public class VideoRecordEntity {
     public static VideoRecordEntity from(VideoRes video) {
         VideoRecordEntity result = new VideoRecordEntity();
         result.videoKey = keyOf(video);
+        result.sourceId = video == null ? VideoSource.LEGACY : video.getSourceId();
+        result.sourceBaseUrl = video == null ? null : video.getSourceBaseUrl();
         result.videoId = video == null ? null : video.getId();
         result.title = video == null ? null : video.getTitle();
         result.star = video == null ? null : video.getStar();
@@ -52,6 +61,8 @@ public class VideoRecordEntity {
         result.videoUrl = video == null ? null : video.getVideo();
         result.videoTime = video == null ? null : video.getVideoTime();
         result.episodes = video == null ? 0 : video.getEpisodes();
+        result.episodeUrlsJson = video == null || video.getEpisodeUrls() == null
+                ? null : new Gson().toJson(video.getEpisodeUrls());
         return result;
     }
 
@@ -72,11 +83,15 @@ public class VideoRecordEntity {
         result.setVideo(videoUrl);
         result.setVideoTime(videoTime);
         result.setEpisodes(episodes);
+        result.setEpisodeUrls(episodeUrlsJson == null ? null : new Gson().fromJson(episodeUrlsJson, String[].class));
         result.setLocalProgress(lastEpisode, positionMs, durationMs);
+        result.restoreLibrarySource(sourceId, sourceBaseUrl, videoKey);
         return result;
     }
 
     public void mergeMetadata(VideoRecordEntity source) {
+        sourceId = source.sourceId;
+        sourceBaseUrl = source.sourceBaseUrl;
         videoId = source.videoId;
         title = source.title;
         star = source.star;
@@ -92,14 +107,18 @@ public class VideoRecordEntity {
         videoUrl = source.videoUrl;
         videoTime = source.videoTime;
         episodes = source.episodes;
+        episodeUrlsJson = source.episodeUrlsJson;
     }
 
     @NonNull
     public static String keyOf(VideoRes video) {
+        if (video != null && video.getStoredLibraryKey() != null) return video.getStoredLibraryKey();
+        String source = video == null ? VideoSource.LEGACY : video.getSourceId();
+        String prefix = VideoSource.LEGACY.equals(source) ? "" : source + ":";
         if (video != null && video.getId() != null && !video.getId().trim().isEmpty()) {
-            return "id:" + video.getId().trim();
+            return prefix + "id:" + video.getId().trim();
         }
-        String url = video == null ? null : video.video;
-        return "url:" + (url == null ? "" : url);
+        String url = video == null ? null : video.getVideo();
+        return prefix + "url:" + (url == null ? "" : url);
     }
 }

@@ -21,6 +21,10 @@ import io.reactivex.rxjava3.functions.Consumer;
 
 public class FragmentOnePresenter extends RxPresenter<FragmentOneContract.View>
         implements FragmentOneContract.Presenter {
+    private Disposable contentRequest;
+    private Disposable bannerRequest;
+    private int contentGeneration;
+    private int bannerGeneration;
     public FragmentOnePresenter(FragmentOneContract.View view) {
         attachView(Preconditions.checkNotNull(view));
         mView.setPresenter(this);
@@ -34,43 +38,55 @@ public class FragmentOnePresenter extends RxPresenter<FragmentOneContract.View>
 
     @Override
     public void showContent(int page) {
+        int generation = ++contentGeneration;
+        if (contentRequest != null) contentRequest.dispose();
         Disposable rxSubscription = RetrofitHelper.getVideoApi().getVideoList(page)
                 .compose(RxUtil.<VideoHttpResponse<PageInfo<List<VideoRes>>>>rxSchedulerHelper())
                 .compose(RxUtil.<PageInfo<List<VideoRes>>>handleResult())
+                .defaultIfEmpty(new PageInfo<>())
                 .subscribe(new Consumer<PageInfo<List<VideoRes>>>() {
                     @Override
                     public void accept(final PageInfo<List<VideoRes>> res) {
-                        if (res != null) {
-                            mView.showContent(page, res.getRecords());
+                        if (mView != null && generation == contentGeneration && res != null) {
+                            mView.showContent(page, res.getRecords() == null
+                                    ? java.util.Collections.emptyList() : res.getRecords());
                         }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) {
-                        mView.refreshFailed(StringUtils.getErrorMsg(throwable.getMessage()));
+                        if (mView != null && generation == contentGeneration) {
+                            mView.refreshFailed(StringUtils.getErrorMsg(throwable.getMessage()));
+                        }
                     }
                 });
+        contentRequest = rxSubscription;
         addSubscribe(rxSubscription);
     }
 
     @Override
     public void showBanner() {
+        int generation = ++bannerGeneration;
+        if (bannerRequest != null) bannerRequest.dispose();
         Disposable rxSubscription = RetrofitHelper.getVideoApi().getVideoBanner()
                 .compose(RxUtil.<VideoHttpResponse<List<VideoRes>>>rxSchedulerHelper())
                 .compose(RxUtil.<List<VideoRes>>handleResult())
                 .subscribe(new Consumer<List<VideoRes>>() {
                     @Override
                     public void accept(final List<VideoRes> res) {
-                        if (res != null) {
+                        if (mView != null && generation == bannerGeneration && res != null) {
                             mView.showBanner(res);
                         }
                     }
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) {
-                        mView.refreshFailed(StringUtils.getErrorMsg(throwable.getMessage()));
+                        if (mView != null && generation == bannerGeneration) {
+                            mView.showBanner(java.util.Collections.emptyList());
+                        }
                     }
                 });
+        bannerRequest = rxSubscription;
         addSubscribe(rxSubscription);
     }
 }

@@ -106,6 +106,10 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
                 startActivity(VideoLibraryActivity.historyIntent(this));
                 return true;
             }
+            if (item.getItemId() == R.id.action_downloads) {
+                startActivity(new Intent(this, com.app.chao.chaoapp.ui.activity.DownloadsActivity.class));
+                return true;
+            }
             if (item.getItemId() == R.id.action_personal) {
                 startActivity(new Intent(this, PersonalCoreActivity.class));
                 return true;
@@ -256,6 +260,7 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     protected void onDestroy() {
+        if (connectionTest != null) connectionTest.cancel();
         if (castManager != null) {
             castManager.release();
         }
@@ -264,6 +269,8 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
         }
         super.onDestroy();
     }
+
+    private okhttp3.Call connectionTest;
 
     private void showApiAddressDialog() {
         EditText input = new EditText(this);
@@ -279,9 +286,9 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
         content.addView(input, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         LinearLayout actions = new LinearLayout(this);
-        Button restore = new Button(this);
+        Button restore = new androidx.appcompat.widget.AppCompatButton(this);
         restore.setText(R.string.restore_default);
-        Button test = new Button(this);
+        Button test = new androidx.appcompat.widget.AppCompatButton(this);
         test.setText(R.string.test_connection);
         actions.addView(restore, new LinearLayout.LayoutParams(0,
                 LinearLayout.LayoutParams.WRAP_CONTENT, 1));
@@ -295,6 +302,10 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
                 .setNegativeButton(R.string.cancel, null)
                 .setPositiveButton(R.string.save, null)
                 .create();
+        dialog.setOnDismissListener(ignored -> {
+            if (connectionTest != null) connectionTest.cancel();
+            connectionTest = null;
+        });
         dialog.setOnShowListener(ignored -> {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
                     if (!ApiAddressManager.saveBaseUrl(input.getText().toString())) {
@@ -315,9 +326,12 @@ public class HomeActivity extends BaseActivity implements View.OnClickListener {
             test.setOnClickListener(view -> {
                 test.setEnabled(false);
                 test.setText(R.string.testing_connection);
-                ApiAddressManager.testConnection(input.getText().toString(), (reachable, detail) -> {
+                String testedAddress = input.getText().toString();
+                connectionTest = ApiAddressManager.testConnection(testedAddress, (reachable, detail) -> {
+                    if (isDestroyed() || !dialog.isShowing()) return;
                     test.setEnabled(true);
                     test.setText(R.string.test_connection);
+                    if (!testedAddress.equals(input.getText().toString())) return;
                     showToast(getString(reachable
                                     ? R.string.connection_success : R.string.connection_failed,
                             detail == null ? getString(R.string.unknown_error) : detail));

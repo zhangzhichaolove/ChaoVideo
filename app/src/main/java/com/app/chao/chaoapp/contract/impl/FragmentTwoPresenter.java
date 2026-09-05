@@ -1,20 +1,23 @@
 package com.app.chao.chaoapp.contract.impl;
 
 import com.app.chao.chaoapp.base.RxPresenter;
+import com.app.chao.chaoapp.bean.PageInfo;
+import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.FragmentTwoContract;
 import com.app.chao.chaoapp.net.RetrofitHelper;
+import com.app.chao.chaoapp.utils.PageRequestTracker;
 import com.app.chao.chaoapp.utils.RxUtil;
+import com.app.chao.chaoapp.utils.StringUtils;
+
+import java.util.Collections;
+import java.util.List;
 
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
-
-/**
- * Created by Chao on 2017/3/20.
- */
 
 public class FragmentTwoPresenter extends RxPresenter<FragmentTwoContract.View>
         implements FragmentTwoContract.Presenter {
-    int page = 1;
+    private final PageRequestTracker requests = new PageRequestTracker();
+    private String query = "";
 
     public FragmentTwoPresenter(FragmentTwoContract.View view) {
         attachView(view);
@@ -23,42 +26,48 @@ public class FragmentTwoPresenter extends RxPresenter<FragmentTwoContract.View>
 
     @Override
     public void start() {
-        Disposable rxSubscription = RetrofitHelper.getVideoApi().getTypeVideoList(page, mView.getType())
+        onRefresh();
+    }
+
+    private void load(PageRequestTracker.Request request) {
+        if (request == null || mView == null) return;
+        Disposable subscription = RetrofitHelper.getVideoApi().getTypeVideoList(request.page, query)
                 .compose(RxUtil.rxSchedulerHelper())
                 .compose(RxUtil.handleResult())
-                .subscribe(res -> {
-                    if (res != null) {
-                        if (page == 1) {
-                            mView.showContent(res.getRecords());
-                        } else {
-                            mView.showMoreContent(res.getRecords());
-                        }
+                .defaultIfEmpty(new PageInfo<>())
+                .subscribe(result -> {
+                    List<VideoRes> records = result.getRecords() == null
+                            ? Collections.emptyList() : result.getRecords();
+                    if (mView == null || !requests.complete(request, !records.isEmpty())) return;
+                    if (request.page == 1) {
+                        mView.showContent(records);
+                    } else {
+                        mView.showMoreContent(records);
                     }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) {
-                        if (page > 1) {
-                            page--;
-                        }
-                        if (mView != null) {
-                            mView.refreshFailed(com.app.chao.chaoapp.utils.StringUtils
-                                    .getErrorMsg(throwable.getMessage()));
-                        }
+                }, error -> {
+                    if (mView != null && requests.fail(request)) {
+                        mView.refreshFailed(StringUtils.getErrorMsg(error.getMessage()));
                     }
                 });
-        addSubscribe(rxSubscription);
-
+        addSubscribe(subscription);
     }
 
     @Override
     public void onRefresh() {
-        page = 1;
-        start();
+        if (mView == null) return;
+        query = mView.getType();
+        unSubscribe();
+        load(requests.refresh());
     }
 
     @Override
     public void loadMore() {
-        page++;
-        start();
+        load(requests.next());
+    }
+
+    @Override
+    public void detachView() {
+        requests.cancel();
+        super.detachView();
     }
 }

@@ -31,6 +31,18 @@ public final class StatusBarUtils {
         applyTopInset(view, view);
     }
 
+    /** A full media page needs gesture-bar and landscape cutout padding as well as toolbar insets. */
+    public static void applyPageInsets(View root, View toolbar) {
+        applyTopInset(toolbar);
+        ViewCompat.setOnApplyWindowInsetsListener(root, (view, insets) -> {
+            androidx.core.graphics.Insets bars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            view.setPadding(bars.left, 0, bars.right, bars.bottom);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(root);
+    }
+
     public static void applyTopInset(View insetSource, View target) {
         int initialPaddingTop = target.getPaddingTop();
         int initialHeight = target.getLayoutParams().height;

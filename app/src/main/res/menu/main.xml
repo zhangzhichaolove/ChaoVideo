@@ -17,4 +17,6 @@
         android:icon="@mipmap/xinxi"
         android:title="@string/watch_history" />
 
+    <item android:id="@+id/action_downloads" android:icon="@android:drawable/stat_sys_download_done"
+        android:title="@string/downloads_title" />
 </menu>

@@ -13,6 +13,14 @@
 -keepclassmembers class com.app.chao.chaoapp.bean.** { <fields>; }
 -keepattributes Signature,*Annotation*
 
+# GSY factories invoke Class.newInstance(), and fullscreen uses the boxed-Boolean constructor.
+# Keep only the selected engines and the constructor actually used by this app.
+-keep,allowobfuscation class com.app.chao.chaoapp.playback.SubtitlePlayerManager { public <init>(); }
+-keep,allowobfuscation class tv.danmaku.ijk.media.exo2.ExoPlayerCacheManager { public <init>(); }
+-keep class com.app.chao.chaoapp.playback.PlaybackVideoPlayer {
+    public <init>(android.content.Context, java.lang.Boolean);
+}
+
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface
 # class:

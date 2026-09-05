@@ -70,7 +70,11 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         listStateProgress = findViewById(R.id.list_state_progress);
         listStateMessage = findViewById(R.id.list_state_message);
         listStateRetry = findViewById(R.id.list_state_retry);
-        listStateRetry.setOnClickListener(view -> requestSearch());
+        listStateRetry.setOnClickListener(view -> {
+            listStateProgress.setVisibility(View.VISIBLE);
+            listStateRetry.setVisibility(View.GONE);
+            mPresenter.loadMore();
+        });
         libraryRepository = VideoLibraryRepository.get(this);
         StatusBarUtils.setTranslucent(this);
 
@@ -221,6 +225,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
 
     @Override
     public void showMoreContent(List<VideoRes> list) {
+        listState.setVisibility(View.GONE);
         if (list != null) {
             adapter.addAll(list);
         }
@@ -231,6 +236,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     @Override
     public void refreshFailed(String message) {
         close();
+        endlessScrollListener.finish(true);
         listState.setVisibility(View.VISIBLE);
         listStateProgress.setVisibility(View.GONE);
         listStateRetry.setVisibility(View.VISIBLE);

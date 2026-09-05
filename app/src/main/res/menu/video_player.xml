@@ -16,6 +16,15 @@
         android:title="@string/playback_speed"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_video_aspect"
+        android:title="@string/video_aspect"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_audio_track"
+        android:title="@string/audio_track"
+        android:visible="false"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_picture_in_picture"
         android:title="@string/picture_in_picture"
         app:showAsAction="never" />
@@ -23,4 +32,5 @@
         android:id="@+id/action_download_video"
         android:title="@string/download_video"
         app:showAsAction="never" />
+    <item android:id="@+id/action_subtitles" android:title="@string/subtitles" android:visible="false" app:showAsAction="never" />
 </menu>

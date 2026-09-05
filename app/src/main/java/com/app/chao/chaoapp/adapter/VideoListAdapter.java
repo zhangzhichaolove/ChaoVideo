@@ -13,8 +13,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.bean.VideoRes;
+import com.app.chao.chaoapp.data.VideoRecordEntity;
 import com.app.chao.chaoapp.databinding.ItemRelatedBinding;
 import com.app.chao.chaoapp.utils.ImageLoader;
+import com.app.chao.chaoapp.utils.VideoSourceLabels;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,8 +26,13 @@ import java.util.Objects;
 /** Grid adapter backed by DiffUtil so list refreshes only rebind changed videos. */
 public final class VideoListAdapter extends ListAdapter<VideoRes, VideoListAdapter.Holder> {
     private OnItemClickListener listener;
+    private final boolean showSources;
 
     public VideoListAdapter() {
+        this(false);
+    }
+
+    public VideoListAdapter(boolean showSources) {
         super(new DiffUtil.ItemCallback<VideoRes>() {
             @Override
             public boolean areItemsTheSame(@NonNull VideoRes oldItem,
@@ -43,13 +50,11 @@ public final class VideoListAdapter extends ListAdapter<VideoRes, VideoListAdapt
                         && oldItem.getLocalDurationMs() == newItem.getLocalDurationMs();
             }
         });
+        this.showSources = showSources;
     }
 
     private static String key(VideoRes video) {
-        if (video.getId() != null && !video.getId().trim().isEmpty()) {
-            return "id:" + video.getId().trim();
-        }
-        return "url:" + Objects.toString(video.video, "");
+        return VideoRecordEntity.keyOf(video);
     }
 
     @NonNull
@@ -63,6 +68,12 @@ public final class VideoListAdapter extends ListAdapter<VideoRes, VideoListAdapt
     public void onBindViewHolder(@NonNull Holder holder, int position) {
         VideoRes video = getItem(position);
         holder.title.setText(video.getTitle());
+        holder.source.setVisibility(showSources ? View.VISIBLE : View.GONE);
+        if (showSources) {
+            String source = VideoSourceLabels.label(holder.itemView.getContext(), video);
+            holder.source.setText(VideoSourceLabels.compact(holder.itemView.getContext(), video));
+            holder.source.setContentDescription(source);
+        }
         if (video.getLocalProgressMs() > 0) {
             int percent = video.getLocalDurationMs() > 0
                     ? (int) Math.min(100, video.getLocalProgressMs() * 100
@@ -108,12 +119,22 @@ public final class VideoListAdapter extends ListAdapter<VideoRes, VideoListAdapt
     final class Holder extends RecyclerView.ViewHolder {
         final TextView title;
         final TextView progress;
+        final TextView source;
         final ImageView cover;
 
         Holder(ItemRelatedBinding binding) {
             super(binding.getRoot());
             title = binding.tvTitle;
             progress = binding.tvProgress;
+            source = binding.tvSource;
+            if (showSources) {
+                android.content.res.TypedArray attributes = itemView.getContext().obtainStyledAttributes(
+                        new int[]{android.R.attr.textColorPrimary});
+                int colors = attributes.getColor(0, android.graphics.Color.BLACK);
+                attributes.recycle();
+                title.setTextColor(colors);
+                progress.setTextColor(colors);
+            }
             cover = binding.imgVideo;
             cover.setScaleType(ImageView.ScaleType.FIT_XY);
             itemView.setOnClickListener(view -> {

@@ -15,6 +15,8 @@ import com.app.chao.chaoapp.R;
 import com.app.chao.chaoapp.adapter.VideoListAdapter;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.data.VideoLibraryRepository;
+import com.app.chao.chaoapp.data.VideoSource;
+import com.app.chao.chaoapp.utils.VideoSourceLabels;
 import com.app.chao.chaoapp.utils.GridSpacingItemDecoration;
 import com.app.chao.chaoapp.utils.JumpUtil;
 import com.app.chao.chaoapp.utils.ScreenUtil;
@@ -64,7 +66,7 @@ public class VideoLibraryActivity extends BaseActivity {
         GridLayoutManager manager = new GridLayoutManager(this, 3);
         list.setLayoutManager(manager);
         list.addItemDecoration(new GridSpacingItemDecoration(ScreenUtil.dip2px(this, 8)));
-        adapter = new VideoListAdapter();
+        adapter = new VideoListAdapter(true);
         list.setAdapter(adapter);
         adapter.setOnItemClickListener(new VideoListAdapter.OnItemClickListener() {
             @Override
@@ -120,6 +122,11 @@ public class VideoLibraryActivity extends BaseActivity {
 
     private void showItems(List<VideoRes> videos) {
         adapter.setData(videos);
+        boolean legacy = false;
+        for (VideoRes video : videos) {
+            if (VideoSource.LEGACY.equals(video.getSourceId())) legacy = true;
+        }
+        findViewById(R.id.library_source_notice).setVisibility(legacy ? View.VISIBLE : View.GONE);
         emptyView.setVisibility(videos.isEmpty() ? View.VISIBLE : View.GONE);
     }
 
@@ -127,7 +134,7 @@ public class VideoLibraryActivity extends BaseActivity {
         repository.isFavorite(video, favorite -> {
             String action = getString(favorite ? R.string.remove_favorite : R.string.add_favorite);
             new AlertDialog.Builder(this)
-                    .setTitle(video.getTitle())
+                    .setTitle(video.getTitle() + "\n" + VideoSourceLabels.label(this, video))
                     .setItems(new String[]{action}, (dialog, which) ->
                             repository.toggleFavorite(video, saved -> {
                                 showToast(getString(saved

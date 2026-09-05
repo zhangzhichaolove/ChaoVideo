@@ -14,11 +14,19 @@ import java.util.concurrent.Executors;
 public final class VideoLibraryRepository {
     private static volatile VideoLibraryRepository instance;
     private final VideoLibraryDao dao;
+    private final VideoDatabase database;
+    private final LegacyPlaybackProgress legacyProgress;
     private final ExecutorService databaseExecutor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private VideoLibraryRepository(Context context) {
-        dao = VideoDatabase.get(context).libraryDao();
+        this(context, VideoDatabase.get(context));
+    }
+
+    VideoLibraryRepository(Context context, VideoDatabase database) {
+        this.database = database;
+        dao = database.libraryDao();
+        legacyProgress = new LegacyPlaybackProgress(context);
     }
 
     public static VideoLibraryRepository get(Context context) {
@@ -43,13 +51,53 @@ public final class VideoLibraryRepository {
     }
 
     public void updateProgress(VideoRes video, int episode, long positionMs, long durationMs) {
+        if (video == null) return;
         databaseExecutor.execute(() -> {
             VideoRecordEntity record = mergedRecord(video);
             record.lastWatchedAt = System.currentTimeMillis();
             record.lastEpisode = Math.max(0, episode);
-            record.positionMs = Math.max(0, positionMs);
+            record.positionMs = VideoProgressEntity.resumePosition(positionMs, durationMs);
             record.durationMs = Math.max(0, durationMs);
-            dao.save(record);
+            VideoProgressEntity progress = new VideoProgressEntity();
+            progress.videoKey = record.videoKey;
+            progress.episode = record.lastEpisode;
+            progress.positionMs = record.positionMs;
+            progress.durationMs = record.durationMs;
+            database.runInTransaction(() -> {
+                dao.save(record);
+                dao.saveProgress(progress);
+            });
+        });
+    }
+
+    public void loadLastEpisode(VideoRes video, ValueCallback<Integer> callback) {
+        databaseExecutor.execute(() -> {
+            VideoRecordEntity record = dao.find(VideoRecordEntity.keyOf(video));
+            int episode = record != null && record.lastEpisode > 0 ? record.lastEpisode
+                    : VideoSource.LEGACY.equals(video.getSourceId())
+                    ? legacyProgress.getLastEpisode(video.getVideo(), video.getEpisodes()) : 1;
+            post(callback, video.getEpisodes() > 0
+                    ? Math.max(1, Math.min(video.getEpisodes(), episode)) : 0);
+        });
+    }
+
+    public void loadProgress(VideoRes video, int episode, ValueCallback<VideoProgressEntity> callback) {
+        databaseExecutor.execute(() -> {
+            String key = VideoRecordEntity.keyOf(video);
+            VideoProgressEntity progress = dao.progress(key, episode);
+            if (progress == null) {
+                // Unknown old URL positions must not leak into an unrelated newly bound API.
+                progress = new VideoProgressEntity();
+                progress.videoKey = key;
+                progress.episode = episode;
+                if (VideoSource.LEGACY.equals(video.getSourceId())) {
+                    progress.positionMs = legacyProgress.getPosition(episode > 0
+                            ? video.getEpisodeVideo(episode) : video.getVideo());
+                }
+                dao.saveProgress(progress);
+            }
+            progress.positionMs = VideoProgressEntity.resumePosition(progress.positionMs, progress.durationMs);
+            post(callback, progress);
         });
     }
 
@@ -80,8 +128,12 @@ public final class VideoLibraryRepository {
 
     public void clearHistory(Runnable callback) {
         databaseExecutor.execute(() -> {
-            dao.deleteUnfavoritedHistory();
-            dao.clearFavoriteHistory();
+            legacyProgress.clear();
+            database.runInTransaction(() -> {
+                dao.deleteUnfavoritedHistory();
+                dao.clearFavoriteHistory();
+                dao.clearProgress();
+            });
             post(callback);
         });
     }

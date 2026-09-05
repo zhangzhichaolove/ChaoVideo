@@ -1,7 +1,8 @@
 package com.app.chao.chaoapp.bean;
 
-import com.app.chao.chaoapp.net.ApiAddressManager;
+import com.app.chao.chaoapp.data.VideoSource;
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.annotations.JsonAdapter;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -42,9 +43,40 @@ public class VideoRes implements Parcelable {
     public String video;
     public String videoTime;
     public int episodes;
+    // Optional ordered, 1-based episode contract. Null retains the legacy filename convention;
+    // an explicitly supplied array is authoritative, including an empty array.
+    @SerializedName("episodeUrls")
+    @JsonAdapter(EpisodeUrlsAdapter.class)
+    private String[] episodeUrls;
     private int localWatchedEpisode;
     private long localProgressMs;
     private long localDurationMs;
+    // Client-owned provenance: an API response must not impersonate local/download records.
+    private transient String sourceId;
+    private transient String sourceBaseUrl;
+    private transient String storedLibraryKey;
+
+    public void bindApiSource(String baseUrl) {
+        if (sourceId != null) return;
+        sourceBaseUrl = VideoSource.normalize(baseUrl);
+        sourceId = VideoSource.apiId(sourceBaseUrl);
+    }
+
+    public void bindOfflineSource(boolean downloaded) {
+        if (sourceId != null) return;
+        sourceId = downloaded ? VideoSource.DOWNLOAD : VideoSource.LOCAL;
+    }
+
+    public String getSourceId() { return sourceId == null ? VideoSource.LEGACY : sourceId; }
+    public String getSourceBaseUrl() { return sourceBaseUrl; }
+    public String getStoredLibraryKey() { return storedLibraryKey; }
+
+    /** Room rows have an established key, including old raw-URL keys that must not be recomputed. */
+    public void restoreLibrarySource(String sourceId, String baseUrl, String key) {
+        this.sourceId = sourceId == null ? VideoSource.LEGACY : sourceId;
+        sourceBaseUrl = baseUrl;
+        storedLibraryKey = key;
+    }
 
 
     public String getId() {
@@ -144,6 +176,9 @@ public class VideoRes implements Parcelable {
     }
 
     public String getVideo() {
+        if ((video == null || video.trim().isEmpty()) && episodeUrls != null && episodeUrls.length > 0) {
+            return getEpisodeVideo(1);
+        }
         return resolveUrl(video);
     }
 
@@ -160,7 +195,26 @@ public class VideoRes implements Parcelable {
     }
 
     public int getEpisodes() {
-        return episodes;
+        return episodeUrls == null ? Math.max(0, episodes) : episodeUrls.length;
+    }
+
+    public String[] getEpisodeUrls() {
+        return episodeUrls == null ? null : episodeUrls.clone();
+    }
+
+    public void setEpisodeUrls(String[] urls) {
+        episodeUrls = urls == null ? null : urls.clone();
+    }
+
+    /** Fail the API response rather than silently guessing media for a malformed explicit list. */
+    public void validateEpisodeUrls() {
+        if (episodeUrls == null) return;
+        for (int i = 0; i < episodeUrls.length; i++) {
+            String url = episodeUrls[i];
+            if (url == null || url.trim().isEmpty() || HttpUrl.parse(getEpisodeVideo(i + 1)) == null) {
+                throw new IllegalArgumentException("episodeUrls 必须包含有效的 HTTP(S) 分集地址");
+            }
+        }
     }
 
     public void setEpisodes(int episodes) {
@@ -186,6 +240,9 @@ public class VideoRes implements Parcelable {
     }
 
     public String getEpisodeVideo(int episode) {
+        if (episodeUrls != null) {
+            return episode < 1 || episode > episodeUrls.length ? null : resolveUrl(episodeUrls[episode - 1]);
+        }
         return resolveUrl(episodePath(video, episode));
     }
 
@@ -194,18 +251,26 @@ public class VideoRes implements Parcelable {
             return source;
         }
 
-        int suffixStart = source.lastIndexOf('_');
-        int extensionStart = source.lastIndexOf('.');
-        if (suffixStart > source.lastIndexOf('/') && extensionStart > suffixStart
-                && isNumber(source.substring(suffixStart + 1, extensionStart))) {
-            return source.substring(0, suffixStart + 1)
-                    + episode + source.substring(extensionStart);
+        // Legacy compatibility only: never rewrite underscores/dots in a query or fragment.
+        int end = source.length();
+        int query = source.indexOf('?');
+        int fragment = source.indexOf('#');
+        if (query >= 0) end = Math.min(end, query);
+        if (fragment >= 0) end = Math.min(end, fragment);
+        String path = source.substring(0, end);
+        String tail = source.substring(end);
+        int suffixStart = path.lastIndexOf('_');
+        int extensionStart = path.lastIndexOf('.');
+        if (suffixStart > path.lastIndexOf('/') && extensionStart > suffixStart
+                && isNumber(path.substring(suffixStart + 1, extensionStart))) {
+            return path.substring(0, suffixStart + 1)
+                    + episode + path.substring(extensionStart) + tail;
         }
-        if (extensionStart > source.lastIndexOf('/')) {
-            return source.substring(0, extensionStart)
-                    + "_" + episode + source.substring(extensionStart);
+        if (extensionStart > path.lastIndexOf('/')) {
+            return path.substring(0, extensionStart)
+                    + "_" + episode + path.substring(extensionStart) + tail;
         }
-        return source + "_" + episode;
+        return path + "_" + episode + tail;
     }
 
     private static boolean isNumber(String value) {
@@ -221,7 +286,9 @@ public class VideoRes implements Parcelable {
     }
 
     private String resolveUrl(String value) {
-        HttpUrl baseUrl = HttpUrl.parse(ApiAddressManager.getBaseUrl());
+        // Legacy records lack provenance. Keep their recorded URL; never silently redirect to
+        // the currently selected server. All fresh API models are bound by SourcedVideoApi.
+        HttpUrl baseUrl = sourceBaseUrl == null ? null : HttpUrl.parse(sourceBaseUrl);
         HttpUrl resolvedUrl = baseUrl == null || value == null ? null : baseUrl.resolve(value);
         return resolvedUrl == null ? value : resolvedUrl.toString();
     }
@@ -248,6 +315,10 @@ public class VideoRes implements Parcelable {
         localWatchedEpisode = in.readInt();
         localProgressMs = in.readLong();
         localDurationMs = in.readLong();
+        sourceId = in.readString();
+        sourceBaseUrl = in.readString();
+        storedLibraryKey = in.readString();
+        episodeUrls = in.createStringArray();
     }
 
     @Override
@@ -270,6 +341,10 @@ public class VideoRes implements Parcelable {
         dest.writeInt(localWatchedEpisode);
         dest.writeLong(localProgressMs);
         dest.writeLong(localDurationMs);
+        dest.writeString(sourceId);
+        dest.writeString(sourceBaseUrl);
+        dest.writeString(storedLibraryKey);
+        dest.writeStringArray(episodeUrls);
     }
 
     @Override

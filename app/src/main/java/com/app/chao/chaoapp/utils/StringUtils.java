@@ -50,7 +50,7 @@ public class StringUtils {
     }
 
     public static String getErrorMsg(String msg) {
-        if (msg.contains("*")) {
+        if (msg != null && msg.contains("*")) {
             msg = msg.substring(msg.indexOf("*") + 1);
             return msg;
         } else

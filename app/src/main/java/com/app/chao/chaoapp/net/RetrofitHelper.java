@@ -33,13 +33,14 @@ public class RetrofitHelper {
     public static synchronized VideoApis getVideoApi() {
         initOkHttp();
         if (videoApi == null) {
+            String baseUrl = ApiAddressManager.getBaseUrl();
             Retrofit retrofit = new Retrofit.Builder()
                     .client(okHttpClient)
-                    .baseUrl(ApiAddressManager.getBaseUrl())
+                    .baseUrl(baseUrl)
                     .addConverterFactory(GsonConverterFactory.create())
                     .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                     .build();
-            videoApi = retrofit.create(VideoApis.class);
+            videoApi = new SourcedVideoApi(retrofit.create(VideoApis.class), baseUrl);
         }
         return videoApi;
     }
@@ -71,8 +72,7 @@ public class RetrofitHelper {
                         response.close();
                         tryCount++;
                         Log.w(RetrofitHelper.class.getSimpleName(),
-                                "Retrying request (" + tryCount + "/" + MAX_RETRIES + "): "
-                                        + request.url());
+                                "Retrying request (" + tryCount + "/" + MAX_RETRIES + ")");
                         response = chain.proceed(request);
                     }
 

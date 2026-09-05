@@ -1,5 +1,7 @@
 package com.app.chao.chaoapp.bean;
 
+// Preserve the generic records type used by Gson in the minified Retrofit response.
+@androidx.annotation.Keep
 public class PageInfo<T> {
 
     public T records;

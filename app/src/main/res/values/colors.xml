@@ -11,4 +11,13 @@
     <color name="white_translucent">#30FFFFFF</color>
     <color name="navigation_drawer_background">#FFFFFF</color>
     <color name="navigation_item_default">#DE000000</color>
+    <color name="diagnostic_action">#303F9F</color>
+    <color name="button_surface">#FFE9F1</color>
+    <color name="button_foreground">#902452</color>
+    <color name="button_outline">#F3C7D9</color>
+    <color name="button_primary_surface">#B12766</color>
+    <color name="button_primary_foreground">#FFFFFF</color>
+    <color name="button_ripple">#28B12766</color>
+    <color name="button_disabled_surface">#E8E8EC</color>
+    <color name="button_disabled_foreground">#777780</color>
 </resources>

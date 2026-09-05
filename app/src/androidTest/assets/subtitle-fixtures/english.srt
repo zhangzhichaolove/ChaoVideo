@@ -1,0 +1,7 @@
+1
+00:00:00,100 --> 00:00:06,000
+ChaoVideo English subtitle
+
+2
+00:00:20,000 --> 00:00:29,900
+ChaoVideo ending subtitle
