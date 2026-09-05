@@ -239,9 +239,6 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
     }
 
     private void requestSearch() {
-        if (TextUtils.isEmpty(getCatalogId())) {
-            return;
-        }
         libraryRepository.addSearch(getCatalogId());
         InputMethodManager keyboard = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         if (keyboard != null) {
