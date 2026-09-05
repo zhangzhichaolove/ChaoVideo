@@ -2,7 +2,9 @@ package com.app.chao.chaoapp.ui.activity;
 
 import android.graphics.Color;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -89,6 +91,17 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
                 requestSearch();
             }
         });
+        toolbar.setOnSearchActionListener((view, actionId, event) -> {
+            boolean enterReleased = event != null
+                    && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                    && event.getAction() == KeyEvent.ACTION_UP;
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
+                    || enterReleased) {
+                requestSearch();
+                return true;
+            }
+            return false;
+        });
 
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 3);
@@ -150,8 +163,7 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
         @Override
         public void onClick(View view) {
             toolbar.setSearchText(((TextView) view).getText().toString().trim());
-            //materialRefreshLayout.autoRefresh();
-            mPresenter.onRefresh();
+            requestSearch();
         }
     };
 
@@ -231,6 +243,10 @@ public class SearchActivity extends BaseActivity<ActivityVideoListContract.Prese
             return;
         }
         libraryRepository.addSearch(getCatalogId());
+        InputMethodManager keyboard = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        if (keyboard != null) {
+            keyboard.hideSoftInputFromWindow(toolbar.getWindowToken(), 0);
+        }
         endlessScrollListener.reset();
         listState.setVisibility(View.VISIBLE);
         listStateProgress.setVisibility(View.VISIBLE);

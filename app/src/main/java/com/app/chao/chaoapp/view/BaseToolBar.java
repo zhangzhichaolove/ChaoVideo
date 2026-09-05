@@ -5,6 +5,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -106,6 +107,14 @@ public class BaseToolBar extends Toolbar {
 
     public void setLeftButtonOnClickListener(OnClickListener listener) {
         back.setOnClickListener(listener);
+    }
+
+    public void setOnSearchActionListener(TextView.OnEditorActionListener listener) {
+        mSearch.setOnEditorActionListener((view, actionId, event) -> event == null
+                && listener.onEditorAction(view, actionId, null));
+        mSearch.setOnKeyListener((view, keyCode, event) -> keyCode == KeyEvent.KEYCODE_ENTER
+                && event.getAction() == KeyEvent.ACTION_UP
+                && listener.onEditorAction(mSearch, 0, event));
     }
 
     public void showSearchClearView() {

@@ -54,7 +54,6 @@ public class TabFragmentTwo extends BaseFragment<FragmentTwoContract.Presenter> 
 
     @Override
     protected void initView(View inflater) {
-        inflater.findViewById(R.id.recommend_header).setVisibility(View.GONE);
         materialRefreshLayout = inflater.findViewById(R.id.refresh);
         recyclerView = inflater.findViewById(R.id.recyclerView);
         listState = inflater.findViewById(R.id.list_state);

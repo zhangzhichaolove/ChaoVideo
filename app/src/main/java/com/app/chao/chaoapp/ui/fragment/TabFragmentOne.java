@@ -2,19 +2,18 @@ package com.app.chao.chaoapp.ui.fragment;
 
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.RelativeLayout;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.ConcatAdapter;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-import androidx.viewpager2.widget.ViewPager2;
 
 import com.app.chao.chaoapp.R;
-import com.app.chao.chaoapp.adapter.BannerAdapter;
 import com.app.chao.chaoapp.adapter.FragmentOneAdapter;
+import com.app.chao.chaoapp.adapter.RecommendHeaderAdapter;
 import com.app.chao.chaoapp.base.Preconditions;
 import com.app.chao.chaoapp.bean.VideoRes;
 import com.app.chao.chaoapp.contract.FragmentOneContract;
@@ -33,10 +32,7 @@ import java.util.List;
 public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> implements FragmentOneContract.View {
     SwipeRefreshLayout materialRefreshLayout;
     RecyclerView recyclerView;
-    ViewPager2 banner;
-    TextView etSearchKey;
-    RelativeLayout rlGoSearch;
-    BannerAdapter bannerAdapter;
+    RecommendHeaderAdapter headerAdapter;
     FragmentOneAdapter adapter;
     int page = 1;
     View listState;
@@ -48,10 +44,10 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
     private final Runnable bannerAdvance = new Runnable() {
         @Override
         public void run() {
-            if (bannerAdapter != null && bannerAdapter.getItemCount() > 1) {
-                banner.setCurrentItem((banner.getCurrentItem() + 1) % bannerAdapter.getItemCount(), true);
-                bannerHandler.postDelayed(this, 3000);
+            if (headerAdapter != null) {
+                headerAdapter.advanceBanner();
             }
+            bannerHandler.postDelayed(this, 3000);
         }
     };
 
@@ -77,11 +73,17 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
         listStateMessage = inflater.findViewById(R.id.list_state_message);
         listStateRetry = inflater.findViewById(R.id.list_state_retry);
         listStateRetry.setOnClickListener(view -> reload());
-        banner = inflater.findViewById(R.id.banner);
-        rlGoSearch = inflater.findViewById(R.id.rlGoSearch);
-        etSearchKey = inflater.findViewById(R.id.etSearchKey);
-        recyclerView.setAdapter(adapter = new FragmentOneAdapter());
+        headerAdapter = new RecommendHeaderAdapter();
+        headerAdapter.setOnSearchClickListener(view -> JumpUtil.goSearchActivity(mContext));
+        adapter = new FragmentOneAdapter();
+        recyclerView.setAdapter(new ConcatAdapter(headerAdapter, adapter));
         GridLayoutManager gridLayoutManager = new GridLayoutManager(getContext(), 2);
+        gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                return position == 0 ? 2 : 1;
+            }
+        });
         recyclerView.setLayoutManager(gridLayoutManager);
         endlessScrollListener = new EndlessScrollListener(gridLayoutManager, () -> {
             page++;
@@ -90,12 +92,6 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
         recyclerView.addOnScrollListener(endlessScrollListener);
         adapter.setOnItemClickListener(position ->
                 JumpUtil.goGSYYVideoActivity(mContext, adapter.getItem(position)));
-        rlGoSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                JumpUtil.goSearchActivity(mContext);
-            }
-        });
         //recyclerView.setErrorView(R.layout.view_error);
         //webView.loadUrl("http://www.youku.com");
         new FragmentOnePresenter(this);
@@ -189,8 +185,7 @@ public class TabFragmentOne extends BaseFragment<FragmentOneContract.Presenter> 
 
     @Override
     public void showBanner(final List<VideoRes> videoRes) {
-        bannerAdapter = new BannerAdapter(requireContext(), videoRes);
-        banner.setAdapter(bannerAdapter);
+        headerAdapter.setVideos(videoRes);
         bannerHandler.removeCallbacks(bannerAdvance);
         bannerHandler.postDelayed(bannerAdvance, 3000);
         close();
